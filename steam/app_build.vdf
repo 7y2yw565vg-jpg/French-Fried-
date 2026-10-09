@@ -1,0 +1,22 @@
+"AppBuild"
+{
+	"AppID" "0000000" // TODO: your Steam App ID
+	"Desc" "French Fried! build"
+	"ContentRoot" "../release/"
+	"BuildOutput" "./output/"
+	"Depots"
+	{
+		"0000001" // Windows depot
+		{
+			"FileMapping" { "LocalPath" "win-unpacked/*" "DepotPath" "." "recursive" "1" }
+		}
+		"0000002" // macOS depot
+		{
+			"FileMapping" { "LocalPath" "mac/*" "DepotPath" "." "recursive" "1" }
+		}
+		"0000003" // Linux depot
+		{
+			"FileMapping" { "LocalPath" "linux-unpacked/*" "DepotPath" "." "recursive" "1" }
+		}
+	}
+}
