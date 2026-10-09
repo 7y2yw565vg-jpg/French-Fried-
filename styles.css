@@ -50,7 +50,7 @@ h1 small, h2 small, h3 small { font-family: var(--font-body); font-size: .55em; 
 .row.wrap { flex-wrap: wrap; }
 kbd { background: #fff; border: 2px solid var(--ink); border-radius: 5px; padding: 0 5px; font-size: .8em; }
 
-#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+#app { display: flex; flex-direction: column; height: 100%; }
 .screen { flex: 1; overflow: auto; padding: 18px 22px 28px; position: relative; }
 
 /* ---------- Buttons ---------- */

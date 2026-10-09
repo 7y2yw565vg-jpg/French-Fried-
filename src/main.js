@@ -189,7 +189,7 @@ function openSettings() {
   $('#achBtn2').onclick = showAchievements;
   $('#howBtn2').onclick = () => showHowTo(false);
   const box = $('#saveBox');
-  $('#expBtn').onclick = () => { box.hidden = false; box.value = exportSave(app.state); box.select(); try { navigator.clipboard?.writeText(box.value); toast('Save code copied!', 'good'); } catch { /* ignore */ } };
+  $('#expBtn').onclick = () => { box.hidden = false; box.value = exportSave(app.state); box.select(); navigator.clipboard?.writeText(box.value).then(() => toast('Save code copied!', 'good'), () => toast('Select the code above and copy it.', 'info')); };
   $('#impBtn').onclick = () => {
     if (box.hidden || !box.value.trim()) { box.hidden = false; box.focus(); toast('Paste a save code, then press Import again.', 'info'); return; }
     try {

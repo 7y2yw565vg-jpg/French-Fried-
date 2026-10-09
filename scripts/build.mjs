@@ -51,4 +51,12 @@ html = html
 await mkdir(r('dist'), { recursive: true });
 await writeFile(r('dist/index.html'), html);
 await writeFile(r('dist/.nojekyll'), '');
+// Body-only variant for hosts that supply their own document skeleton.
+const fragment = html
+  .replace(/<!doctype html>\s*/i, '')
+  .replace(/<\/?html[^>]*>\s*/gi, '')
+  .replace(/<\/?head>\s*/gi, '')
+  .replace(/<meta (charset|name="viewport")[^>]*>\s*/gi, '')
+  .replace(/<\/?body>\s*/gi, '');
+await writeFile(r('dist/embed.html'), fragment);
 console.log(`Built dist/index.html (${(html.length / 1024).toFixed(0)} KB)`);
