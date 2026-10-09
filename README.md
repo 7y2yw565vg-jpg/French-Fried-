@@ -14,9 +14,9 @@ whether you've invented something new. Discover them all to win.
 - **109 illustrated cards**: 43 basic ingredients, 26 premium ingredients and 40 thrift-store objects,
   all drawn as vector art in code. Each one also has a topping layer for the fry boat.
 - **Card packs**: Basic Packs ($30) from the start. Premium Packs unlock after 15 recipes (one-time $250).
-- **Thrift Store** (mid game, 120 recipes): three objects for sale. Restock for cash or wait for the
+- **Thrift Store** (mid game, 50 recipes): three objects for sale. Restock for cash or wait for the
   real-time 30-minute timer. Objects go into your deck and make the strangest recipes.
-- **The Lab** (late game, 300 recipes): grow GMO fries, splice in 18 traits (Curly, Spicy Gene,
+- **The Lab** (late game, 100 recipes): grow GMO fries, splice in 18 traits (Curly, Spicy Gene,
   Vampire Spud, Tater Tot Form...), train stats and breed new generations.
 - **The Fryer**: an auto-battle arena with four leagues. Each win pays out. A fry that loses is fried
   and gone for good. Win every round in a league to become its champion.

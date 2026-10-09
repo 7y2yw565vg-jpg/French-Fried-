@@ -10,9 +10,9 @@ export const STARTER_DECK = {
 
 export const UNLOCKS = {
   premium: { name: 'Premium Packs', cost: 250, needRecipes: 15, blurb: 'Fancy ingredients: truffles, caviar, lobster and more.' },
-  thrift: { name: 'The Thrift Store', cost: 900, needRecipes: 120, blurb: 'Buy weird objects. Put them on fries. Profit.' },
-  lab: { name: 'The Lab', cost: 3000, needRecipes: 300, blurb: 'Genetically modify and breed super-fries.' },
-  fryer: { name: 'The Fryer', cost: 1500, needRecipes: 300, needUnlock: 'lab', blurb: 'Battle arena. Losers get fried.' },
+  thrift: { name: 'The Thrift Store', cost: 900, needRecipes: 50, blurb: 'Buy weird objects. Put them on fries. Profit.' },
+  lab: { name: 'The Lab', cost: 3000, needRecipes: 100, blurb: 'Genetically modify and breed super-fries.' },
+  fryer: { name: 'The Fryer', cost: 1500, needRecipes: 100, needUnlock: 'lab', blurb: 'Battle arena. Losers get fried.' },
 };
 
 export function defaultState(now = Date.now()) {

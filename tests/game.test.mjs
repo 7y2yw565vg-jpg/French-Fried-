@@ -115,8 +115,11 @@ test('packs, unlocks and thrift store', () => {
   const p = openPack(s, 'premium', rng);
   assert.ok(p.ok && p.ids.length === 4);
   assert.equal(unlock(s, 'thrift').ok, false);
-  for (const r of RECIPES.slice(0, 130)) s.discovered[r.key] = 1;
-  assert.ok(unlock(s, 'thrift').ok);
+  for (const r of RECIPES.slice(0, 50)) s.discovered[r.key] = 1;
+  assert.ok(unlock(s, 'thrift').ok, 'thrift opens at 50 recipes');
+  assert.equal(unlock(s, 'lab').ok, false, 'lab needs 100 recipes');
+  for (const r of RECIPES.slice(0, 100)) s.discovered[r.key] = 1;
+  assert.ok(unlock(s, 'lab').ok, 'lab opens at 100 recipes');
   assert.ok(tickThrift(s, rng, 1000));
   assert.equal(s.thrift.slots.length, 3);
   assert.equal(tickThrift(s, rng, 2000), false);
