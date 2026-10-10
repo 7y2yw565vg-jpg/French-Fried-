@@ -436,12 +436,12 @@ export function canEnter(state, leagueId, fry) {
 
 /** Every trophy currently on offer (Fryer leagues + arenas in the worlds you've unlocked). */
 export function trophiesOffered(state) {
-  return [...LEAGUES.map((l) => l.id), ...WORLD_ARENAS.filter((a) => a.world !== 'alien' && worldOwned(state, a.world)).map((a) => a.id)];
+  return [...LEAGUES.map((l) => l.id), ...WORLD_ARENAS.filter((a) => a.world !== 'alien').map((a) => a.id)];
 }
 
-/** A fighter holding every trophy on offer earns the mysterious letter. */
+/** A fighter holding every trophy from the home world and all four food worlds earns the mysterious letter. */
 export function letterEligible(state, fry) {
-  if (!fry || fry.hof || fry.invited || fry.letter || !state.worlds?.owned?.length) return false;
+  if (!fry || fry.hof || fry.invited || fry.letter) return false;
   return trophiesOffered(state).every((id) => fry.titles?.includes(id));
 }
 
@@ -455,14 +455,14 @@ export function acceptLetter(state, fryId) {
   return { ok: true, fry: f };
 }
 
-/** Retire a trophy-winning fighter into the Hall of Fame (breeding only, doubles offspring stats). */
+/** Retire a Champion of the Universe into the Hall of Fame (breeding only, doubles offspring stats). */
 export function induct(state, fryId) {
   const f = getFry(state, fryId);
   if (!f) return { ok: false, reason: 'Pick a fighter.' };
   if (!(state.universe?.champions > 0)) return { ok: false, reason: 'Win the Champions of the Universe to open the Hall of Fame.' };
   if (f.hof) return { ok: false, reason: 'Already in the Hall of Fame.' };
   if (busy(state, fryId)) return { ok: false, reason: 'That fighter is mid-tournament.' };
-  if (!f.titles?.length) return { ok: false, reason: 'Only trophy winners can enter the Hall of Fame.' };
+  if (!f.titles?.includes('universe')) return { ok: false, reason: 'Only a Champion of the Universe can enter the Hall of Fame.' };
   f.hof = true;
   f.inducted = Date.now();
   return { ok: true };

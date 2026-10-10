@@ -25,16 +25,18 @@ whether you've invented something new. Discover them all to win.
   the title). Losers are fried and gone for good. You can withdraw between rounds and keep your winnings.
   Each fighter has to win an arena before it can enter the next one.
 - **Worlds** (post-game): win the Legendary Vat to discover Hotdog World, Burger World, Soda World and
-  Cotton Candy World. Your first world is free and the others cost $20,000 each. Each world has five
+  Cotton Candy World, each shown as a slowly spinning 3D planet. Your first world is free and the others cost $20,000 each. Each world has five
   wild creatures to **Explore** for and battle, two creature-bracket arenas, and a signature DNA trait.
   Win battles to collect DNA, then splice it into your fries (stat boost + trait + hybrid look) or grow
   the creature itself from 3 samples.
-- **Champions of the Universe**: once a fighter holds every trophy on offer, a mysterious letter arrives.
+- **Champions of the Universe**: once a fighter has won every arena on the home world and on all four food
+  worlds, a mysterious letter arrives.
   Accept it and a spaceship carries the fighter to the **Alien Planet**. There you can explore for alien
   DNA ($2,500 per trip) or enter a 128-fighter tournament with a $1,000,000 champion's prize.
 - Winning that tournament unlocks the **Hall of Fame** and **difficulty settings** (Normal, Hard, Brutal,
-  Impossible: tougher foes, bigger prizes). A Hall of Famer retires from fighting, but any offspring bred
-  from it are born with double stats.
+  Impossible: tougher foes, bigger prizes). Only a Champion of the Universe can be inducted. A Hall of Famer retires
+  from fighting, but any offspring bred from it are born with double stats.
+- The Kitchen counts the recipes you can still discover, both from your hand and from every card you own.
 - Known multi-card recipes sell for more (up to 3x their base value). The **Cook best known** button
   (or `A`) plays and fries the best-paying recipe you know from your current hand.
 - Hints: if a combo is one card short of a recipe, or has one card too many, the game tells you. You

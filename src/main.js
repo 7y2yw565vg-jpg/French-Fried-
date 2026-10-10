@@ -82,7 +82,7 @@ const app = {
 
   /** Save + achievements + redraw. Call after any state change. */
   commit({ silentRender = false } = {}) {
-    // Fighters who hold every trophy on offer receive the mysterious letter.
+    // Fighters holding every home-world and food-world trophy receive the mysterious letter.
     for (const f of app.state.lab.fries) {
       if (letterEligible(app.state, f)) {
         f.letter = true;

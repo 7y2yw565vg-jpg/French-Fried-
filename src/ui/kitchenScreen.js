@@ -52,8 +52,9 @@ export function renderKitchen(app, root) {
         <div class="kitchen-info">
           <div><b>${k.draw.length}</b> in draw pile · <b>${k.discard.length}</b> in discard</div>
           <div class="possible">
-            <span title="Recipes you can make from the cards in your hand right now"><em>🖐 In hand</em><i><b>${poss.hand.total}</b> possible${poss.hand.fresh ? ` · <strong>${poss.hand.fresh} new</strong>` : ''}</i></span>
-            <span title="Recipes you can make with every card you own"><em>🃏 All your cards</em><i><b>${poss.owned.total}</b> possible${poss.owned.fresh ? ` · <strong>${poss.owned.fresh} new</strong>` : ''}</i></span>
+            <span title="Undiscovered recipes you can make from the cards in your hand right now"><em>🖐 In your hand</em><i><b>${poss.hand.fresh}</b> to discover</i><small>${poss.hand.total - poss.hand.fresh} known</small></span>
+            <span title="Undiscovered recipes you can make from every card you own, benched cards included"><em>🃏 All cards you own</em><i><b>${poss.owned.fresh}</b> to discover</i><small>${poss.owned.total - poss.owned.fresh} known</small></span>
+            <p class="possible-note">Recipes to discover: new recipes, not yet in your book, that these cards can make.</p>
           </div>
           <div class="progress"><div style="width:${(discoveredCount(app.state) / TOTAL_RECIPES) * 100}%"></div></div>
           <button class="btn small" id="rumorBtn">🕵️ Buy a Recipe Rumor (${fmt(rumorCost(app.state))})</button>

@@ -2,7 +2,7 @@
 
 import { acceptLetter, induct, getFry, power, LEAGUE_MAP } from '../game/lab.js';
 import { renderFryGuy } from '../art/fryguy.js';
-import { worldScene } from '../art/worldScenes.js';
+import { planet } from '../art/planets.js';
 import { INK } from '../art/paint.js';
 import { sfx } from '../audio.js';
 import { $, $$, esc, openModal, closeModal, toast } from './dom.js';
@@ -30,14 +30,14 @@ export function ufoSvg(cls = '') {
   </svg>`;
 }
 
-/** Open the letter for a fighter who has won every trophy on offer. */
+/** Open the letter for a fighter who has won every home-world and food-world trophy. */
 export function openLetter(app, fry) {
   sfx('achievement');
   const modal = openModal(`<div class="letter-modal">
     ${envelopeSvg()}
     <div class="letter-paper">
       <p class="letter-head">To the honorable ${esc(fry.name)},</p>
-      <p>Word of your victories has travelled across the stars. Every arena on your world has fallen before you.</p>
+      <p>Word of your victories has travelled across the stars. Every arena on your home world and on all four food worlds has fallen before you.</p>
       <p>You are hereby invited to the <b>Champions of the Universe Tournament</b>: 128 of the fiercest fighters in the galaxy, one prize of <b>$1,000,000</b>, and the title <i>Champion of the Universe</i>.</p>
       <p>Should you accept, transport will arrive shortly. Please stand very still.</p>
       <p class="letter-sign">— The Galactic Fry Federation 🛸</p>
@@ -70,14 +70,14 @@ function abduction(app, fry) {
   setTimeout(() => { $('#abTitle', modal).textContent = 'Next stop: the Alien Planet!'; sfx('win'); }, 3600);
   setTimeout(() => {
     $('.night', modal).remove();
-    $('#abDone', modal).innerHTML = `<div class="arrival">${worldScene('alien')}<span>Welcome to the Alien Planet</span></div>
+    $('#abDone', modal).innerHTML = `<div class="arrival space">${planet('alien')}<span>Welcome to the Alien Planet</span></div>
       <p>${esc(fry.name)} can now enter the <b>Champions of the Universe</b>. The Alien Planet is also open for exploring, so you can collect alien DNA.</p>
       <button class="btn btn-fry" id="goAlien">Go to the Alien Planet</button>`;
     $('#goAlien', modal).onclick = () => { closeModal(); selectWorld('alien'); app.go('worlds'); };
   }, 4800);
 }
 
-/** Pending letters (fighters who already hold every trophy). */
+/** Pending letters (fighters who already hold every home-world and food-world trophy). */
 export function pendingLetters(state) {
   return state.lab.fries.filter((f) => f.letter);
 }
@@ -85,7 +85,7 @@ export function pendingLetters(state) {
 export function renderHall(app, root) {
   const s = app.state;
   const members = s.lab.fries.filter((f) => f.hof).sort((a, b) => (a.inducted || 0) - (b.inducted || 0));
-  const candidates = s.lab.fries.filter((f) => !f.hof && f.titles?.length && s.fryer.run?.fryId !== f.id);
+  const candidates = s.lab.fries.filter((f) => !f.hof && f.titles?.includes('universe') && s.fryer.run?.fryId !== f.id);
   const plaque = (f) => `<div class="plaque">
     <div class="plaque-frame">${renderFryGuy(f, { mood: 'happy' })}</div>
     <h3>${esc(f.name)}</h3>
@@ -97,9 +97,9 @@ export function renderHall(app, root) {
     <div class="hall-head"><h1>🏛️ Hall of Fame</h1>
       <p>The greatest fighters of all time, retired in glory. Hall of Famers can't enter arenas or explore any more, but <b>breeding with a Hall of Famer doubles the offspring's stats</b>.</p>
       <button class="btn btn-primary" id="hallBreed">🧬 Breed a legend in the Lab</button></div>
-    <div class="plaques">${members.map(plaque).join('') || '<p class="muted">No inductees yet. Induct a trophy winner below.</p>'}</div>
+    <div class="plaques">${members.map(plaque).join('') || '<p class="muted">No inductees yet. Induct a Champion of the Universe below.</p>'}</div>
     <h2>Eligible for induction</h2>
-    <div class="candidates">${candidates.map((f) => `<div class="candidate">${renderFryGuy(f)}<div><b>${esc(f.name)}</b><small>${kindLabel(f)} · ${f.titles.length} troph${f.titles.length > 1 ? 'ies' : 'y'} · Power ${power(f)}</small></div><button class="btn small" data-induct="${f.id}">Induct</button></div>`).join('') || '<p class="muted">Win a tournament with a fighter to make them eligible.</p>'}</div>
+    <div class="candidates">${candidates.map((f) => `<div class="candidate">${renderFryGuy(f)}<div><b>${esc(f.name)}</b><small>${kindLabel(f)} · ${f.titles.length} troph${f.titles.length > 1 ? 'ies' : 'y'} · Power ${power(f)}</small></div><button class="btn small" data-induct="${f.id}">Induct</button></div>`).join('') || '<p class="muted">Only a Champion of the Universe can be inducted. Win the Champions of the Universe tournament with a fighter to make them eligible.</p>'}</div>
   </section>`;
   $('#hallBreed', root).onclick = () => app.go('lab');
   $$('[data-induct]', root).forEach((b) => (b.onclick = () => {

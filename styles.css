@@ -182,7 +182,9 @@ kbd { background: #fff; border: 2px solid var(--ink); border-radius: 5px; paddin
 .possible em { font-style: normal; font-weight: 900; font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
 .possible i { font-style: normal; }
 .possible b { font-family: var(--font-head); font-weight: 400; font-size: 1.35rem; line-height: 1.1; }
-.possible strong { color: #1f7a36; }
+.possible i b { color: #1f7a36; }
+.possible small { color: var(--muted); font-size: .72rem; }
+.possible-note { grid-column: 1 / -1; margin: 0; font-size: .72rem; color: var(--muted); line-height: 1.25; }
 .btn-auto.inline { display: none; }
 .actions .row .btn { flex: 1; }
 .kitchen-info { background: var(--paper); border: 3px solid var(--ink); border-radius: var(--radius); padding: 10px 12px; font-size: .9rem; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); }
@@ -656,3 +658,53 @@ button.entry:hover { transform: translateY(-2px); }
 .candidate small { color: var(--muted); }
 .setting select { font-family: var(--font-body); font-weight: 700; border: 2px solid var(--ink); border-radius: 8px; padding: 4px 6px; max-width: 100%; }
 .ring.world-alien { background: radial-gradient(ellipse at 50% 110%, #c86bff 0, #5a2a9e 45%, #12082e 80%); }
+
+/* ---------- Spinning planets ---------- */
+.planet { position: relative; display: inline-block; width: var(--ps, 120px); aspect-ratio: 1; transform: rotate(-14deg); flex: none; }
+.planet.ringed { margin: 0 calc(var(--ps, 120px) * .12); }
+.planet-ball { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; border: 3px solid var(--ink); box-shadow: 0 0 calc(var(--ps, 120px) * .14) var(--glow), 0 4px 0 rgba(43, 29, 20, .35); background: #000; z-index: 1; isolation: isolate; }
+.planet-strip { position: absolute; top: 0; left: 0; height: 100%; width: 400%; animation: planet-spin 48s linear infinite; }
+.planet-shade { position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .55) 0, rgba(255, 255, 255, .12) 18%, transparent 36%),
+    radial-gradient(circle at 38% 36%, transparent 46%, rgba(10, 4, 30, .35) 66%, rgba(10, 4, 30, .78) 100%),
+    linear-gradient(100deg, transparent 52%, rgba(10, 4, 30, .38) 100%);
+  box-shadow: inset 0 0 calc(var(--ps, 120px) * .08) rgba(0, 0, 0, .35); }
+.planet-ring { position: absolute; left: -24%; top: 13%; width: 148%; height: 74%; pointer-events: none; overflow: visible; }
+.planet-ring.back { z-index: 0; }
+.planet-ring.front { z-index: 2; }
+@keyframes planet-spin { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .planet-strip { animation-duration: 240s; } }
+
+.space { background: radial-gradient(ellipse at 50% 40%, #2e1f63 0, #120a2e 70%); background-color: #120a2e; position: relative; }
+.space::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .9;
+  background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 28% 72%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 44% 34%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 63% 12%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 78% 64%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 88% 28%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 6% 86%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 54% 90%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 94% 88%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 36% 8%, #fff 50%, transparent 51%); }
+
+/* First-world picker: each world is a planet in space. */
+.world-card.space { aspect-ratio: auto; display: flex; flex-direction: column; align-items: center; padding: 54px 0 0; min-height: 330px; }
+.world-card.space .planet { --ps: 170px; margin: 6px auto 64px; }
+.world-card.space:hover:not(:disabled) .planet-strip { animation-duration: 16s; }
+
+/* World tabs: a row of planets. */
+.world-thumbs.planets { gap: 6px 18px; align-items: flex-end; padding: 10px 14px 6px; border: 4px solid var(--ink); border-radius: 18px; box-shadow: 0 4px 0 var(--ink); overflow: hidden; }
+.planet-tab { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: 0; padding: 6px 4px 4px; cursor: pointer; font-family: var(--font-head); color: #fff; z-index: 1; }
+.planet-tab .planet { --ps: 74px; transition: transform .2s; }
+.planet-tab:hover .planet { transform: rotate(-14deg) scale(1.08); }
+.planet-tab > b { font-weight: 400; font-size: .95rem; text-shadow: 2px 2px 0 var(--ink); white-space: nowrap; padding: 0 8px; border-radius: 99px; }
+.planet-tab.on > b { background: var(--wc); border: 2px solid #fff; }
+.planet-tab.on .planet-ball { border-color: #fff; box-shadow: 0 0 0 3px var(--ink), 0 0 22px 6px var(--glow); }
+.planet-tab.locked .planet-ball { filter: grayscale(.85) brightness(.75); }
+.planet-tab .thumb-price { top: 0; right: -6px; z-index: 3; }
+@media (max-width: 700px) {
+  .world-thumbs.planets { gap: 2px; justify-content: space-around; flex-wrap: nowrap; padding: 8px 4px 6px; }
+  .planet-tab { flex: 1 1 0; min-width: 0; padding: 4px 0 2px; gap: 6px; }
+  .planet-tab .planet { --ps: 46px; }
+  .planet-tab .planet.ringed { margin: 0 6px; }
+  .planet-tab > b { font-size: .68rem; white-space: normal; text-align: center; line-height: 1.05; padding: 0 3px; }
+  .planet-tab .thumb-price { right: -2px; font-size: .55rem; padding: 0 3px; }
+  .possible-note { display: none; }
+  .world-card.space .planet { --ps: 140px; }
+}
+.arrival.space { display: flex; align-items: center; justify-content: center; padding-top: 34px; }
+.arrival.space .planet { --ps: 150px; }
+.arrival.space span { z-index: 3; }

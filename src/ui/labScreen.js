@@ -1,6 +1,6 @@
 // The Lab: grow, modify, train and breed GMO fries.
 
-import { traitsFor, trainingFor, speciesOf, labCount, induct, TRAIT_MAP, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, WILD_PARENT, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
+import { traitsFor, trainingFor, speciesOf, labCount, induct, trophiesOffered, TRAIT_MAP, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, WILD_PARENT, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
 import { renderFryGuy, traitBadges } from '../art/fryguy.js';
 import { fmt } from '../game/state.js';
 import { CREATURE_MAP, WORLD_MAP, RARITY, SPLICE_COST, GROW_DNA_COST, GROW_DNA_SAMPLES, MAX_DNA_SPLICES } from '../data/worlds.js';
@@ -90,9 +90,10 @@ export function renderLab(app, root) {
             <h2>${esc(sel.name)} <button class="btn tiny" id="renameBtn">✏️</button></h2>
             <p class="muted">${kindLabel(sel)} · ${sel.wins} wins · ${sel.trained} treatments</p>
             ${sel.titles.length ? `<p class="trophies">${sel.titles.map((t) => `<span title="${esc(LEAGUE_MAP[t]?.name || t)}">🏆 ${esc(LEAGUE_MAP[t]?.name || t)}</span>`).join('')}</p>` : ''}
+            ${!sel.letter && !sel.invited && sel.titles.length ? (() => { const need = trophiesOffered(s); const have = need.filter((t) => sel.titles.includes(t)).length; return `<p class="hint">📜 ${have}/${need.length} trophies from your home world and the four food worlds. Win them all to receive a mysterious letter.</p>`; })() : ''}
             ${sel.letter ? '<button class="btn btn-primary letter-btn" id="letterBtn">📜 Read the mysterious letter</button>' : ''}
             ${sel.invited && !sel.titles.includes('universe') ? '<p class="hint">🛸 Invited to the Champions of the Universe on the Alien Planet.</p>' : ''}
-            ${s.universe?.champions > 0 && sel.titles.length ? '<button class="btn small" id="inductBtn">🏛️ Induct into the Hall of Fame</button>' : ''}
+            ${sel.titles.includes('universe') ? '<button class="btn small" id="inductBtn">🏛️ Induct into the Hall of Fame</button>' : ''}
             ${statBlock(sel)}
             <div class="traits">${sel.traits.length ? sel.traits.map((t) => `<span class="trait removable" title="${esc(TRAIT_MAP[t].desc)}">${TRAIT_MAP[t].name} <button class="x" data-purge="${t}" title="Remove ${TRAIT_MAP[t].name} for ${fmt(PURGE_COST)}">✕ Remove</button></span>`).join('') : '<span class="muted">No traits spliced yet (max 3).</span>'}</div>
           </div>

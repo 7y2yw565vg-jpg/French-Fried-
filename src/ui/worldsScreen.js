@@ -5,6 +5,7 @@ import { worldsUnlocked, worldCost, unlockWorld, explore, exploreCost } from '..
 import { LEAGUE_MAP, TRAIT_MAP, enterReason, worldOwned, getFry, startRun } from '../game/lab.js';
 import { renderFryGuy } from '../art/fryguy.js';
 import { worldScene } from '../art/worldScenes.js';
+import { planet } from '../art/planets.js';
 import { fmt } from '../game/state.js';
 import { sfx } from '../audio.js';
 import { $, $$, esc, toast, openModal, closeModal } from './dom.js';
@@ -20,14 +21,13 @@ export function selectWorld(id) {
 
 const proto = (c, world) => ({ name: c.name, species: world, creature: c.id, traits: [], titles: [], base: {} });
 
-// A world is shown as its landscape, with a few of its creatures standing in it.
+// A world is shown as its planet, spinning in space.
 function worldCard(w, s, first) {
   const owned = s.worlds.owned.includes(w.id);
   const trait = TRAIT_MAP[w.trait];
-  return `<button class="world-card" style="--wc:${w.color}" data-travel="${w.id}" ${owned ? 'disabled' : ''} title="${esc(w.desc)}">
-    ${worldScene(w.id)}
+  return `<button class="world-card space" style="--wc:${w.color}" data-travel="${w.id}" ${owned ? 'disabled' : ''} title="${esc(w.desc)}">
     <span class="world-title">${w.name}</span>
-    <span class="world-critters">${w.creatures.slice(0, 3).map((c) => renderFryGuy(proto(c, w.id))).join('')}</span>
+    ${planet(w.id)}
     <span class="world-foot"><span class="world-trait">🧬 ${trait.name}</span><span class="world-go">${owned ? '✅ Unlocked' : first ? 'Travel here · Free' : `Unlock · ${fmt(worldCost(s))}`}</span></span>
   </button>`;
 }
@@ -55,8 +55,8 @@ export function renderWorlds(app, root) {
 
   const tabs = WORLDS.filter((x) => !x.secret || worldOwned(s, x.id)).map((x) => {
     const owned = worldOwned(s, x.id);
-    return `<button class="world-thumb ${x.id === ui.world ? 'on' : ''} ${owned ? '' : 'locked'}" style="--wc:${x.color}" data-world="${x.id}" title="${owned ? x.name : `Unlock ${x.name} for ${fmt(worldCost(s))}`}">
-      ${worldScene(x.id)}${owned ? '' : `<em class="thumb-price">🔒 ${fmt(worldCost(s))}</em>`}<span>${x.name.replace(' World', '')}</span></button>`;
+    return `<button class="planet-tab ${x.id === ui.world ? 'on' : ''} ${owned ? '' : 'locked'}" style="--wc:${x.color}" data-world="${x.id}" title="${owned ? x.name : `Unlock ${x.name} for ${fmt(worldCost(s))}`}">
+      ${planet(x.id)}${owned ? '' : `<em class="thumb-price">🔒 ${fmt(worldCost(s))}</em>`}<b>${x.name.replace(' World', '')}</b></button>`;
   }).join('');
 
   const fighters = fries.map((f) => `<button class="mini-fry ${f.id === ui.fry ? 'sel' : ''}" data-pick="${f.id}">${renderFryGuy(f)}<span>${esc(f.name)}</span><small>${kindLabel(f)}</small></button>`).join('') || '<p class="muted">No fighters available. Grow one in the Lab.</p>';
@@ -83,7 +83,7 @@ export function renderWorlds(app, root) {
   }).join('');
 
   root.innerHTML = `<section class="worlds">
-    <div class="world-thumbs">${tabs}</div>
+    <div class="world-thumbs planets space">${tabs}</div>
     <div class="world-view" style="--wc:${w.color};--wbg:${w.bg}">
       <div class="explore-stage">
         ${worldScene(w.id)}

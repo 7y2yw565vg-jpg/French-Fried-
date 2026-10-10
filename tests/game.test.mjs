@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { WORLD_ARENAS } from '../src/data/worlds.js';
 import { RECIPES, TOTAL_RECIPES, CARDS, MAX_BOAT, findRecipe, recipeKey } from '../src/data/recipes.js';
 import { ALL_INGREDIENTS } from '../src/data/ingredients.js';
 import { OBJECTS } from '../src/data/objects.js';
@@ -404,8 +405,13 @@ test('the letter, the Alien Planet, the Universe tournament, Hall of Fame and di
   unlockWorld(s, 'burger');
   const hero = growSpud(s, rng).fry;
   hero.base = { hp: 99999, atk: 9999, def: 999, spd: 999 };
-  hero.titles = ['rookie', 'pro', 'master', 'legend', 'bg1'];
+  // Every food world's arenas but one: not enough for the letter yet.
+  const foodArenas = WORLD_ARENAS.filter((a) => a.world !== 'alien').map((a) => a.id);
+  hero.titles = ['rookie', 'pro', 'master', 'legend', ...foodArenas.filter((id) => id !== 'bg2')];
   assert.equal(letterEligible(s, hero), false, 'still missing the second arena');
+  const other = growSpud(s, rng).fry;
+  other.titles = ['rookie', 'pro', 'master', 'legend', 'bg1', 'bg2'];
+  assert.equal(letterEligible(s, other), false, 'owning one world is not enough: every food world counts');
   assert.ok(startRun(s, hero.id, 'bg2', 3).ok);
   let out;
   while (s.fryer.run) out = fightRound(s, rng);
@@ -436,6 +442,9 @@ test('the letter, the Alien Planet, the Universe tournament, Hall of Fame and di
   const child = breed(s, hero.id, partner.id, rng);
   assert.ok(child.ok && child.legacy);
   assert.ok(child.fry.base.atk >= hero.base.atk, 'doubled from the stronger parent');
+  // Only a Champion of the Universe can enter the Hall of Fame.
+  other.titles = ['rookie', 'pro', 'master', 'legend'];
+  assert.equal(induct(s, other.id).ok, false);
 });
 
 test('difficulty is locked until the Universe is won', () => {
