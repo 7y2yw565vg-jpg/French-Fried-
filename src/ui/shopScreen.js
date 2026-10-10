@@ -4,6 +4,7 @@ import { PACKS, openPack, buyThrift, paidRefresh, thriftRefreshCost, tickThrift 
 import { UNLOCKS, canUnlock, unlock, fmt, discoveredCount } from '../game/state.js';
 import { CARDS } from '../data/recipes.js';
 import { sfx } from '../audio.js';
+import { collectionBar } from './collection.js';
 import { $, $$, cardHtml, esc, openModal, closeModal, toast, packArtSvg, countdown } from './dom.js';
 
 export function renderShop(app, root) {
@@ -30,6 +31,8 @@ export function renderShop(app, root) {
 
   root.innerHTML = `<section class="shop">
     <h1>The Pantry Shop</h1>
+    <h2 class="collection-title">Your collection</h2>
+    ${collectionBar(app.state)}
     <div class="packs">${packs}</div>
     <h2>Expansions</h2>
     <div class="unlocks">${unlocks}</div>

@@ -40,7 +40,8 @@ whether you've invented something new. Discover them all to win.
 - Known multi-card recipes sell for more (up to 3x their base value). The **Cook best known** button
   (or `A`) plays and fries the best-paying recipe you know from your current hand.
 - Hints: if a combo is one card short of a recipe, or has one card too many, the game tells you. You
-  can also buy recipe rumors. Deck management lets you bench cards, sell spare copies, or add or remove a whole
+  can also buy recipe rumors. The Shop and Deck pages show how many basic, premium and object cards you own
+  out of each set. Deck management lets you bench cards, sell spare copies, or add or remove a whole
   card type (basic, premium, objects) at once.
 - 23 achievements, generated sound effects and music, keyboard shortcuts, autosave, and save
   export/import.

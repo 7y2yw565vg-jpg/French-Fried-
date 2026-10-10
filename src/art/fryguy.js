@@ -7,11 +7,54 @@ import { CREATURE_MAP } from '../data/worlds.js';
 const K = '#2b1d14';
 const W = `stroke="${K}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
 
+const r1 = (n) => Math.round(n * 10) / 10;
+
+// A corkscrew coil seen slightly from above: back strands are drawn first and darker,
+// front strands on top, so it reads as a real spiral.
+function curlyBody(color) {
+  const turns = 3.5;
+  const pts = [];
+  for (let i = 0; i <= 180; i++) {
+    const t = (i / 180) * turns * Math.PI * 2;
+    pts.push({ x: 50 + 21 * Math.sin(t), y: 14 + (i / 180) * 72 + 7 * Math.cos(t), front: Math.cos(t) > 0 });
+  }
+  const runs = [];
+  for (const p of pts) {
+    const last = runs.at(-1);
+    if (last && last.front === p.front) last.pts.push(p);
+    else runs.push({ front: p.front, pts: last ? [last.pts.at(-1), p] : [p] });
+  }
+  const strand = (run, fill) => {
+    const d = 'M' + run.pts.map((p) => `${r1(p.x)} ${r1(p.y)}`).join('L');
+    return `<path d="${d}" fill="none" stroke="${K}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${d}" fill="none" stroke="${fill}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`;
+  };
+  const back = runs.filter((r) => !r.front).map((r) => strand(r, shadeColor(color))).join('');
+  const front = runs.filter((r) => r.front).map((r) => strand(r, color) + `<path d="M${run0(r)}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>`).join('');
+  return back + front;
+}
+const run0 = (r) => r.pts.slice(1, -1).map((p) => `${r1(p.x)} ${r1(p.y - 2)}`).join('L') || `${r1(r.pts[0].x)} ${r1(r.pts[0].y)}`;
+const shadeColor = (c) => `color-mix(in srgb, ${c} 72%, #5a3210)`;
+
+// Crinkle cut: wavy ridged sides with ridge lines across the face.
+function crinkleBody(color) {
+  const step = 8;
+  let left = '';
+  let right = '';
+  for (let i = 0, y = 12; y <= 88; i++, y += step) {
+    left += ` Q${i % 2 ? 21 : 37} ${y + step / 2} 29 ${y + step}`;
+    right = ` Q${i % 2 ? 79 : 63} ${y + step / 2} 71 ${y}` + right;
+  }
+  const d = `M29 12${left} L71 ${12 + step * 10}${right}Z`;
+  const ridges = Array.from({ length: 9 }, (_, i) => 20 + i * 8)
+    .map((y) => `<path d="M33 ${y} Q50 ${y + 3} 67 ${y}" fill="none" stroke="${K}" stroke-width="1.6" opacity=".28"/>`).join('');
+  return `<path d="${d}" fill="${color}" ${W}/>${ridges}<rect x="36" y="16" width="4" height="58" rx="2" fill="#fff" opacity=".4"/>`;
+}
+
 function body(shape, color) {
   switch (shape) {
     case 'curly':
-      return `<path d="M50 12 C78 14 80 34 56 38 C30 42 26 60 52 62 C78 64 80 84 56 88 C40 90 34 86 34 86" fill="none" stroke="${K}" stroke-width="20" stroke-linecap="round"/>
-        <path d="M50 12 C78 14 80 34 56 38 C30 42 26 60 52 62 C78 64 80 84 56 88 C40 90 34 86 34 86" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/>`;
+      return curlyBody(color);
     case 'waffle':
       return `<rect x="22" y="18" width="56" height="66" rx="10" fill="${color}" ${W}/>
         ${[34, 50, 66].map((x) => `<path d="M${x} 22 V80" stroke="${K}" stroke-width="2" opacity=".35"/>`).join('')}
@@ -21,13 +64,8 @@ function body(shape, color) {
     case 'tot':
       return `<rect x="24" y="30" width="52" height="56" rx="20" fill="${color}" ${W}/>
         ${[[36, 44], [60, 50], [44, 72], [64, 74]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="${K}" opacity=".3"/>`).join('')}`;
-    case 'crinkle': {
-      let d = 'M34 10';
-      for (let y = 10; y <= 86; y += 8) d += ` L${y % 16 ? 30 : 36} ${y + 4}`;
-      d += ' L66 90';
-      for (let y = 86; y >= 10; y -= 8) d += ` L${y % 16 ? 70 : 64} ${y - 4}`;
-      return `<path d="${d}Z" fill="${color}" ${W}/>`;
-    }
+    case 'crinkle':
+      return crinkleBody(color);
     default:
       return `<rect x="32" y="10" width="36" height="82" rx="7" fill="${color}" ${W}/>
         <rect x="38" y="16" width="5" height="60" rx="2" fill="#fff" opacity=".45"/>`;

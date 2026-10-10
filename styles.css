@@ -710,3 +710,17 @@ button.entry:hover { transform: translateY(-2px); }
 .arrival.space span { z-index: 3; }
 .money.pay { animation: money-pay .9s ease-out; }
 @keyframes money-pay { 0% { transform: scale(1); } 25% { transform: scale(1.25); background: #d9f7c8; } 100% { transform: scale(1); } }
+
+/* Collection progress (Shop + Deck) */
+.collection-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0 14px; max-width: 640px; }
+.collection-tile { display: flex; flex-direction: column; gap: 3px; background: #fff; border: 3px solid var(--ink); border-radius: 12px; padding: 6px 10px 8px; box-shadow: 0 3px 0 var(--ink); }
+.ct-label { font-weight: 900; font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.ct-count { font-size: .9rem; color: var(--muted); }
+.ct-count b { font-family: var(--font-head); font-weight: 400; font-size: 1.5rem; color: var(--ink); }
+.ct-meter { height: 8px; border: 2px solid var(--ink); border-radius: 99px; overflow: hidden; background: #f3e6cf; }
+.ct-meter i { display: block; height: 100%; background: #f2b33d; }
+.type-premium .ct-meter i { background: #b06ad6; }
+.type-objects .ct-meter i { background: #3fa7a0; }
+.collection-tile.complete { background: #eaf8df; }
+@media (max-width: 700px) { .collection-bar { gap: 6px; } .collection-tile { padding: 4px 6px 6px; } .ct-count b { font-size: 1.2rem; } .ct-label { font-size: .62rem; } }
+.collection-title { margin: 4px 0 0; font-size: 1.1rem; }

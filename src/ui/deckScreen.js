@@ -7,6 +7,7 @@ import { sellCard, sellValue, fmt } from '../game/state.js';
 import { CARDS } from '../data/recipes.js';
 import { $$, cardHtml, toast } from './dom.js';
 import { sfx } from '../audio.js';
+import { collectionBar } from './collection.js';
 
 const GROUPS = [
   ['basic', 'Basic Ingredients', BASIC_INGREDIENTS],
@@ -47,6 +48,7 @@ export function renderDeck(app, root) {
     <div class="deck-head">
       <h1>Your Deck</h1>
       <p><b>${active}</b> active cards (${total} owned) · <b>${owned}/${all}</b> unique cards collected</p>
+      ${collectionBar(s)}
       <p class="muted">Bench cards you don't want to draw, or sell spare copies to keep your deck lean. Your hand draws ${HAND_SIZE} cards from the active deck.</p>
     </div>
     ${groups}

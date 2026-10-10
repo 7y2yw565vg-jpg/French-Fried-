@@ -453,3 +453,19 @@ test('difficulty is locked until the Universe is won', () => {
   assert.equal(getDifficulty(s), DIFFICULTY.normal);
   assert.equal(ALL_LEAGUES_BASE.length, 4);
 });
+
+test('collection counts per card type and curly / crinkle fry shapes', async () => {
+  const { collectionCounts } = await import('../src/ui/collection.js');
+  const { renderFryGuy } = await import('../src/art/fryguy.js');
+  const s = defaultState(0);
+  s.deck = { [ALL_INGREDIENTS[0].id]: 2, [OBJECTS[0].id]: 1 };
+  const c = Object.fromEntries(collectionCounts(s).map((t) => [t.key, t]));
+  assert.equal(c.basic.owned + c.premium.owned, 1);
+  assert.equal(c.objects.owned, 1);
+  assert.equal(c.basic.total + c.premium.total + c.objects.total, 109);
+  const look = (traits) => renderFryGuy({ name: 'x', hue: 40, traits, titles: [] });
+  const plain = look([]);
+  assert.notEqual(look(['curly']), plain);
+  assert.notEqual(look(['crinkle']), plain);
+  assert.notEqual(look(['curly']), look(['crinkle']));
+});
