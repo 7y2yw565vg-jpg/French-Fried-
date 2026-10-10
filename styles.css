@@ -177,6 +177,12 @@ kbd { background: #fff; border: 2px solid var(--ink); border-radius: 5px; paddin
 .actions { display: flex; flex-direction: column; gap: 10px; }
 .actions .btn-fry { width: 100%; }
 .fry-row { display: flex; gap: 8px; }
+.possible { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.possible span { display: flex; flex-direction: column; background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 4px 8px; font-size: .78rem; line-height: 1.2; }
+.possible em { font-style: normal; font-weight: 900; font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.possible i { font-style: normal; }
+.possible b { font-family: var(--font-head); font-weight: 400; font-size: 1.35rem; line-height: 1.1; }
+.possible strong { color: #1f7a36; }
 .btn-auto.inline { display: none; }
 .actions .row .btn { flex: 1; }
 .kitchen-info { background: var(--paper); border: 3px solid var(--ink); border-radius: var(--radius); padding: 10px 12px; font-size: .9rem; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); }

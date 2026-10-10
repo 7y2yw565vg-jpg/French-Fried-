@@ -182,6 +182,27 @@ export function buyRumor(state, rng) {
   return { ok: true, recipe: r, cost };
 }
 
+/**
+ * Recipes you could make right now from your hand (plus the boat), and with every
+ * card you own (benched included). Each reports the total and how many are undiscovered.
+ */
+export function possibleRecipes(state, k) {
+  const hand = new Set([...k.hand, ...k.boat].map((c) => c.id));
+  const owned = new Set(ownedIds(state));
+  const out = { hand: { total: 0, fresh: 0 }, owned: { total: 0, fresh: 0 } };
+  for (const r of RECIPES) {
+    if (!r.ids.every((id) => owned.has(id))) continue;
+    const fresh = !state.discovered[r.key];
+    out.owned.total++;
+    if (fresh) out.owned.fresh++;
+    if (r.ids.every((id) => hand.has(id))) {
+      out.hand.total++;
+      if (fresh) out.hand.fresh++;
+    }
+  }
+  return out;
+}
+
 /** How many undiscovered recipes are currently makeable with owned cards. */
 export function makeableCount(state) {
   const owned = new Set(ownedIds(state));

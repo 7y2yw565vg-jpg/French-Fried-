@@ -2,7 +2,7 @@
 
 import { renderBoat } from '../art/fries.js';
 import { CARDS, MAX_BOAT, TOTAL_RECIPES } from '../data/recipes.js';
-import { playCard, unplayCard, clearBoat, redraw, fry, boatIds, REDRAW_COST, buyRumor, rumorCost, makeableCount, bestKnownInHand, loadRecipe, knownReward } from '../game/kitchen.js';
+import { playCard, unplayCard, clearBoat, redraw, fry, boatIds, REDRAW_COST, buyRumor, rumorCost, possibleRecipes, bestKnownInHand, loadRecipe, knownReward } from '../game/kitchen.js';
 import { fmt, discoveredCount } from '../game/state.js';
 import { sfx } from '../audio.js';
 import { $, $$, cardHtml, chipHtml, esc, openModal, closeModal, toast } from './dom.js';
@@ -29,6 +29,7 @@ export function renderKitchen(app, root) {
 
   const canRedrawFree = app.state.money < REDRAW_COST;
   const best = bestKnownInHand(app.state, k);
+  const poss = possibleRecipes(app.state, k);
   root.innerHTML = `
   <section class="kitchen">
     <div class="stage">
@@ -50,7 +51,10 @@ export function renderKitchen(app, root) {
         </div>
         <div class="kitchen-info">
           <div><b>${k.draw.length}</b> in draw pile · <b>${k.discard.length}</b> in discard</div>
-          <div><b>${makeableCount(app.state)}</b> undiscovered recipes possible with your cards</div>
+          <div class="possible">
+            <span title="Recipes you can make from the cards in your hand right now"><em>🖐 In hand</em><i><b>${poss.hand.total}</b> possible${poss.hand.fresh ? ` · <strong>${poss.hand.fresh} new</strong>` : ''}</i></span>
+            <span title="Recipes you can make with every card you own"><em>🃏 All your cards</em><i><b>${poss.owned.total}</b> possible${poss.owned.fresh ? ` · <strong>${poss.owned.fresh} new</strong>` : ''}</i></span>
+          </div>
           <div class="progress"><div style="width:${(discoveredCount(app.state) / TOTAL_RECIPES) * 100}%"></div></div>
           <button class="btn small" id="rumorBtn">🕵️ Buy a Recipe Rumor (${fmt(rumorCost(app.state))})</button>
         </div>

@@ -315,3 +315,20 @@ test('every world has an illustrated scene', () => {
     assert.ok(!svg.includes('NaN') && !svg.includes('undefined'), w.id);
   }
 });
+
+import { possibleRecipes } from '../src/game/kitchen.js';
+test('kitchen counts possible recipes in hand and with all owned cards', () => {
+  const s = defaultState(0);
+  s.deck = { salt: 1, vinegar: 1, pepper: 1, ketchup: 1, mayo: 1, curds: 1, gravy: 1, bacon: 1, chili: 1 };
+  const k = createKitchen(s, makeRng(8));
+  const p = possibleRecipes(s, k);
+  const owned = new Set(Object.keys(s.deck));
+  const hand = new Set(k.hand.map((c) => c.id));
+  assert.equal(p.owned.total, RECIPES.filter((r) => r.ids.every((id) => owned.has(id))).length);
+  assert.equal(p.hand.total, RECIPES.filter((r) => r.ids.every((id) => hand.has(id))).length);
+  assert.equal(p.hand.fresh, p.hand.total);
+  s.discovered[recipeKey(['salt'])] = 1;
+  const q = possibleRecipes(s, k);
+  assert.equal(q.owned.fresh, p.owned.fresh - 1);
+  assert.equal(q.owned.total, p.owned.total);
+});
