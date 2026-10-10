@@ -146,7 +146,8 @@ function doExplore(app, w) {
   const res = explore(s, w.id, ui.fry, app.rng);
   if (!res.ok) { sfx('error'); toast(res.reason, 'warn'); return; }
   sfx('pack');
-  app.commit({ silentRender: true });
+  // The explore fee shows right away; the reward waits until the battle has played out.
+  app.commit({ silentRender: true, hold: { money: s.money - (res.won ? res.reward : 0) } });
   const c = res.creature;
   const modal = openModal(`<div class="explore-modal">
     <h2>A wild ${esc(c.name)} appears!</h2>
@@ -157,6 +158,7 @@ function doExplore(app, w) {
   animateBattle(modal, res.battle, {
     log: $('#xlog', modal),
     onDone: () => {
+      app.reveal();
       sfx(res.won ? 'win' : 'fail');
       $('#xresult', modal).innerHTML = res.won
         ? `<div class="verdict win"><h2>🧬 DNA collected!</h2><p>${esc(res.fry.name)} defeated the ${esc(c.name)}. +1 ${esc(c.name)} DNA and +${fmt(res.reward)}. You now have ${s.worlds.dna[c.id]}.</p><button class="btn btn-primary" id="xok">Back to camp</button></div>`

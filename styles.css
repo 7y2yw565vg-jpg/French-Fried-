@@ -708,3 +708,5 @@ button.entry:hover { transform: translateY(-2px); }
 .arrival.space { display: flex; align-items: center; justify-content: center; padding-top: 34px; }
 .arrival.space .planet { --ps: 150px; }
 .arrival.space span { z-index: 3; }
+.money.pay { animation: money-pay .9s ease-out; }
+@keyframes money-pay { 0% { transform: scale(1); } 25% { transform: scale(1.25); background: #d9f7c8; } 100% { transform: scale(1); } }

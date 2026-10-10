@@ -80,8 +80,23 @@ const app = {
     $('#screen').scrollTop = 0;
   },
 
-  /** Save + achievements + redraw. Call after any state change. */
-  commit({ silentRender = false } = {}) {
+  // While a battle plays out, the HUD keeps showing this amount so the winnings aren't revealed early.
+  moneyHold: null,
+
+  /**
+   * Save + achievements + redraw. Call after any state change.
+   * `hold` saves right away (so reloading can't undo a fight) but keeps the HUD money at
+   * `hold.money` and holds back achievements until `reveal()` is called once the player has seen the outcome.
+   */
+  commit({ silentRender = false, hold = null } = {}) {
+    if (hold) {
+      app.moneyHold = hold.money;
+      save(app.state, storage);
+      if (silentRender) renderTopbar();
+      else app.render();
+      return;
+    }
+    app.moneyHold = null;
     // Fighters holding every home-world and food-world trophy receive the mysterious letter.
     for (const f of app.state.lab.fries) {
       if (letterEligible(app.state, f)) {
@@ -97,6 +112,13 @@ const app = {
     }
     if (silentRender) renderTopbar();
     else app.render();
+  },
+
+  /** The battle is over: show the real money (with a little pop) and any achievements earned. */
+  reveal({ silentRender = true } = {}) {
+    const gained = app.moneyHold != null && app.state.money > app.moneyHold;
+    app.commit({ silentRender });
+    if (gained) $('#topbar .money')?.classList.add('pay');
   },
 
   rebuildKitchen() {
@@ -121,7 +143,7 @@ function renderTopbar() {
     <button class="logo" id="logoBtn" title="Main menu">French<br>Fried!</button>
     <nav>${nav}</nav>
     <div class="hud">
-      <div class="money" title="Money">${fmt(s.money)}</div>
+      <div class="money" title="Money">${fmt(app.moneyHold ?? s.money)}</div>
       <div class="found" title="Recipes discovered">📖 ${n.toLocaleString()}<small>/${TOTAL_RECIPES.toLocaleString()}</small></div>
       <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
     </div>`;

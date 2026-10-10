@@ -134,20 +134,22 @@ function renderArena(app, root, result) {
 
 function fight(app) {
   if (ui.animating) return;
+  const before = app.state.money;
   const res = fightRound(app.state, app.rng);
   if (!res.ok) { toast(res.reason, 'warn'); return; }
   ui.result = res;
   ui.animating = true;
-  app.commit({ silentRender: true });
-  app.render();
+  // Prize money and achievements stay hidden until the fight has played out.
+  app.commit({ hold: { money: before } });
   const root = document.getElementById('screen');
   animateBattle(root, res.battle, {
     log: $('#blog', root),
     onDone: (left) => {
       ui.animating = false;
-      if (left) return;
+      if (left) { app.reveal(); return; }
       sfx(res.fried ? 'lose' : 'win');
       app.render();
+      app.reveal();
     },
   });
 }
