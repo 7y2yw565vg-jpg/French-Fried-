@@ -24,7 +24,7 @@ export const WORLDS = [
     bg: '#ffe4cc',
     trait: 'relish',
     desc: 'A sizzling boardwalk where bun-dwelling beasts roam the grill grates.',
-    bias: { hp: 1, atk: 1.25, def: 0.9, spd: 1 },
+    bias: { hp: 1.1, atk: 1.1, def: 1, spd: 1 },
     arenas: [
       { id: 'hd1', name: 'The Relish Ring', rounds: 4, power: 2.8, prize: 8000, champBonus: 40000, entry: 3000 },
       { id: 'hd2', name: 'Mustard Coliseum', rounds: 5, power: 3.4, prize: 15000, champBonus: 80000, entry: 6000, needs: 'hd1' },
@@ -44,7 +44,7 @@ export const WORLDS = [
     bg: '#fff0cf',
     trait: 'stack',
     desc: 'Rolling sesame hills where stacked brutes guard the Great Grill.',
-    bias: { hp: 1.3, atk: 1, def: 1.25, spd: 0.8 },
+    bias: { hp: 1.1, atk: 0.9, def: 1.6, spd: 0.8 },
     arenas: [
       { id: 'bg1', name: 'The Patty Pit', rounds: 4, power: 2.8, prize: 8000, champBonus: 40000, entry: 3000 },
       { id: 'bg2', name: 'Big Bun Bowl', rounds: 5, power: 3.4, prize: 15000, champBonus: 80000, entry: 6000, needs: 'bg1' },
@@ -64,7 +64,7 @@ export const WORLDS = [
     bg: '#dcefff',
     trait: 'fizz',
     desc: 'Fizzing lakes and sugar geysers, home to hyperactive cup critters.',
-    bias: { hp: 0.9, atk: 1, def: 0.9, spd: 1.4 },
+    bias: { hp: 0.9, atk: 1.4, def: 0.85, spd: 1.05 },
     arenas: [
       { id: 'sd1', name: 'Fizzy Falls Arena', rounds: 4, power: 2.8, prize: 8000, champBonus: 40000, entry: 3000 },
       { id: 'sd2', name: 'The Geyser Dome', rounds: 5, power: 3.4, prize: 15000, champBonus: 80000, entry: 6000, needs: 'sd1' },
@@ -84,7 +84,7 @@ export const WORLDS = [
     bg: '#ffe3f3',
     trait: 'fluff',
     desc: 'A pastel carnival in the sky, drifting with fluffy sugar spirits.',
-    bias: { hp: 1.05, atk: 0.95, def: 1, spd: 1.1 },
+    bias: { hp: 0.95, atk: 0.95, def: 0.9, spd: 1.5 },
     arenas: [
       { id: 'cc1', name: 'The Carnival Cloud', rounds: 4, power: 2.8, prize: 8000, champBonus: 40000, entry: 3000 },
       { id: 'cc2', name: 'Sugar Storm Stadium', rounds: 5, power: 3.4, prize: 15000, champBonus: 80000, entry: 6000, needs: 'cc1' },
@@ -97,7 +97,35 @@ export const WORLDS = [
       C('sugarstorm', 'Sugar Storm', 'legendary', 'storm', 'A thundercloud of spun sugar and fury.'),
     ],
   },
+  {
+    // Secret world: reached only by spaceship after a fighter accepts the mysterious letter.
+    id: 'alien',
+    name: 'Alien Planet',
+    secret: true,
+    color: '#6a3fd1',
+    bg: '#ece4ff',
+    trait: 'xenoform',
+    desc: 'A glowing world at the edge of the galaxy, home of the Champions of the Universe Tournament.',
+    bias: { hp: 1.15, atk: 1.15, def: 1.15, spd: 1.15 },
+    exploreCost: 2500,
+    rewardMult: 6,
+    wildMult: 1.45,
+    grownMult: 1.3,
+    arenas: [
+      { id: 'universe', name: 'Champions of the Universe', rounds: 7, power: 5.0, prize: 25000, champBonus: 1000000, entry: 0, invite: true },
+    ],
+    creatures: [
+      C('greyling', 'Greyling', 'common', 'grey', 'Big head, bigger questions. Probes everything.'),
+      C('gloop', 'Gloop', 'common', 'blob', 'A wobbly green blob that absorbs fries whole.'),
+      C('tentaclor', 'Tentaclor', 'rare', 'squid', 'Eight arms. Eight attacks. No mercy.'),
+      C('cybermartian', 'Cyber Martian', 'rare', 'cyborg', 'Half alien, half machine, all business.'),
+      C('xenoempress', 'Xeno Empress', 'legendary', 'queen', 'Ruler of the hive. Bows to no fry.'),
+    ],
+  },
 ];
+
+/** The four worlds you can travel to (the Alien Planet is reached by invitation only). */
+export const TRAVEL_WORLDS = WORLDS.filter((w) => !w.secret);
 
 export const WORLD_MAP = Object.fromEntries(WORLDS.map((w) => [w.id, w]));
 export const CREATURE_MAP = Object.fromEntries(WORLDS.flatMap((w) => w.creatures.map((c) => [c.id, { ...c, world: w.id }])));

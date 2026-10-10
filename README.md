@@ -17,19 +17,29 @@ whether you've invented something new. Discover them all to win.
 - **Thrift Store** (mid game, 50 recipes): three objects for sale. Restock for cash or wait for the
   real-time 30-minute timer. Objects go into your deck and make the strangest recipes.
 - **The Lab** (late game, 100 recipes): grow GMO fries, splice in 18 traits (Curly, Spicy Gene,
-  Vampire Spud, Tater Tot Form...), train stats and breed new generations.
+  Vampire Spud, Tater Tot Form...), train stats and breed new generations. The Lab holds 12 fighters.
+  Each species has its own gene-splicing traits and treatments, and each has a specialty: fries have
+  HP, burgers defense, soda attack, cotton candy speed, hotdogs critical hits, and aliens are all-rounders.
 - **The Fryer**: single-elimination bracket tournaments (8 to 32 fighters). Every round you win
   pays out, and winning the final earns the champion purse (Rookie: $300 for the first win, $1,000 for
   the title). Losers are fried and gone for good. You can withdraw between rounds and keep your winnings.
+  Each fighter has to win an arena before it can enter the next one.
 - **Worlds** (post-game): win the Legendary Vat to discover Hotdog World, Burger World, Soda World and
   Cotton Candy World. Your first world is free and the others cost $20,000 each. Each world has five
   wild creatures to **Explore** for and battle, two creature-bracket arenas, and a signature DNA trait.
   Win battles to collect DNA, then splice it into your fries (stat boost + trait + hybrid look) or grow
   the creature itself from 3 samples.
+- **Champions of the Universe**: once a fighter holds every trophy on offer, a mysterious letter arrives.
+  Accept it and a spaceship carries the fighter to the **Alien Planet**. There you can explore for alien
+  DNA ($2,500 per trip) or enter a 128-fighter tournament with a $1,000,000 champion's prize.
+- Winning that tournament unlocks the **Hall of Fame** and **difficulty settings** (Normal, Hard, Brutal,
+  Impossible: tougher foes, bigger prizes). A Hall of Famer retires from fighting, but any offspring bred
+  from it are born with double stats.
 - Known multi-card recipes sell for more (up to 3x their base value). The **Cook best known** button
   (or `A`) plays and fries the best-paying recipe you know from your current hand.
 - Hints: if a combo is one card short of a recipe, or has one card too many, the game tells you. You
-  can also buy recipe rumors. Deck management lets you bench cards or sell spare copies.
+  can also buy recipe rumors. Deck management lets you bench cards, sell spare copies, or add or remove a whole
+  card type (basic, premium, objects) at once.
 - 23 achievements, generated sound effects and music, keyboard shortcuts, autosave, and save
   export/import.
 

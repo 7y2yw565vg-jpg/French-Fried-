@@ -2,7 +2,7 @@
 // creatures for their DNA, splice it into fries, or grow creatures from raw DNA.
 
 import { WORLDS, WORLD_MAP, CREATURE_MAP, RARITY, WORLD_COST, EXPLORE_COST, SPLICE_COST, GROW_DNA_COST, GROW_DNA_SAMPLES, MAX_DNA_SPLICES } from '../data/worlds.js';
-import { LEAGUES, LAB_CAPACITY, getFry, simulateBattle, creatureEntity, TRAIT_MAP } from './lab.js';
+import { LEAGUES, LAB_CAPACITY, getFry, simulateBattle, creatureEntity, TRAIT_MAP, worldOwned, labCount, getDifficulty } from './lab.js';
 
 export const worldsUnlocked = (s) => !!s.fryer.champions[LEAGUES[LEAGUES.length - 1].id];
 
@@ -12,7 +12,7 @@ export function worldCost(s) {
 
 export function unlockWorld(s, worldId) {
   if (!worldsUnlocked(s)) return { ok: false, reason: 'Win the Legendary Vat to unlock Worlds.' };
-  if (!WORLD_MAP[worldId]) return { ok: false, reason: 'Unknown world.' };
+  if (!WORLD_MAP[worldId] || WORLD_MAP[worldId].secret) return { ok: false, reason: 'Unknown world.' };
   if (s.worlds.owned.includes(worldId)) return { ok: false, reason: 'You already travel there.' };
   const cost = worldCost(s);
   if (s.money < cost) return { ok: false, reason: `Need $${cost.toLocaleString()}` };
@@ -31,29 +31,35 @@ function pickCreature(world, rng) {
   return world.creatures[0];
 }
 
-export function wildCreature(creatureId, rng) {
+export function wildCreature(creatureId, rng, power = 1) {
   const c = CREATURE_MAP[creatureId];
-  return creatureEntity(creatureId, RARITY[c.rarity].wild, rng, { wild: true });
+  const w = WORLD_MAP[c.world];
+  return creatureEntity(creatureId, RARITY[c.rarity].wild * (w.wildMult || 1) * power, rng, { wild: true });
 }
+
+export const exploreCost = (worldId) => WORLD_MAP[worldId]?.exploreCost || EXPLORE_COST;
 
 /** Send a fighter exploring. Winning collects one DNA sample; losing just lets it escape. */
 export function explore(s, worldId, fryId, rng) {
-  if (!s.worlds.owned.includes(worldId)) return { ok: false, reason: 'Unlock this world first.' };
+  if (!worldOwned(s, worldId)) return { ok: false, reason: 'Unlock this world first.' };
   const fry = getFry(s, fryId);
   if (!fry) return { ok: false, reason: 'Pick a fighter to explore with.' };
+  if (fry.hof) return { ok: false, reason: `${fry.name} is retired in the Hall of Fame.` };
   if (s.fryer.run?.fryId === fryId) return { ok: false, reason: 'That fighter is mid-tournament.' };
-  if (s.money < EXPLORE_COST) return { ok: false, reason: `Expeditions cost $${EXPLORE_COST}` };
-  s.money -= EXPLORE_COST;
+  const cost = exploreCost(worldId);
+  if (s.money < cost) return { ok: false, reason: `Expeditions here cost $${cost.toLocaleString()}` };
+  s.money -= cost;
   s.worlds.explores++;
   const c = pickCreature(WORLD_MAP[worldId], rng);
   s.worlds.seen[c.id] = (s.worlds.seen[c.id] || 0) + 1;
-  const wild = wildCreature(c.id, rng);
+  const diff = getDifficulty(s);
+  const wild = wildCreature(c.id, rng, diff.power);
   const battle = simulateBattle(fry, wild, rng);
   const out = { ok: true, battle, fry, wild, creature: c, won: battle.winner === 'a' };
   if (out.won) {
     s.worlds.dna[c.id] = (s.worlds.dna[c.id] || 0) + 1;
     s.worlds.dnaCollected++;
-    const reward = RARITY[c.rarity].reward;
+    const reward = Math.round(RARITY[c.rarity].reward * (WORLD_MAP[worldId].rewardMult || 1) * diff.reward);
     s.money += reward;
     s.lifetime += reward;
     out.reward = reward;
@@ -66,6 +72,7 @@ export function spliceDNA(s, fryId, creatureId) {
   const fry = getFry(s, fryId);
   const c = CREATURE_MAP[creatureId];
   if (!fry || !c) return { ok: false, reason: 'Nope' };
+  if (fry.hof) return { ok: false, reason: `${fry.name} is retired in the Hall of Fame.` };
   if (s.fryer.run?.fryId === fryId) return { ok: false, reason: 'That fighter is mid-tournament.' };
   if (!(s.worlds.dna[creatureId] > 0)) return { ok: false, reason: `No ${c.name} DNA left.` };
   if ((fry.dnaSplices || 0) >= MAX_DNA_SPLICES) return { ok: false, reason: `Max ${MAX_DNA_SPLICES} DNA splices per fighter.` };
@@ -89,11 +96,11 @@ export function growFromDNA(s, creatureId, rng) {
   const c = CREATURE_MAP[creatureId];
   if (!c) return { ok: false, reason: 'Nope' };
   if ((s.worlds.dna[creatureId] || 0) < GROW_DNA_SAMPLES) return { ok: false, reason: `Need ${GROW_DNA_SAMPLES} ${c.name} DNA samples.` };
-  if (s.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max).` };
+  if (labCount(s) >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max).` };
   if (s.money < GROW_DNA_COST) return { ok: false, reason: `Need $${GROW_DNA_COST}` };
   s.money -= GROW_DNA_COST;
   s.worlds.dna[creatureId] -= GROW_DNA_SAMPLES;
-  const e = creatureEntity(creatureId, RARITY[c.rarity].grown, rng);
+  const e = creatureEntity(creatureId, RARITY[c.rarity].grown * (WORLD_MAP[c.world].grownMult || 1), rng);
   e.id = s.lab.nextId++;
   e.traits = [WORLD_MAP[c.world].trait];
   s.lab.fries.push(e);

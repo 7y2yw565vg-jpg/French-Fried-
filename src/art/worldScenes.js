@@ -118,7 +118,26 @@ function cottonScene(id) {
     ${[[150, 330], [650, 320]].map(([x, y]) => `<path d="M${x} ${y}V${y + 80}" stroke="${INK}" stroke-width="7"/><path d="M${x} ${y}V${y + 80}" stroke="#fff" stroke-width="4"/>${puff(x, y - 10, 24, '#ff7cc0')}${puff(x - 14, y + 4, 16, '#ff9fd2')}${puff(x + 14, y + 4, 16, '#ff9fd2')}`).join('')}`;
 }
 
-const SCENES = { hotdog: hotdogScene, burger: burgerScene, soda: sodaScene, cottoncandy: cottonScene };
+
+// ---------- Alien Planet: purple skies, ringed planets and crystal spires ----------
+function alienScene(id) {
+  const rng = makeRng('scene-alien');
+  const stars = Array.from({ length: 70 }, () => `<circle cx="${f(rng.range(0, 800))}" cy="${f(rng.range(0, 260))}" r="${f(rng.range(0.8, 2.4))}" fill="#fff" opacity="${f(rng.range(0.5, 1))}"/>`).join('');
+  const crystal = (x, y, h, c) => `<path d="M${x} ${y}L${x - 14} ${y - h * 0.4}L${x} ${y - h}L${x + 14} ${y - h * 0.4}Z" fill="${c}" ${S()}/><path d="M${x} ${y}L${x} ${y - h}" stroke="#fff" stroke-width="2" opacity=".5"/>`;
+  const dome = (x, y, r) => `<path d="M${x - r} ${y}A${r} ${r} 0 0 1 ${x + r} ${y}Z" fill="#cdeeff" opacity=".7" ${S()}/><rect x="${x - r - 6}" y="${y}" width="${2 * r + 12}" height="10" rx="4" fill="#9aa7b5" ${S(2.5)}/>`;
+  return `<defs>${sky(`${id}s`, [[0, '#1a0b3d'], [0.55, '#5a2a9e'], [1, '#c86bff']])}</defs>
+    <rect width="800" height="450" fill="url(#${id}s)"/>${stars}
+    <g transform="translate(600 100)"><circle r="56" fill="#ff9a5a" ${S()}/><path d="M-50 -10Q0 -30 50 -10" stroke="#ffd166" stroke-width="8" fill="none" opacity=".6"/><ellipse rx="96" ry="20" fill="none" stroke="#ffe08a" stroke-width="7" transform="rotate(-14)"/><ellipse rx="96" ry="20" fill="none" stroke="${INK}" stroke-width="2" transform="rotate(-14)"/></g>
+    <circle cx="140" cy="80" r="26" fill="#9fe8ff" ${S()}/><circle cx="210" cy="140" r="12" fill="#ffb3e6" ${S(2.5)}/>
+    <g transform="translate(320 120) rotate(-8)"><ellipse rx="54" ry="14" fill="#9aa7b5" ${S()}/><path d="M-26 -6Q0 -36 26 -6Z" fill="#9fe8ff" opacity=".85" ${S()}/>${[-36, -12, 12, 36].map((x) => `<circle cx="${x}" cy="4" r="4" fill="#ffe36d"/>`).join('')}</g>
+    <path d="M0 320Q200 290 400 312T800 306V450H0Z" fill="#4a2a7a" ${S()}/>
+    <path d="M0 360Q220 340 420 360T800 350V450H0Z" fill="#6b3fb0" ${S()}/>
+    ${[[90, 400, 30], [300, 420, 22], [560, 405, 34], [720, 430, 20]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.35}" fill="#4a2a7a" ${S(2.5)}/>`).join('')}
+    ${crystal(60, 330, 110, '#5ff0d0')}${crystal(100, 325, 70, '#ff7cf0')}${crystal(740, 320, 120, '#ff7cf0')}${crystal(700, 330, 76, '#5ff0d0')}
+    ${dome(470, 318, 40)}${dome(560, 314, 24)}`;
+}
+
+const SCENES = { hotdog: hotdogScene, burger: burgerScene, soda: sodaScene, cottoncandy: cottonScene, alien: alienScene };
 
 /** Full scene SVG. It covers its box (slice) so it works as a background at any size. */
 export function worldScene(worldId, cls = '') {

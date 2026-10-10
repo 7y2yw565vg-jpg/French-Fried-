@@ -169,6 +169,8 @@ test('fryer: battles resolve, winners earn, losers are fried', () => {
   s.fryer.champions.master = 1;
   const weak = growSpud(s, rng).fry;
   weak.base = { hp: 5, atk: 1, def: 0, spd: 1 };
+  assert.equal(startRun(s, weak.id, 'legend', 2).ok, false, 'a new fighter cannot skip ahead');
+  weak.titles = ['master'];
   assert.ok(startRun(s, weak.id, 'legend', 2).ok);
   const loss = fightRound(s, rng);
   assert.ok(loss.fried);
@@ -282,6 +284,7 @@ test('explore collects DNA; DNA splices into fries or grows creatures; arenas us
   unlockWorld(s, 'hotdog');
   const hero = growSpud(s, rng).fry;
   hero.base = { hp: 2000, atk: 300, def: 120, spd: 150 };
+  hero.titles = ['legend'];
   let wins = 0;
   for (let i = 0; i < 12; i++) { const r = explore(s, 'hotdog', hero.id, rng); assert.ok(r.ok); if (r.won) wins++; }
   assert.equal(wins, 12);
@@ -348,4 +351,96 @@ test('breeding works with a single fighter via a wild spud; traits can be remove
   assert.ok(purgeTrait(s, a.id, 'crispy').ok);
   assert.ok(!a.traits.includes('crispy'));
   assert.equal(HAND_SIZE, 7);
+});
+
+// ---------- Species, per-fighter progression, the letter, the Universe, Hall of Fame ----------
+import { traitsFor, trainingFor, enterReason, letterEligible, acceptLetter, induct, getDifficulty, DIFFICULTY, LEAGUES as ALL_LEAGUES_BASE } from '../src/game/lab.js';
+import { SPECIES_TRAITS } from '../src/data/species.js';
+
+test('each species has its own splicing traits and treatments built around its strength', () => {
+  const s = defaultState(0);
+  s.money = 1e6;
+  for (const sp of ['hotdog', 'burger', 'soda', 'cottoncandy', 'alien']) {
+    const list = traitsFor({ species: sp });
+    assert.ok(list.length >= 8, sp);
+    assert.ok(list.every((t) => !SPECIES_TRAITS.fry), 'no fry list in species data');
+  }
+  assert.ok(traitsFor({}).some((t) => t.id === 'crispy'));
+  assert.ok(!traitsFor({ species: 'soda' }).some((t) => t.id === 'crispy'));
+  const best = (sp) => Object.entries(trainingFor({ species: sp })).sort((a, b) => b[1].gain / (a[0] === 'hp' ? 1 : 1) - a[1].gain)[0][0];
+  assert.equal(trainingFor({ species: 'burger' }).def.gain, 2);
+  assert.equal(trainingFor({ species: 'soda' }).atk.gain, 2);
+  assert.equal(trainingFor({ species: 'cottoncandy' }).spd.gain, 2);
+  assert.ok(trainingFor({}).hp.gain > trainingFor({ species: 'burger' }).hp.gain);
+  assert.ok(best);
+  // A creature can only splice its own species' traits.
+  s.fryer.champions.legend = 1;
+  unlockWorld(s, 'soda');
+  s.worlds.dna.colacub = 3;
+  const cub = growFromDNA(s, 'colacub', makeRng(1)).fry;
+  cub.traits = [];
+  assert.equal(splice(s, cub.id, 'crispy').ok, false);
+  assert.ok(splice(s, cub.id, 'sugarrush').ok);
+});
+
+test('fighters must earn each tournament in order', () => {
+  const rng = makeRng(5);
+  const s = defaultState(0);
+  s.money = 1e6;
+  s.fryer.champions = { rookie: 1, pro: 1, master: 1, legend: 1 };
+  const rookie = growSpud(s, rng).fry;
+  assert.equal(enterReason(s, 'rookie', rookie), null);
+  assert.match(enterReason(s, 'pro', rookie), /must win Rookie Basket/);
+  rookie.titles = ['rookie'];
+  assert.equal(enterReason(s, 'pro', rookie), null);
+  assert.match(enterReason(s, 'master', rookie), /must win Pro Fryer/);
+});
+
+test('the letter, the Alien Planet, the Universe tournament, Hall of Fame and difficulty', () => {
+  const rng = makeRng(9);
+  const s = defaultState(0);
+  s.money = 1e7;
+  s.fryer.champions.legend = 1;
+  unlockWorld(s, 'burger');
+  const hero = growSpud(s, rng).fry;
+  hero.base = { hp: 99999, atk: 9999, def: 999, spd: 999 };
+  hero.titles = ['rookie', 'pro', 'master', 'legend', 'bg1'];
+  assert.equal(letterEligible(s, hero), false, 'still missing the second arena');
+  assert.ok(startRun(s, hero.id, 'bg2', 3).ok);
+  let out;
+  while (s.fryer.run) out = fightRound(s, rng);
+  assert.ok(out.champion && out.letter && hero.letter);
+  assert.match(enterReason(s, 'universe', hero), /Alien Planet/);
+  assert.ok(acceptLetter(s, hero.id).ok);
+  assert.ok(s.worlds.alien && hero.invited);
+  // Alien Planet exploring gives alien DNA.
+  const ex = explore(s, 'alien', hero.id, rng);
+  assert.ok(ex.ok && ex.won && CREATURE_MAP[ex.creature.id].world === 'alien', ex.reason);
+  // The 128-fighter Champions of the Universe.
+  assert.ok(startRun(s, hero.id, 'universe', 4).ok);
+  assert.equal(s.fryer.run.slots.length, 128);
+  const m = s.money;
+  while (s.fryer.run) out = fightRound(s, rng);
+  assert.ok(out.universe);
+  assert.ok(s.money - m >= 1000000);
+  assert.ok(hero.titles.includes('universe'));
+  // Difficulty unlocked.
+  s.settings.difficulty = 'brutal';
+  assert.equal(getDifficulty(s), DIFFICULTY.brutal);
+  // Hall of Fame: retired from arenas, doubles offspring stats.
+  assert.ok(induct(s, hero.id).ok);
+  assert.match(enterReason(s, 'rookie', hero), /retired/);
+  assert.equal(explore(s, 'burger', hero.id, rng).ok, false);
+  assert.equal(train(s, hero.id, 'atk').ok, false);
+  const partner = growSpud(s, rng).fry;
+  const child = breed(s, hero.id, partner.id, rng);
+  assert.ok(child.ok && child.legacy);
+  assert.ok(child.fry.base.atk >= hero.base.atk, 'doubled from the stronger parent');
+});
+
+test('difficulty is locked until the Universe is won', () => {
+  const s = defaultState(0);
+  s.settings.difficulty = 'impossible';
+  assert.equal(getDifficulty(s), DIFFICULTY.normal);
+  assert.equal(ALL_LEAGUES_BASE.length, 4);
 });

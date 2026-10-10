@@ -2,6 +2,7 @@
 
 import { makeRng } from './rng.js';
 import { WORLD_ARENAS, WORLD_MAP, CREATURE_MAP } from '../data/worlds.js';
+import { SPECIES_TRAITS, SPECIES_TRAINING, TRAINING_COST_MULT } from '../data/species.js';
 
 export const LAB_CAPACITY = 12;
 export const WILD_PARENT = 'wild';
@@ -34,9 +35,11 @@ export const TRAITS = [
   { id: 'stack', name: 'Double Stack', cost: 0, world: 'burger', desc: '+30% HP and +25% defense.', mods: { hp: 0.3, def: 0.25 } },
   { id: 'fizz', name: 'Fizz Burst', cost: 0, world: 'soda', desc: '25% chance to strike twice.', effect: 'fizz' },
   { id: 'fluff', name: 'Sugar Fluff', cost: 0, world: 'cottoncandy', desc: '+15% dodge and heals 3% HP each round.', mods: { dodge: 0.15 }, effect: 'fluff' },
+  { id: 'xenoform', name: 'Xeno Physiology', cost: 0, world: 'alien', desc: '+15% to all stats.', mods: { hp: 0.15, atk: 0.15, def: 0.15, spd: 0.15 } },
 ];
-/** Traits that can be spliced with money in the Lab (world traits come from DNA). */
+/** Fry gene-splicing traits (world traits come from DNA; creatures have their own sets). */
 export const LAB_TRAITS = TRAITS.filter((t) => !t.world);
+for (const [species, list] of Object.entries(SPECIES_TRAITS)) for (const t of list) TRAITS.push({ ...t, species });
 export const TRAIT_MAP = Object.fromEntries(TRAITS.map((t) => [t.id, t]));
 
 const NAME_A = ['Spud', 'Tater', 'Frita', 'Crispin', 'Russet', 'Yukon', 'Wedgie', 'Sir Fry', 'Lady Crisp', 'Chip', 'Hashley', 'Tot', 'Fryan', 'Spudrick', 'Frydrich', 'Potatina', 'Ketchum', 'Starchy', 'Salty Pete', 'Greasy Gus'];
@@ -51,7 +54,7 @@ export function newFry(state, rng, overrides = {}) {
     id: state.lab.nextId++,
     name: fryName(rng),
     gen: 1,
-    base: { hp: rng.int(62, 80), atk: rng.int(10, 14), def: rng.int(3, 6), spd: rng.int(6, 10) },
+    base: { hp: rng.int(70, 90), atk: rng.int(10, 14), def: rng.int(3, 6), spd: rng.int(6, 10) },
     traits: [],
     trained: 0,
     wins: 0,
@@ -100,8 +103,32 @@ export function fryColor(fry) {
 
 const busy = (state, id) => state.fryer.run && state.fryer.run.fryId === id;
 
+/** Which trait list and treatments apply: fries (and fry hybrids) or a creature species. */
+export const speciesOf = (fry) => (fry.species && fry.species !== 'fry' ? fry.species : 'fry');
+
+/** Fighters taking up Lab vats (Hall of Famers have their own hall). */
+export const labCount = (state) => state.lab.fries.filter((f) => !f.hof).length;
+const labFull = (state) => labCount(state) >= LAB_CAPACITY;
+const retired = (f) => (f?.hof ? { ok: false, reason: `${f.name} is retired in the Hall of Fame and can only be used for breeding.` } : null);
+
+/** Gene-splicing options for this fighter, with prices. */
+export function traitsFor(fry) {
+  const sp = speciesOf(fry);
+  if (sp === 'fry') return LAB_TRAITS;
+  const own = TRAITS.filter((t) => t.species === sp);
+  const w = WORLD_MAP[sp];
+  return w ? [...own, { ...TRAIT_MAP[w.trait], cost: 600 }] : own;
+}
+
+/** Treatments for this fighter's species. */
+export function trainingFor(fry) {
+  const table = SPECIES_TRAINING[speciesOf(fry)] || SPECIES_TRAINING.fry;
+  const label = { hp: 'HP', atk: 'ATK', def: 'DEF', spd: 'SPD' };
+  return Object.fromEntries(Object.entries(table).map(([k, t]) => [k, { ...t, label: `+${t.gain} ${label[k]}` }]));
+}
+
 export function growSpud(state, rng) {
-  if (state.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max).` };
+  if (labFull(state)) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max).` };
   if (state.money < GROW_COST) return { ok: false, reason: `Need $${GROW_COST}` };
   state.money -= GROW_COST;
   const f = newFry(state, rng);
@@ -117,11 +144,14 @@ export function splice(state, fryId, traitId) {
   const f = getFry(state, fryId);
   const t = TRAIT_MAP[traitId];
   if (!f || !t) return { ok: false, reason: 'Nope' };
-  if (busy(state, fryId)) return { ok: false, reason: 'That fry is mid-tournament.' };
+  if (retired(f)) return retired(f);
+  const offer = traitsFor(f).find((x) => x.id === traitId);
+  if (!offer) return { ok: false, reason: `${t.name} isn't available for this kind of fighter.` };
+  if (busy(state, fryId)) return { ok: false, reason: 'That fighter is mid-tournament.' };
   if (f.traits.includes(traitId)) return { ok: false, reason: 'Already has that trait.' };
-  if (f.traits.length >= 3) return { ok: false, reason: 'Max 3 traits. Purge one first.' };
-  if (state.money < t.cost) return { ok: false, reason: `Need $${t.cost}` };
-  state.money -= t.cost;
+  if (f.traits.length >= 3) return { ok: false, reason: 'Max 3 traits. Remove one first.' };
+  if (state.money < offer.cost) return { ok: false, reason: `Need $${offer.cost}` };
+  state.money -= offer.cost;
   f.traits.push(traitId);
   return { ok: true };
 }
@@ -129,6 +159,7 @@ export function splice(state, fryId, traitId) {
 export function purgeTrait(state, fryId, traitId) {
   const f = getFry(state, fryId);
   if (!f || !f.traits.includes(traitId)) return { ok: false, reason: 'Nope' };
+  if (retired(f)) return retired(f);
   if (busy(state, fryId)) return { ok: false, reason: 'That fry is mid-tournament.' };
   if (state.money < PURGE_COST) return { ok: false, reason: `Need $${PURGE_COST}` };
   state.money -= PURGE_COST;
@@ -136,25 +167,23 @@ export function purgeTrait(state, fryId, traitId) {
   return { ok: true };
 }
 
-export const TRAINING = {
-  hp: { name: 'Starch Injection', gain: 6, label: '+6 HP' },
-  atk: { name: 'Crisp Ray', gain: 1, label: '+1 ATK' },
-  def: { name: 'Grease Coat', gain: 1, label: '+1 DEF' },
-  spd: { name: 'Hot Oil Sprints', gain: 1, label: '+1 SPD' },
-};
+/** Fry treatments (other species: see trainingFor). */
+export const TRAINING = trainingFor({});
 
 export function trainCost(fry) {
-  return 60 + 18 * fry.trained;
+  return Math.round((60 + 18 * fry.trained) * (TRAINING_COST_MULT[speciesOf(fry)] || 1));
 }
 
 export function train(state, fryId, stat) {
   const f = getFry(state, fryId);
-  if (!f || !TRAINING[stat]) return { ok: false, reason: 'Nope' };
-  if (busy(state, fryId)) return { ok: false, reason: 'That fry is mid-tournament.' };
+  const table = f && trainingFor(f);
+  if (!f || !table[stat]) return { ok: false, reason: 'Nope' };
+  if (retired(f)) return retired(f);
+  if (busy(state, fryId)) return { ok: false, reason: 'That fighter is mid-tournament.' };
   const cost = trainCost(f);
   if (state.money < cost) return { ok: false, reason: `Need $${cost}` };
   state.money -= cost;
-  f.base[stat] += TRAINING[stat].gain;
+  f.base[stat] += table[stat].gain;
   f.trained++;
   return { ok: true, cost };
 }
@@ -169,7 +198,7 @@ export function breed(state, aId, bId, rng) {
   const b = bId === WILD_PARENT ? wildParent(rng) : getFry(state, bId);
   if (!a || !b || (a === b && aId !== WILD_PARENT)) return { ok: false, reason: 'Pick two different parents.' };
   if (busy(state, aId) || busy(state, bId)) return { ok: false, reason: 'A parent is mid-tournament.' };
-  if (state.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max). Compost one to make room.` };
+  if (labFull(state)) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max). Compost one to make room.` };
   if (state.money < BREED_COST) return { ok: false, reason: `Need $${BREED_COST}` };
   state.money -= BREED_COST;
   const base = {};
@@ -179,10 +208,13 @@ export function breed(state, aId, bId, rng) {
     // Children lean toward the stronger parent, with a little mutation.
     base[k] = Math.max(1, Math.round((avg * 0.5 + hi * 0.5) * rng.range(0.94, 1.1)));
   }
+  // A Hall of Fame bloodline doubles the offspring's stats.
+  const legacy = !!(a.hof || b.hof);
+  if (legacy) for (const k of Object.keys(base)) base[k] *= 2;
   const inherited = rng.shuffle([...new Set([...a.traits, ...b.traits])]).slice(0, rng.int(1, 2));
   let mutation = null;
   if (rng.chance(0.2)) {
-    const pool = LAB_TRAITS.filter((t) => !inherited.includes(t.id));
+    const pool = traitsFor(a).filter((t) => !t.world && !inherited.includes(t.id));
     mutation = rng.pick(pool).id;
     if (inherited.length < 3) inherited.push(mutation);
   }
@@ -196,10 +228,11 @@ export function breed(state, aId, bId, rng) {
   if (!child.hybrid) delete child.hybrid;
   state.lab.fries.push(child);
   state.stats.bred++;
-  return { ok: true, fry: child, mutation };
+  return { ok: true, fry: child, mutation, legacy };
 }
 
 export function compost(state, fryId) {
+  if (retired(getFry(state, fryId))) return retired(getFry(state, fryId));
   if (busy(state, fryId)) return { ok: false, reason: 'That fry is mid-tournament.' };
   const i = state.lab.fries.findIndex((f) => f.id === fryId);
   if (i < 0) return { ok: false };
@@ -251,7 +284,7 @@ export function creatureEntity(creatureId, mult, rng, extra = {}) {
   const w = WORLD_MAP[c.world];
   const k = (v) => Math.max(1, Math.round(v * mult * rng.range(0.92, 1.08)));
   const extraTraits = c.rarity === 'legendary' ? 2 : c.rarity === 'rare' ? 1 : 0;
-  const traits = [w.trait, ...rng.shuffle(LAB_TRAITS.filter((t) => t.id !== 'golden')).slice(0, extraTraits).map((t) => t.id)];
+  const traits = [w.trait, ...rng.shuffle(TRAITS.filter((t) => t.species === c.world)).slice(0, extraTraits).map((t) => t.id)];
   return {
     id: -1,
     name: c.name,
@@ -272,7 +305,9 @@ export function creatureEntity(creatureId, mult, rng, extra = {}) {
 function makeEntrant(L, strength, seed) {
   if (!L.world) return npcFry(L.id, strength, seed);
   const rng = makeRng(seed);
-  const pool = WORLD_MAP[L.world].creatures;
+  const pool = L.id === 'universe' && rng() < 0.4
+    ? rng.pick(Object.values(WORLD_MAP).filter((w) => !w.secret)).creatures
+    : WORLD_MAP[L.world].creatures;
   const c = rng.pick(strength > 1.12 ? pool.filter((x) => x.rarity !== 'common') : pool);
   const e = creatureEntity(c.id, L.power * strength, rng, { npc: true });
   e.name = `${c.name} ${rng.pick(['the Bold', 'Jr.', 'the Swift', 'Prime', 'the Mighty', 'III', 'the Tough', 'the Sly', ''])}`.trim();
@@ -361,14 +396,79 @@ export function simulateBattle(fa, fb, rng) {
   return { winner, events, maxA: A.max, maxB: B.max };
 }
 
-export function canEnter(state, leagueId) {
-  const L = LEAGUE_MAP[leagueId];
-  if (!L) return false;
-  if (L.world && !state.worlds?.owned?.includes(L.world)) return false;
-  return !L.needs || !!state.fryer.champions[L.needs];
+export const worldOwned = (state, id) => (id === 'alien' ? !!state.worlds?.alien : !!state.worlds?.owned?.includes(id));
+
+// Difficulty (unlocked by winning the Champions of the Universe): tougher foes, bigger purses.
+export const DIFFICULTY = {
+  normal: { name: 'Normal', power: 1, reward: 1 },
+  hard: { name: 'Hard', power: 1.5, reward: 1.5 },
+  brutal: { name: 'Brutal', power: 2.25, reward: 2 },
+  impossible: { name: 'Impossible', power: 3.5, reward: 3 },
+};
+export const difficultyUnlocked = (state) => (state.universe?.champions || 0) > 0;
+export function getDifficulty(state) {
+  return (difficultyUnlocked(state) && DIFFICULTY[state.settings?.difficulty]) || DIFFICULTY.normal;
 }
 
-export const ROUND_NAMES = ['Round of 32', 'Round of 16', 'Quarterfinal', 'Semifinal', 'Final'];
+/** The trophy a fighter must already hold before entering this league or arena. */
+function prerequisite(L) {
+  if (L.invite) return null;
+  if (L.needs) return L.needs;
+  return L.world ? LEAGUES[LEAGUES.length - 1].id : null;
+}
+
+/** Why a fighter can't enter a league (or null if it can). Progress is earned per fighter. */
+export function enterReason(state, leagueId, fry) {
+  const L = LEAGUE_MAP[leagueId];
+  if (!L) return 'Unknown tournament.';
+  if (L.world && !worldOwned(state, L.world)) return L.world === 'alien' ? 'Reach the Alien Planet first.' : `Travel to ${WORLD_MAP[L.world].name} first.`;
+  if (!fry) return 'Pick a fighter.';
+  if (fry.hof) return `${fry.name} is retired in the Hall of Fame.`;
+  if (L.invite && !fry.invited) return `Only fighters invited by the mysterious letter may enter.`;
+  const need = prerequisite(L);
+  if (need && !fry.titles?.includes(need)) return `${fry.name} must win ${LEAGUE_MAP[need].name} first.`;
+  return null;
+}
+
+export function canEnter(state, leagueId, fry) {
+  return !enterReason(state, leagueId, fry);
+}
+
+/** Every trophy currently on offer (Fryer leagues + arenas in the worlds you've unlocked). */
+export function trophiesOffered(state) {
+  return [...LEAGUES.map((l) => l.id), ...WORLD_ARENAS.filter((a) => a.world !== 'alien' && worldOwned(state, a.world)).map((a) => a.id)];
+}
+
+/** A fighter holding every trophy on offer earns the mysterious letter. */
+export function letterEligible(state, fry) {
+  if (!fry || fry.hof || fry.invited || fry.letter || !state.worlds?.owned?.length) return false;
+  return trophiesOffered(state).every((id) => fry.titles?.includes(id));
+}
+
+/** Accepting the letter: the fighter is invited and the Alien Planet opens. */
+export function acceptLetter(state, fryId) {
+  const f = getFry(state, fryId);
+  if (!f || !f.letter) return { ok: false, reason: 'No letter to answer.' };
+  f.letter = false;
+  f.invited = true;
+  state.worlds.alien = true;
+  return { ok: true, fry: f };
+}
+
+/** Retire a trophy-winning fighter into the Hall of Fame (breeding only, doubles offspring stats). */
+export function induct(state, fryId) {
+  const f = getFry(state, fryId);
+  if (!f) return { ok: false, reason: 'Pick a fighter.' };
+  if (!(state.universe?.champions > 0)) return { ok: false, reason: 'Win the Champions of the Universe to open the Hall of Fame.' };
+  if (f.hof) return { ok: false, reason: 'Already in the Hall of Fame.' };
+  if (busy(state, fryId)) return { ok: false, reason: 'That fighter is mid-tournament.' };
+  if (!f.titles?.length) return { ok: false, reason: 'Only trophy winners can enter the Hall of Fame.' };
+  f.hof = true;
+  f.inducted = Date.now();
+  return { ok: true };
+}
+
+export const ROUND_NAMES = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarterfinal', 'Semifinal', 'Final'];
 export function roundName(L, round) {
   return ROUND_NAMES[ROUND_NAMES.length - (L.rounds - round)];
 }
@@ -377,7 +477,8 @@ export function startRun(state, fryId, leagueId, now = Date.now()) {
   if (state.fryer.run) return { ok: false, reason: 'Finish your current tournament first.' };
   const f = getFry(state, fryId);
   if (!f) return { ok: false, reason: 'Pick a fighter.' };
-  if (!canEnter(state, leagueId)) return { ok: false, reason: LEAGUE_MAP[leagueId]?.world ? 'Win the previous arena in this world first.' : 'Win the previous league first.' };
+  const why = enterReason(state, leagueId, f);
+  if (why) return { ok: false, reason: why };
   const L = LEAGUE_MAP[leagueId];
   if (state.money < L.entry) return { ok: false, reason: `Entry fee is $${L.entry.toLocaleString()}` };
   state.money -= L.entry;
@@ -386,7 +487,8 @@ export function startRun(state, fryId, leagueId, now = Date.now()) {
   const size = 2 ** L.rounds;
   // Slot 0 is the player. NPC strengths spread from 0.8x to 1.2x league power.
   const slots = [{ player: true }];
-  for (let i = 1; i < size; i++) slots.push(makeEntrant(L, 0.8 + (0.4 * (i - 1)) / Math.max(1, size - 2), `${seed}-e${i}`));
+  const diff = getDifficulty(state).power;
+  for (let i = 1; i < size; i++) slots.push(makeEntrant(L, (0.8 + (0.4 * (i - 1)) / Math.max(1, size - 2)) * diff, `${seed}-e${i}`));
   // Every entrant gets a unique name.
   const pool = rng.shuffle(NPC_NAMES);
   const used = new Set();
@@ -413,11 +515,11 @@ export function currentMatch(run) {
 
 export function roundPrize(state, fry, L, round) {
   const golden = fry.traits.includes('golden') ? 1.5 : 1;
-  return Math.round(L.prize * (1 + round * 0.5) * golden);
+  return Math.round(L.prize * (1 + round * 0.5) * golden * getDifficulty(state).reward);
 }
 
-export function champPrize(fry, L) {
-  return Math.round(L.champBonus * (fry.traits.includes('golden') ? 1.5 : 1));
+export function champPrize(state, fry, L) {
+  return Math.round(L.champBonus * (fry.traits.includes('golden') ? 1.5 : 1) * getDifficulty(state).reward);
 }
 
 export function fightRound(state, rng) {
@@ -445,7 +547,7 @@ export function fightRound(state, rng) {
     state.fryer.wins++;
     run.round++;
     if (run.round >= L.rounds) {
-      const bonus = champPrize(fry, L);
+      const bonus = champPrize(state, fry, L);
       state.money += bonus;
       state.lifetime += bonus;
       run.earned += bonus;
@@ -454,6 +556,15 @@ export function fightRound(state, rng) {
       state.fryer.run = null;
       out.champion = true;
       out.bonus = bonus;
+      if (L.id === 'universe') {
+        state.universe = state.universe || { champions: 0 };
+        state.universe.champions++;
+        out.universe = true;
+      }
+      if (letterEligible(state, fry)) {
+        fry.letter = true;
+        out.letter = true;
+      }
     } else {
       const prize = roundPrize(state, fry, L, round);
       state.money += prize;

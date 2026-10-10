@@ -1,11 +1,13 @@
 // The Lab: grow, modify, train and breed GMO fries.
 
-import { LAB_TRAITS, TRAIT_MAP, TRAINING, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, WILD_PARENT, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
+import { traitsFor, trainingFor, speciesOf, labCount, induct, TRAIT_MAP, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, WILD_PARENT, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
 import { renderFryGuy, traitBadges } from '../art/fryguy.js';
 import { fmt } from '../game/state.js';
 import { CREATURE_MAP, WORLD_MAP, RARITY, SPLICE_COST, GROW_DNA_COST, GROW_DNA_SAMPLES, MAX_DNA_SPLICES } from '../data/worlds.js';
 import { spliceDNA, growFromDNA, worldsUnlocked } from '../game/worlds.js';
 import { sfx } from '../audio.js';
+import { SPECIES_LABEL, SPECIES_STRENGTH } from '../data/species.js';
+import { openLetter } from './cosmos.js';
 import { $, $$, esc, openModal, closeModal, toast } from './dom.js';
 
 const ui = { selected: null, breedA: null, breedB: null };
@@ -50,27 +52,28 @@ export function fryCardHtml(fry, { selected = false, busy = false } = {}) {
     ${renderFryGuy(fry)}
     <span class="fname">${esc(fry.name)}</span>
     <span class="muted">${kindLabel(fry)} · Power ${power(fry)}${fry.wins ? ` · ${fry.wins}W` : ''}</span>
-    ${fry.titles.length ? `<span class="titles">${fry.titles.map((t) => `👑 ${LEAGUE_MAP[t].name}`).join('<br>')}</span>` : ''}
-    ${busy ? '<span class="busy">In the Fryer</span>' : ''}
+    ${fry.titles.length ? `<span class="titles">🏆 ${fry.titles.length} troph${fry.titles.length > 1 ? 'ies' : 'y'}${fry.titles.includes('universe') ? ' · 🌌 Universe Champion' : ''}</span>` : ''}
+    ${busy ? '<span class="busy">In the Fryer</span>' : fry.letter ? '<span class="busy letter">📜 Letter!</span>' : fry.hof ? '<span class="busy hof">🏛️ Hall of Fame</span>' : fry.invited ? '<span class="busy invited">🛸 Invited</span>' : ''}
   </button>`;
 }
 
 export function renderLab(app, root) {
   const s = app.state;
-  const fries = s.lab.fries;
-  if (ui.selected && !getFry(s, ui.selected)) ui.selected = null;
+  const fries = s.lab.fries.filter((f) => !f.hof);
+  if (ui.selected && !fries.some((f) => f.id === ui.selected)) ui.selected = null;
   if (!ui.selected && fries.length) ui.selected = fries[0].id;
   const sel = ui.selected && getFry(s, ui.selected);
   const runFry = s.fryer.run?.fryId;
 
   const list = fries.map((f) => fryCardHtml(f, { selected: f.id === ui.selected, busy: f.id === runFry })).join('')
-    + (fries.length < LAB_CAPACITY ? `<button class="fry-card add" id="growBtn"><span class="plus">+</span><span class="fname">Grow a Spud</span><span class="muted">${fmt(GROW_COST)}</span></button>` : '');
+    + (labCount(s) < LAB_CAPACITY ? `<button class="fry-card add" id="growBtn"><span class="plus">+</span><span class="fname">Grow a Spud</span><span class="muted">${fmt(GROW_COST)}</span></button>` : '');
 
   let detail = '<div class="lab-empty"><p>No fries yet. Grow your first GMO spud!</p></div>';
   if (sel) {
     const cost = trainCost(sel);
-    const trainBtns = Object.entries(TRAINING).map(([k, t]) => `<button class="btn small" data-train="${k}" ${s.money < cost ? 'disabled' : ''}>${t.name}<br><small>${t.label} · ${fmt(cost)}</small></button>`).join('');
-    const spliceBtns = LAB_TRAITS.map((t) => {
+    const sp = speciesOf(sel);
+    const trainBtns = Object.entries(trainingFor(sel)).map(([k, t]) => `<button class="btn small" data-train="${k}" ${s.money < cost ? 'disabled' : ''}>${t.name}<br><small>${t.label} · ${fmt(cost)}</small></button>`).join('');
+    const spliceBtns = traitsFor(sel).map((t) => {
       const has = sel.traits.includes(t.id);
       if (has) {
         return `<button class="trait-btn has" data-purge="${t.id}" ${s.money < PURGE_COST ? 'disabled' : ''} title="Remove ${esc(t.name)}">
@@ -85,13 +88,17 @@ export function renderLab(app, root) {
           <div class="tube">${renderFryGuy(sel, { mood: 'happy' })}<div class="bubbles"><i></i><i></i><i></i><i></i></div></div>
           <div>
             <h2>${esc(sel.name)} <button class="btn tiny" id="renameBtn">✏️</button></h2>
-            <p class="muted">Generation ${sel.gen} · ${sel.wins} Fryer wins · ${sel.trained} treatments</p>
+            <p class="muted">${kindLabel(sel)} · ${sel.wins} wins · ${sel.trained} treatments</p>
+            ${sel.titles.length ? `<p class="trophies">${sel.titles.map((t) => `<span title="${esc(LEAGUE_MAP[t]?.name || t)}">🏆 ${esc(LEAGUE_MAP[t]?.name || t)}</span>`).join('')}</p>` : ''}
+            ${sel.letter ? '<button class="btn btn-primary letter-btn" id="letterBtn">📜 Read the mysterious letter</button>' : ''}
+            ${sel.invited && !sel.titles.includes('universe') ? '<p class="hint">🛸 Invited to the Champions of the Universe on the Alien Planet.</p>' : ''}
+            ${s.universe?.champions > 0 && sel.titles.length ? '<button class="btn small" id="inductBtn">🏛️ Induct into the Hall of Fame</button>' : ''}
             ${statBlock(sel)}
             <div class="traits">${sel.traits.length ? sel.traits.map((t) => `<span class="trait removable" title="${esc(TRAIT_MAP[t].desc)}">${TRAIT_MAP[t].name} <button class="x" data-purge="${t}" title="Remove ${TRAIT_MAP[t].name} for ${fmt(PURGE_COST)}">✕ Remove</button></span>`).join('') : '<span class="muted">No traits spliced yet (max 3).</span>'}</div>
           </div>
         </div>
-        <h3>Treatments</h3><div class="row wrap">${trainBtns}</div>
-        <h3>Gene Splicing <small>${sel.traits.length}/3 slots${sel.traits.length >= 3 ? ' · full: remove a trait to splice a new one' : ''}</small></h3><div class="trait-grid">${spliceBtns}</div>
+        <h3>Treatments <small>${SPECIES_LABEL[sp]} specialty: ${SPECIES_STRENGTH[sp]}</small></h3><div class="row wrap">${trainBtns}</div>
+        <h3>${SPECIES_LABEL[sp]} Gene Splicing <small>${sel.traits.length}/3 slots${sel.traits.length >= 3 ? ' · full: remove a trait to splice a new one' : ''}</small></h3><div class="trait-grid">${spliceBtns}</div>
         ${dnaVault(s, sel)}
         <div class="row lab-foot"><button class="btn danger small" id="compostBtn">Compost (+${fmt(COMPOST_VALUE)})</button></div>
       </div>`;
@@ -99,7 +106,7 @@ export function renderLab(app, root) {
 
   root.innerHTML = `<section class="lab">
     <div class="lab-head"><h1>🧪 The Lab</h1>
-      <p class="muted">Grow spuds, splice in traits, pump them full of starch, and breed champions. ${fries.length}/${LAB_CAPACITY} vats in use.</p>
+      <p class="muted">Grow spuds, splice in traits, pump them full of starch, and breed champions. ${labCount(s)}/${LAB_CAPACITY} vats in use.</p>
       <button class="btn btn-primary" id="breedBtn" ${s.money >= BREED_COST ? '' : 'disabled'} title="${s.money >= BREED_COST ? 'Breed two fighters, or one fighter with a wild spud' : `Need ${fmt(BREED_COST)}`}">🧬 Breeding Chamber (${fmt(BREED_COST)})</button>
     </div>
     <div class="lab-body"><div class="fry-list">${list}</div>${detail}</div>
@@ -115,6 +122,14 @@ export function renderLab(app, root) {
   $$('[data-purge]', root).forEach((b) => (b.onclick = (e) => { e.stopPropagation(); act(app, purgeTrait(s, sel.id, b.dataset.purge)); }));
   $$('[data-dna-splice]', root).forEach((b) => (b.onclick = () => act(app, spliceDNA(s, sel.id, b.dataset.dnaSplice), (r) => toast(`🧬 ${esc(sel.name)} absorbed ${esc(CREATURE_MAP[b.dataset.dnaSplice].name)} DNA${r.trait ? ` and gained ${TRAIT_MAP[r.trait].name}` : ''}!`, 'good'))));
   $$('[data-dna-grow]', root).forEach((b) => (b.onclick = () => act(app, growFromDNA(s, b.dataset.dnaGrow, app.rng), (r) => { ui.selected = r.fry.id; toast(`🧪 ${esc(r.fry.name)} emerged from the vat!`, 'good'); })));
+  const lb = $('#letterBtn', root);
+  if (lb) lb.onclick = () => openLetter(app, sel);
+  const ib = $('#inductBtn', root);
+  if (ib) ib.onclick = () => {
+    openModal(`<h2>🏛️ Induct ${esc(sel.name)}?</h2><p>Hall of Famers retire from all arenas, exploring and treatments. They can still be bred, and <b>breeding with a Hall of Famer doubles the offspring's stats</b>.</p><div class="row center"><button class="btn" data-close>Not yet</button><button class="btn btn-primary" data-yes>Induct</button></div>`, { cls: 'center' });
+    $('[data-close]').onclick = closeModal;
+    $('[data-yes]').onclick = () => { closeModal(); act(app, induct(s, sel.id), () => { toast(`🏛️ ${esc(sel.name)} entered the Hall of Fame!`, 'achieve'); app.go('hall'); }); };
+  };
   $('#compostBtn', root).onclick = () => {
     openModal(`<h2>Compost ${esc(sel.name)}?</h2><p>This fry will be returned to the earth. Forever.</p><div class="row center"><button class="btn" data-close>Keep</button><button class="btn danger" data-yes>Compost</button></div>`, { cls: 'center' });
     $('[data-close]').onclick = closeModal;
@@ -143,20 +158,21 @@ const WILD_PROTO = { name: 'Wild Spud', traits: [], titles: [], hue: 44, base: {
 function openBreeding(app) {
   const s = app.state;
   const fries = s.lab.fries.filter((f) => s.fryer.run?.fryId !== f.id);
+  const legacy = fries.some((f) => f.hof);
   const valid = (id) => id === WILD_PARENT || fries.some((f) => f.id === id);
   if (!valid(ui.breedA)) ui.breedA = fries[0]?.id ?? WILD_PARENT;
   if (!valid(ui.breedB) || (ui.breedB === ui.breedA && ui.breedA !== WILD_PARENT)) ui.breedB = fries.find((f) => f.id !== ui.breedA)?.id ?? WILD_PARENT;
   const parentOf = (id) => (id === WILD_PARENT ? WILD_PROTO : getFry(s, id));
   const option = (side, id, f, extra = '') => `<button class="mini-fry ${(side === 'A' ? ui.breedA : ui.breedB) === id ? 'sel' : ''}" data-side="${side}" data-id="${id}">${renderFryGuy(f)}<span>${esc(f.name)}</span>${extra}</button>`;
-  const pick = (side) => fries.map((f) => option(side, f.id, f)).join('') + option(side, WILD_PARENT, WILD_PROTO, '<small>random donor</small>');
+  const pick = (side) => fries.map((f) => option(side, f.id, f, f.hof ? '<small>🏛️ Hall of Fame</small>' : '')).join('') + option(side, WILD_PARENT, WILD_PROTO, '<small>random donor</small>');
   const A = parentOf(ui.breedA);
   const B = parentOf(ui.breedB);
   const pool = [...new Set([...(A?.traits || []), ...(B?.traits || [])])];
-  const full = s.lab.fries.length >= LAB_CAPACITY;
+  const full = labCount(s) >= LAB_CAPACITY;
   const broke = s.money < BREED_COST;
   const problem = full ? `Your Lab is full (${LAB_CAPACITY} fighters). Compost one to make room for the baby.` : broke ? `You need ${fmt(BREED_COST)} to breed.` : '';
   openModal(`<h2>🧬 Breeding Chamber</h2>
-    <p class="muted">Offspring lean toward the stronger parent's stats, inherit 1–2 traits, and have a 20% chance of a wild mutation. No partner? Pick a <b>Wild Spud</b>, a random fresh spud donor.</p>
+    <p class="muted">Offspring lean toward the stronger parent's stats, inherit 1–2 traits, and have a 20% chance of a wild mutation. No partner? Pick a <b>Wild Spud</b>, a random fresh spud donor.${legacy ? ' <b>🏛️ Breeding with a Hall of Famer doubles the baby\'s stats!</b>' : ''}</p>
     <div class="breed">
       <div><h3>Parent A</h3><div class="mini-list">${pick('A')}</div></div>
       <div class="heart">❤️</div>
@@ -182,6 +198,7 @@ function openBreeding(app) {
     app.commit({ silentRender: true });
     openModal(`<div class="result"><h2>It's a fry!</h2>${renderFryGuy(res.fry, { mood: 'happy', cls: 'big' })}
       <h3>${esc(res.fry.name)}</h3><p class="muted">Generation ${res.fry.gen}</p>
+      ${res.legacy ? '<p class="hint">🏛️ Hall of Fame bloodline: stats doubled!</p>' : ''}
       ${res.mutation ? `<p class="hint">⚡ Mutation! Gained <b>${TRAIT_MAP[res.mutation].name}</b></p>` : ''}
       ${statBlock(res.fry)}<div class="traits">${traitBadges(res.fry)}</div>
       <button class="btn btn-primary" data-close>Welcome to the family</button></div>`, { cls: 'center', onClose: () => app.render() });

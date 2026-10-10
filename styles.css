@@ -598,3 +598,61 @@ button.entry:hover { transform: translateY(-2px); }
   .explore-stage { aspect-ratio: 4 / 3; }
   .world-thumb { width: calc(50% - 5px); }
 }
+
+/* ---------- Deck groups ---------- */
+.deck-group-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.deck-group-head h2 { margin: 0; }
+
+/* ---------- Trophies, letters, Alien Planet, Hall of Fame ---------- */
+.trophies { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 6px; }
+.trophies span { font-size: .7rem; font-weight: 900; background: #fff3c4; border: 1.5px solid var(--ink); border-radius: 99px; padding: 0 8px; }
+.won-badge { font-family: var(--font-body); font-size: .7rem; font-weight: 900; color: #1f7a36; }
+.fry-card .busy.letter { background: #6a3fd1; animation: wiggle 1s infinite; }
+.fry-card .busy.hof { background: #a8841c; }
+.fry-card .busy.invited { background: #3a7bd5; }
+.letter-btn { animation: wiggle 1.2s infinite; margin: 4px 0; }
+.letter-modal .envelope { width: 200px; display: block; margin: 0 auto; animation: pop .5s; }
+.letter-modal .flap { transform-origin: 110px 22px; animation: flap-open .8s .4s forwards; }
+@keyframes flap-open { to { transform: scaleY(-1); } }
+.letter-paper { text-align: left; background: #fffaf0; background-image: repeating-linear-gradient(transparent 0 27px, #e8dcc4 27px 28px); border: 3px solid var(--ink); border-radius: 6px; padding: 14px 20px; margin: -20px auto 14px; max-width: 520px; box-shadow: var(--shadow); font-family: Georgia, 'Times New Roman', serif; line-height: 28px; animation: rise-up .7s .9s both; position: relative; }
+@keyframes rise-up { from { transform: translateY(40px); opacity: 0; } }
+.letter-head { font-weight: 700; }
+.letter-sign { text-align: right; font-style: italic; }
+.abduction .night { position: relative; height: 320px; border: 4px solid var(--ink); border-radius: 18px; overflow: hidden; background: linear-gradient(#0d0626, #3a1f7a 70%, #5a2a9e); }
+.abduction .night i { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; }
+.abduction .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: #3a6b2a; border-top: 4px solid var(--ink); }
+.ufo-wrap { position: absolute; left: 50%; top: 18px; width: 220px; margin-left: -110px; animation: ufo-arrive 1.4s ease-out both, ufo-leave 1.2s 3.4s ease-in forwards; }
+.ufo-wrap .ufo { width: 220px; display: block; position: relative; z-index: 2; }
+.ufo .blink { animation: blink 1s infinite; }
+.ufo .b1 { animation-delay: .33s; } .ufo .b2 { animation-delay: .66s; }
+@keyframes blink { 50% { fill: #ff7cf0; } }
+.beam { position: absolute; left: 50%; top: 80px; width: 160px; height: 210px; margin-left: -80px; background: linear-gradient(rgba(255, 243, 150, .85), rgba(255, 243, 150, .15)); clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%); opacity: 0; animation: beam-on 2.2s 1.3s both; }
+@keyframes ufo-arrive { from { transform: translateY(-220px) rotate(-10deg); } }
+@keyframes ufo-leave { to { transform: translate(420px, -260px) rotate(12deg) scale(.4); } }
+@keyframes beam-on { 0%, 100% { opacity: 0; } 20%, 80% { opacity: 1; } }
+.abductee { position: absolute; left: 50%; bottom: 40px; margin-left: -50px; width: 100px; animation: abduct 1.8s 1.6s ease-in forwards; z-index: 1; }
+.abductee .fryguy { width: 100px; height: 112px; }
+@keyframes abduct { to { transform: translateY(-190px) scale(.25); opacity: 0; } }
+.arrival { position: relative; aspect-ratio: 16 / 9; max-width: 520px; margin: 10px auto; border: 4px solid var(--ink); border-radius: 14px; overflow: hidden; animation: pop .5s; }
+.arrival span { position: absolute; top: 10px; left: 0; right: 0; font-family: var(--font-head); font-size: 1.6rem; color: #fff; text-shadow: 3px 3px 0 var(--ink), -2px -2px 0 var(--ink), 2px -2px 0 var(--ink), -2px 2px 0 var(--ink); }
+.verdict.universe { background: linear-gradient(135deg, #2a1660, #6a3fd1, #c86bff); color: #fff; }
+.bracket.huge .bcol { width: 118px; gap: 3px; }
+.bracket.huge .bent { font-size: .6rem; padding: 1px 4px; }
+.bracket.huge .bmatch { padding: 2px; border-width: 1.5px; }
+.hall-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.hall-head p { flex: 1; min-width: 260px; }
+.plaques { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin: 10px 0 20px; }
+.plaque { text-align: center; background: linear-gradient(#fff8d6, #f2dc8a); border: 4px solid #a8841c; outline: 3px solid var(--ink); border-radius: 16px; padding: 12px; box-shadow: 0 6px 0 var(--ink); }
+.plaque-frame { background: radial-gradient(#fffbe8, #e8c75a); border: 3px solid var(--ink); border-radius: 50%; width: 130px; height: 130px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; }
+.plaque-frame .fryguy { width: 100px; height: 112px; }
+.plaque h3 { margin: 0; }
+.plaque-trophies { font-size: 1.2rem; letter-spacing: 2px; }
+.plaque .uni { font-family: var(--font-head); color: #6a3fd1; margin: 2px 0 0; }
+.candidates { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.candidate { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; padding: 6px 10px; }
+.candidate .fryguy { width: 50px; height: 56px; flex-shrink: 0; }
+.candidate div { flex: 1; min-width: 0; }
+.candidate b { display: block; font-family: var(--font-head); font-weight: 400; }
+.candidate small { color: var(--muted); }
+.setting select { font-family: var(--font-body); font-weight: 700; border: 2px solid var(--ink); border-radius: 8px; padding: 4px 6px; max-width: 100%; }
+.ring.world-alien { background: radial-gradient(ellipse at 50% 110%, #c86bff 0, #5a2a9e 45%, #12082e 80%); }

@@ -16,6 +16,8 @@ import { renderShop, renderThrift, thriftTick } from './ui/shopScreen.js';
 import { renderLab } from './ui/labScreen.js';
 import { renderFryer } from './ui/fryerScreen.js';
 import { renderWorlds } from './ui/worldsScreen.js';
+import { renderHall } from './ui/cosmos.js';
+import { letterEligible, difficultyUnlocked, DIFFICULTY } from './game/lab.js';
 import { worldsUnlocked } from './game/worlds.js';
 
 const storage = (() => { try { return globalThis.localStorage; } catch { return null; } })();
@@ -30,9 +32,15 @@ const SCREENS = {
   lab: { label: 'Lab', icon: '🧪', render: renderLab, lock: 'lab' },
   fryer: { label: 'Fryer', icon: '🔥', render: renderFryer, lock: 'fryer' },
   worlds: { label: 'Worlds', icon: '🌍', render: renderWorlds, lock: 'worlds', hidden: true },
+  hall: { label: 'Hall', icon: '🏛️', render: renderHall, lock: 'hall', hidden: true },
 };
 
-const isLocked = (scr) => !!scr.lock && (scr.lock === 'worlds' ? !worldsUnlocked(app.state) : !app.state.unlocks[scr.lock]);
+const isLocked = (scr) => {
+  if (!scr.lock) return false;
+  if (scr.lock === 'worlds') return !worldsUnlocked(app.state);
+  if (scr.lock === 'hall') return !difficultyUnlocked(app.state);
+  return !app.state.unlocks[scr.lock];
+};
 
 const app = {
   state: load(storage),
@@ -54,7 +62,10 @@ const app = {
     const scr = SCREENS[name];
     if (scr && isLocked(scr)) {
       sfx('error');
-      if (scr.lock === 'worlds') {
+      if (scr.lock === 'hall') {
+        toast('🔒 Win the Champions of the Universe to open the Hall of Fame.', 'warn');
+        name = 'kitchen';
+      } else if (scr.lock === 'worlds') {
         toast('🔒 Win the Legendary Vat in The Fryer to discover Worlds.', 'warn');
         name = 'fryer';
         if (isLocked(SCREENS.fryer)) name = 'shop';
@@ -71,6 +82,13 @@ const app = {
 
   /** Save + achievements + redraw. Call after any state change. */
   commit({ silentRender = false } = {}) {
+    // Fighters who hold every trophy on offer receive the mysterious letter.
+    for (const f of app.state.lab.fries) {
+      if (letterEligible(app.state, f)) {
+        f.letter = true;
+        toast(`📜 A mysterious letter arrived for <b>${esc(f.name)}</b>. Open it in the Lab.`, 'achieve', 5000);
+      }
+    }
     save(app.state, storage);
     for (const a of checkAchievements(app.state)) {
       setTimeout(() => sfx('achievement'), 700);
@@ -180,6 +198,9 @@ function openSettings() {
     <label class="setting"><input type="checkbox" id="sfxT" ${st.sfx ? 'checked' : ''}> Sound effects</label>
     <label class="setting"><input type="checkbox" id="musT" ${st.music ? 'checked' : ''}> Music</label>
     <label class="setting">Volume <input type="range" id="volR" min="0" max="1" step="0.05" value="${st.volume}"></label>
+    ${difficultyUnlocked(app.state)
+      ? `<label class="setting">Difficulty <select id="diffSel">${Object.entries(DIFFICULTY).map(([k, d]) => `<option value="${k}" ${(st.difficulty || 'normal') === k ? 'selected' : ''}>${d.name} (foes ×${d.power}, prizes ×${d.reward})</option>`).join('')}</select></label>`
+      : '<p class="muted small">🔒 Difficulty settings unlock when a fighter wins the Champions of the Universe.</p>'}
     <div class="row wrap center">
       <button class="btn small" id="fsBtn">Toggle Fullscreen</button>
       <button class="btn small" id="achBtn2">Achievements</button>
@@ -197,6 +218,8 @@ function openSettings() {
   $('#sfxT').onchange = (e) => { st.sfx = e.target.checked; apply(); };
   $('#musT').onchange = (e) => { st.music = e.target.checked; unlockAudio(); apply(); };
   $('#volR').oninput = (e) => { st.volume = +e.target.value; apply(); };
+  const ds = $('#diffSel');
+  if (ds) ds.onchange = (e) => { st.difficulty = e.target.value; apply(); toast(`Difficulty set to ${DIFFICULTY[st.difficulty].name}.`, 'info'); };
   $('#fsBtn').onclick = toggleFullscreen;
   $('#achBtn2').onclick = showAchievements;
   $('#howBtn2').onclick = () => showHowTo(false);

@@ -9,9 +9,9 @@ import { $$, cardHtml, toast } from './dom.js';
 import { sfx } from '../audio.js';
 
 const GROUPS = [
-  ['Basic Ingredients', BASIC_INGREDIENTS],
-  ['Premium Ingredients', PREMIUM_INGREDIENTS],
-  ['Thrift Store Objects', OBJECTS],
+  ['basic', 'Basic Ingredients', BASIC_INGREDIENTS],
+  ['premium', 'Premium Ingredients', PREMIUM_INGREDIENTS],
+  ['objects', 'Thrift Store Objects', OBJECTS],
 ];
 
 export function renderDeck(app, root) {
@@ -21,7 +21,7 @@ export function renderDeck(app, root) {
   const owned = Object.keys(s.deck).length;
   const all = BASIC_INGREDIENTS.length + PREMIUM_INGREDIENTS.length + OBJECTS.length;
 
-  const groups = GROUPS.map(([title, list]) => {
+  const groups = GROUPS.map(([key, title, list]) => {
     const cards = list.map((c) => {
       const n = s.deck[c.id] || 0;
       if (!n) return `<div class="deck-item missing"><div class="card silhouette"><span class="card-name">???</span><span class="card-art">?</span><span class="card-foot">not owned</span></div></div>`;
@@ -35,7 +35,12 @@ export function renderDeck(app, root) {
         </div>
         ${n > 1 ? `<button class="btn tiny" data-sell="${c.id}" title="Sell a spare copy">Sell spare · ${fmt(sellValue(c))}</button>` : ''}</div>`;
     }).join('');
-    return `<h2>${title} <small>${list.filter((c) => s.deck[c.id]).length}/${list.length}</small></h2><div class="deck-grid">${cards}</div>`;
+    const owned = list.filter((c) => s.deck[c.id]);
+    const anyActive = owned.some((c) => (s.benched[c.id] || 0) < s.deck[c.id]);
+    const anyBenched = owned.some((c) => s.benched[c.id]);
+    return `<div class="deck-group-head"><h2>${title} <small>${owned.length}/${list.length}</small></h2>
+      ${owned.length ? `<div class="row"><button class="btn small" data-bench-all="${key}" ${anyActive ? '' : 'disabled'}>Remove all from deck</button><button class="btn small" data-unbench-all="${key}" ${anyBenched ? '' : 'disabled'}>Add all to deck</button></div>` : ''}</div>
+      <div class="deck-grid">${cards}</div>`;
   }).join('');
 
   root.innerHTML = `<section class="deck">
@@ -60,6 +65,26 @@ export function renderDeck(app, root) {
     if (!res.ok) { sfx('error'); toast(res.reason, 'warn'); return; }
     if (activeDeckList(s).length < HAND_SIZE) { s.benched = {}; }
     sfx('coin');
+    app.rebuildKitchen();
+    app.commit();
+  }));
+  const groupList = (key) => GROUPS.find((g) => g[0] === key)[2].filter((c) => s.deck[c.id]);
+  $$('[data-bench-all]', root).forEach((b) => (b.onclick = () => {
+    const before = { ...s.benched };
+    for (const c of groupList(b.dataset.benchAll)) s.benched[c.id] = s.deck[c.id];
+    if (activeDeckList(s).length < HAND_SIZE) {
+      s.benched = before;
+      sfx('error');
+      toast(`You need at least ${HAND_SIZE} active cards, so this group can't all be removed.`, 'warn');
+      return;
+    }
+    sfx('click');
+    app.rebuildKitchen();
+    app.commit();
+  }));
+  $$('[data-unbench-all]', root).forEach((b) => (b.onclick = () => {
+    for (const c of groupList(b.dataset.unbenchAll)) delete s.benched[c.id];
+    sfx('click');
     app.rebuildKitchen();
     app.commit();
   }));

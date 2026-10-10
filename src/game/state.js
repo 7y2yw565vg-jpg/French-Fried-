@@ -30,10 +30,11 @@ export function defaultState(now = Date.now()) {
     thrift: { slots: [], nextRefresh: 0, refreshes: 0 },
     lab: { fries: [], nextId: 1 },
     fryer: { run: null, champions: {}, wins: 0, losses: 0 },
-    worlds: { owned: [], dna: {}, seen: {}, explores: 0, dnaCollected: 0, grown: 0 },
+    worlds: { owned: [], alien: false, dna: {}, seen: {}, explores: 0, dnaCollected: 0, grown: 0 },
+    universe: { champions: 0 },
     stats: { cooks: 0, fails: 0, packs: 0, objects: 0, hints: 0, bred: 0, fried: 0, redraws: 0 },
     achievements: {},
-    settings: { sfx: true, music: true, volume: 0.6 },
+    settings: { sfx: true, music: true, volume: 0.6, difficulty: 'normal' },
     tutorialDone: false,
   };
 }
@@ -42,7 +43,7 @@ export function migrate(raw) {
   const base = defaultState();
   if (!raw || typeof raw !== 'object') return base;
   const s = { ...base, ...raw };
-  for (const k of ['unlocks', 'thrift', 'lab', 'fryer', 'worlds', 'stats', 'settings']) s[k] = { ...base[k], ...(raw[k] || {}) };
+  for (const k of ['unlocks', 'thrift', 'lab', 'fryer', 'worlds', 'universe', 'stats', 'settings']) s[k] = { ...base[k], ...(raw[k] || {}) };
   for (const k of ['deck', 'benched', 'discovered', 'rumors', 'seen', 'achievements']) s[k] = { ...(raw[k] || base[k]) };
   // Old single-opponent Fryer runs predate brackets; drop them.
   if (s.fryer.run && !s.fryer.run.slots) s.fryer.run = null;

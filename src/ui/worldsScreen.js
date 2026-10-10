@@ -1,8 +1,8 @@
 // Worlds: travel, explore for wild creatures and their DNA, and enter world arenas.
 
-import { WORLDS, WORLD_MAP, RARITY, EXPLORE_COST, GROW_DNA_SAMPLES, WORLD_COST } from '../data/worlds.js';
-import { worldsUnlocked, worldCost, unlockWorld, explore } from '../game/worlds.js';
-import { LEAGUE_MAP, TRAIT_MAP, canEnter, getFry, startRun } from '../game/lab.js';
+import { WORLDS, TRAVEL_WORLDS, WORLD_MAP, RARITY, GROW_DNA_SAMPLES, WORLD_COST } from '../data/worlds.js';
+import { worldsUnlocked, worldCost, unlockWorld, explore, exploreCost } from '../game/worlds.js';
+import { LEAGUE_MAP, TRAIT_MAP, enterReason, worldOwned, getFry, startRun } from '../game/lab.js';
 import { renderFryGuy } from '../art/fryguy.js';
 import { worldScene } from '../art/worldScenes.js';
 import { fmt } from '../game/state.js';
@@ -13,6 +13,10 @@ import { ringHtml, animateBattle } from './battleView.js';
 import { selectLeague } from './fryerScreen.js';
 
 const ui = { world: null, fry: null };
+
+export function selectWorld(id) {
+  ui.world = id;
+}
 
 const proto = (c, world) => ({ name: c.name, species: world, creature: c.id, traits: [], titles: [], base: {} });
 
@@ -38,18 +42,19 @@ export function renderWorlds(app, root) {
     root.innerHTML = `<section class="worlds">
       <h1>🌍 Choose your first World</h1>
       <p>You've conquered every Fryer league. New worlds await, each with wild creatures to battle, DNA to collect, and arenas of its own. <b>Your first world is free</b>; the others cost ${fmt(WORLD_COST)} each.</p>
-      <div class="world-grid">${WORLDS.map((w) => worldCard(w, s, true)).join('')}</div>
+      <div class="world-grid">${TRAVEL_WORLDS.map((w) => worldCard(w, s, true)).join('')}</div>
     </section>`;
     bindTravel(app, root);
     return;
   }
-  if (!s.worlds.owned.includes(ui.world)) ui.world = s.worlds.owned[0];
+  if (!worldOwned(s, ui.world)) ui.world = s.worlds.owned[0];
   const w = WORLD_MAP[ui.world];
-  const fries = s.lab.fries.filter((f) => s.fryer.run?.fryId !== f.id);
+  const fries = s.lab.fries.filter((f) => s.fryer.run?.fryId !== f.id && !f.hof);
+  const xCost = exploreCost(w.id);
   if (!fries.some((f) => f.id === ui.fry)) ui.fry = fries[0]?.id ?? null;
 
-  const tabs = WORLDS.map((x) => {
-    const owned = s.worlds.owned.includes(x.id);
+  const tabs = WORLDS.filter((x) => !x.secret || worldOwned(s, x.id)).map((x) => {
+    const owned = worldOwned(s, x.id);
     return `<button class="world-thumb ${x.id === ui.world ? 'on' : ''} ${owned ? '' : 'locked'}" style="--wc:${x.color}" data-world="${x.id}" title="${owned ? x.name : `Unlock ${x.name} for ${fmt(worldCost(s))}`}">
       ${worldScene(x.id)}${owned ? '' : `<em class="thumb-price">🔒 ${fmt(worldCost(s))}</em>`}<span>${x.name.replace(' World', '')}</span></button>`;
   }).join('');
@@ -58,13 +63,14 @@ export function renderWorlds(app, root) {
 
   const arenas = w.arenas.map((a) => {
     const L = LEAGUE_MAP[a.id];
-    const open = canEnter(s, a.id);
+    const why = s.fryer.run ? 'Finish your current tournament first.' : enterReason(s, a.id, getFry(s, ui.fry));
+    const open = !why;
     const champs = s.fryer.champions[a.id] || 0;
     return `<div class="arena-card ${open ? '' : 'locked'}">
       <b>${open ? '' : '🔒 '}${L.name}</b>
-      <span>${2 ** L.rounds}-fighter bracket of ${w.name} creatures · ${fmt(L.prize)}+ per win · Champion ${fmt(L.champBonus)}</span>
-      <span class="muted">Entry ${fmt(L.entry)}${champs ? ` · 👑 won ${champs}×` : ''}${open ? '' : ` · Win ${LEAGUE_MAP[L.needs].name} first`}</span>
-      <button class="btn small" data-arena="${a.id}" ${open && ui.fry != null && !s.fryer.run ? '' : 'disabled'}>${s.fryer.run ? 'Finish your current tournament first' : 'Enter with selected fighter'}</button>
+      <span>${2 ** L.rounds}-fighter bracket${L.invite ? ' of the galaxy\'s greatest' : ` of ${w.name} creatures`} · ${fmt(L.prize)}+ per win · Champion ${fmt(L.champBonus)}</span>
+      <span class="muted">Entry ${L.entry ? fmt(L.entry) : 'free'}${champs ? ` · 👑 ${champs}× champion` : ''}${open ? '' : ` · ${esc(why)}`}</span>
+      <button class="btn small" data-arena="${a.id}" ${open ? '' : 'disabled'}>Enter with selected fighter</button>
     </div>`;
   }).join('');
 
@@ -83,7 +89,7 @@ export function renderWorlds(app, root) {
         ${worldScene(w.id)}
         <div class="stage-title"><h1>${w.name}</h1><p>${w.desc}</p></div>
         <span class="stage-trait" title="${esc(TRAIT_MAP[w.trait].desc)}">🧬 ${TRAIT_MAP[w.trait].name}</span>
-        <button class="explore-btn" id="exploreBtn" ${ui.fry != null && s.money >= EXPLORE_COST ? '' : 'disabled'}><span>🧭</span><b>Explore</b><small>${fmt(EXPLORE_COST)}</small></button>
+        <button class="explore-btn" id="exploreBtn" ${ui.fry != null && s.money >= xCost ? '' : 'disabled'}><span>${w.id === 'alien' ? '🛸' : '🧭'}</span><b>Explore</b><small>${fmt(xCost)}</small></button>
         <div class="stage-fighters"><span class="stage-label">Explorer:</span>${fighters}</div>
       </div>
       <p class="muted small center">Beat the wild creature you meet to collect its DNA and a cash reward. If you lose, it escapes and your fighter makes it home.</p>
@@ -96,7 +102,7 @@ export function renderWorlds(app, root) {
   bindTravel(app, root);
   $$('[data-world]', root).forEach((b) => (b.onclick = () => {
     const id = b.dataset.world;
-    if (s.worlds.owned.includes(id)) { ui.world = id; sfx('click'); app.render(); $('#screen').scrollTop = 0; return; }
+    if (worldOwned(s, id)) { ui.world = id; sfx('click'); app.render(); $('#screen').scrollTop = 0; return; }
     confirmTravel(app, id);
   }));
   $$('[data-pick]', root).forEach((b) => (b.onclick = () => { ui.fry = +b.dataset.pick; sfx('click'); app.render(); }));

@@ -85,7 +85,40 @@ function cottoncandy(variant, dead) {
   return { faceY: 40, body };
 }
 
-const BODIES = { hotdog, burger, soda, cottoncandy };
+
+// ---------- Alien Planet ----------
+const antennae = (x1, x2, y, col) => `<path d="M${x1} ${y}Q${x1 - 6} ${y - 16} ${x1 - 10} ${y - 22}M${x2} ${y}Q${x2 + 6} ${y - 16} ${x2 + 10} ${y - 22}" fill="none" ${S}/>
+  <circle cx="${x1 - 10}" cy="${y - 24}" r="4.5" fill="${col}" ${S}/><circle cx="${x2 + 10}" cy="${y - 24}" r="4.5" fill="${col}" ${S}/>`;
+
+function alien(variant, dead) {
+  const g = (c) => (dead ? '#7a7a6a' : c);
+  switch (variant) {
+    case 'blob':
+      return { faceY: 46, body: `${cel(smoothClosed(blobPts(makeRng('gloop'), 50, 56, 32, 34, 14, 0.1)), g('#7be36b'), { depth: 6, hl: [36, 36, 8, 5] })}
+        ${[[30, 86, 8], [52, 90, 10], [70, 84, 7]].map(([x, y, l]) => `<path d="M${x - 4} ${y - 8}q0 ${l} 4 ${l}q4 0 4 -${l}" fill="${g('#7be36b')}" ${S}/>`).join('')}
+        <path d="M50 22V8" ${S}/><circle cx="50" cy="6" r="7" fill="#fff" ${S}/><circle cx="51" cy="6" r="3" fill="${INK}"/>` };
+    case 'squid':
+      return { faceY: 36, body: `${[18, 30, 42, 58, 70, 82].map((x, i) => `<path d="M${x} 58Q${x + (i % 2 ? 8 : -8)} 80 ${x + (i < 3 ? -6 : 6)} 98" fill="none" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M${x} 58Q${x + (i % 2 ? 8 : -8)} 80 ${x + (i < 3 ? -6 : 6)} 98" fill="none" stroke="${g('#b06bff')}" stroke-width="5.5" stroke-linecap="round"/>`).join('')}
+        ${cel('M16 60Q12 10 50 8Q88 10 84 60Q50 70 16 60Z', g('#b06bff'), { depth: 6, hl: [34, 24, 9, 5] })}
+        ${[[28, 22], [62, 18], [72, 40], [24, 44]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="${shade('#b06bff', 0.4)}"/>`).join('')}` };
+    case 'cyborg':
+      return { faceY: 42, body: `${cel(rrect(28, 56, 44, 34, 8), g('#9aa7b5'), { depth: 3 })}<rect x="38" y="64" width="24" height="12" rx="2" fill="#3fe0ff" ${S}/>
+        ${cel(circle(50, 40, 24), g('#e0532a'), { depth: 5, hl: [40, 30, 6, 4] })}
+        <path d="M24 40Q24 10 50 10Q76 10 76 40" fill="#cdeeff" opacity=".55" ${S}/>
+        <path d="M30 70H16V58M70 70H84V58" fill="none" ${S}/><circle cx="16" cy="56" r="3" fill="#3fe0ff"/><circle cx="84" cy="56" r="3" fill="#3fe0ff"/>` };
+    case 'queen':
+      return { faceY: 42, body: `${cel('M24 92L32 60H68L76 92Z', g('#5a2a9e'), { depth: 3 })}
+        ${cel(smoothClosed(blobPts(makeRng('queen'), 50, 42, 24, 28, 12, 0.04)), g('#8fe3b0'), { depth: 5, hl: [40, 28, 6, 4] })}
+        <path d="M26 24L32 2L42 18L50 -2L58 18L68 2L74 24Z" fill="${g('#f2c94c')}" ${S}/><circle cx="50" cy="12" r="4" fill="#e8262f" ${S}/>
+        <path d="M30 62L50 74L70 62" fill="none" stroke="${g('#f2c94c')}" stroke-width="3"/>` };
+    default: // grey
+      return { faceY: 38, body: `${cel(rrect(38, 58, 24, 34, 10), g('#a9c4a0'), { depth: 3 })}
+        ${cel(ellipse(50, 36, 30, 26), g('#b7d4ae'), { depth: 5, hl: [38, 22, 8, 4] })}
+        ${antennae(38, 62, 14, '#7be36b')}` };
+  }
+}
+
+const BODIES = { hotdog, burger, soda, cottoncandy, alien };
 
 export function creatureBody(species, variant, dead = false) {
   return (BODIES[species] || hotdog)(variant, dead);
@@ -103,6 +136,8 @@ export function hybridParts(world) {
         [[22, 30, 3], [80, 22, 2.4], [84, 40, 2]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#dff4ff" stroke="${INK}" stroke-width=".8"/>`).join('')];
     case 'cottoncandy':
       return ['', [[36, 8, 10], [50, 2, 11], [64, 8, 10], [28, 18, 8], [72, 18, 8]].map(([x, y, r], i) => cel(circle(x, y, r), i % 2 ? '#9fd8ff' : '#ff9fd2', { depth: 2, dark: -0.12, sw: 2.2 })).join('')];
+    case 'alien':
+      return ['', antennae(40, 60, 10, '#7be36b')];
     default:
       return ['', ''];
   }
