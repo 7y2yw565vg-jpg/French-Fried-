@@ -306,3 +306,12 @@ test('explore collects DNA; DNA splices into fries or grows creatures; arenas us
     assert.equal(CREATURE_MAP[c.id].world, w.id);
   }
 });
+
+import { worldScene } from '../src/art/worldScenes.js';
+test('every world has an illustrated scene', () => {
+  for (const w of WORLDS) {
+    const svg = worldScene(w.id);
+    assert.ok(svg.startsWith('<svg') && svg.length > 2000, w.id);
+    assert.ok(!svg.includes('NaN') && !svg.includes('undefined'), w.id);
+  }
+});
