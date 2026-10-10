@@ -428,6 +428,7 @@ test('the letter, the Alien Planet, the Universe tournament, Hall of Fame and di
   const m = s.money;
   while (s.fryer.run) out = fightRound(s, rng);
   assert.ok(out.universe);
+  assert.equal(s.universe.wins.normal, 1, 'remembers the difficulty it was won on');
   assert.ok(s.money - m >= 1000000);
   assert.ok(hero.titles.includes('universe'));
   // Difficulty unlocked.
@@ -468,4 +469,48 @@ test('collection counts per card type and curly / crinkle fry shapes', async () 
   assert.notEqual(look(['curly']), plain);
   assert.notEqual(look(['crinkle']), plain);
   assert.notEqual(look(['curly']), look(['crinkle']));
+});
+
+test('Master Chef highlights the most valuable new recipe in hand', async () => {
+  const { chefPick } = await import('../src/game/kitchen.js');
+  const s = defaultState(0);
+  const card = (id, uid) => ({ id, uid });
+  const k = { hand: [card('salt', 1), card('vinegar', 2), card('ketchup', 3), card('gravy', 4), card('curds', 5)], boat: [], draw: [], discard: [] };
+  assert.equal(chefPick(s, k), null, 'not hired yet');
+  assert.equal(unlock(s, 'masterchef').ok, false, 'costs $10,000,000');
+  s.money = 10000000;
+  assert.ok(unlock(s, 'masterchef').ok);
+  const pick = chefPick(s, k);
+  // The pick must be the highest-paying undiscovered recipe makeable from this hand.
+  const have = new Set(k.hand.map((c) => c.id));
+  const best = Math.max(...RECIPES.filter((r) => r.ids.every((id) => have.has(id))).map(discoveryReward));
+  assert.equal(pick.reward, best);
+  assert.deepEqual(pick.uids.map((u) => k.hand.find((c) => c.uid === u).id).sort(), [...pick.recipe.ids].sort());
+  // Once it is discovered, the chef moves on to the next best one.
+  s.discovered[pick.recipe.key] = 1;
+  const next = chefPick(s, k);
+  assert.ok(!next || next.recipe.key !== pick.recipe.key);
+  assert.ok(checkAchievements(s).some((a) => a.id === 'masterchef'));
+});
+
+test('new achievements: millionaire, Universe on Impossible, icons for every achievement', async () => {
+  const { ACHIEVEMENTS, ACHIEVEMENT_MAP } = await import('../src/game/achievements.js');
+  const { achievementIcon } = await import('../src/art/achievementIcons.js');
+  assert.ok(ACHIEVEMENTS.length >= 70);
+  assert.equal(new Set(ACHIEVEMENTS.map((a) => a.id)).size, ACHIEVEMENTS.length);
+  for (const a of ACHIEVEMENTS) {
+    assert.match(a.id, /^[a-z0-9_]+$/, 'usable as a Steam API name');
+    assert.ok(achievementIcon(a).startsWith('<svg') && achievementIcon(a, { locked: true }).includes('filter='));
+  }
+  const s = defaultState(0);
+  s.lifetime = 1000000;
+  s.universe.wins = { normal: 1 };
+  s.universe.champions = 1;
+  let got = checkAchievements(s).map((a) => a.id);
+  assert.ok(got.includes('millionaire') && got.includes('universe'));
+  assert.ok(!got.includes('impossible'));
+  s.universe.wins.impossible = 1;
+  got = checkAchievements(s).map((a) => a.id);
+  assert.ok(got.includes('impossible') && got.includes('brutal') && got.includes('hardboiled'));
+  assert.ok(ACHIEVEMENT_MAP.impossible.test(s));
 });

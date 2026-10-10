@@ -1,24 +1,75 @@
-api_name,display_name,description
-FIRST_FRY,First Fry,"Discover your first recipe."
-TEN,Line Cook,"Discover 10 recipes."
-FIFTY,Sous Chef,"Discover 50 recipes."
-HUNDRED,Head Chef,"Discover 100 recipes."
-TWOFIFTY,Fry Scholar,"Discover 250 recipes."
-FIVEHUNDRED,Potato Professor,"Discover 500 recipes."
-ALL,French Fried!,"Discover all 1,001 recipes."
-POUTINE,Oh Canada,"Make Poutine."
-COWBOY,Yeehaw,"Make Cowboy Fries."
-BILLIONAIRE,Big Spender,"Make The Billionaire Platter."
-PREMIUM,Fancy Fryer,"Discover 25 premium recipes."
-THRIFTY,Thrifty,"Discover 25 object recipes."
-PACKRAT,Pack Rat,"Open 25 card packs."
-RICH,Fry Tycoon,"Earn $25,000 in total."
-SCIENTIST,Mad Spud Scientist,"Breed a generation 3 fry."
-CHAMP,Rookie Champion,"Win the Rookie Basket."
-LEGEND,Legend of the Vat,"Win the Legendary Vat."
-TRAVELER,World Traveler,"Unlock your first World."
-GLOBETROTTER,Globetrotter,"Unlock all four Worlds."
-DNA10,DNA Collector,"Collect 10 DNA samples."
-HYBRID,Frankenfry,"Splice creature DNA into a fry."
-TAMER,Creature Creator,"Grow a creature from raw DNA."
-FRIED,Rest in Grease,"Lose a fry in The Fryer."
+api_name,display_name,description,icon,icon_gray
+FIRST_FRY,"First Fry","Discover your first recipe.",achievements/FIRST_FRY.png,achievements/FIRST_FRY_locked.png
+TEN,"Line Cook","Discover 10 recipes.",achievements/TEN.png,achievements/TEN_locked.png
+FIFTY,"Sous Chef","Discover 50 recipes.",achievements/FIFTY.png,achievements/FIFTY_locked.png
+HUNDRED,"Head Chef","Discover 100 recipes.",achievements/HUNDRED.png,achievements/HUNDRED_locked.png
+TWOFIFTY,"Fry Scholar","Discover 250 recipes.",achievements/TWOFIFTY.png,achievements/TWOFIFTY_locked.png
+FIVEHUNDRED,"Potato Professor","Discover 500 recipes.",achievements/FIVEHUNDRED.png,achievements/FIVEHUNDRED_locked.png
+SEVENFIFTY,"Fry Sage","Discover 750 recipes.",achievements/SEVENFIFTY.png,achievements/SEVENFIFTY_locked.png
+ALL,"French Fried!","Discover all 1,001 recipes.",achievements/ALL.png,achievements/ALL_locked.png
+POUTINE,"Oh Canada","Make Poutine.",achievements/POUTINE.png,achievements/POUTINE_locked.png
+COWBOY,"Yeehaw","Make Cowboy Fries.",achievements/COWBOY.png,achievements/COWBOY_locked.png
+BILLIONAIRE,"Big Spender","Make The Billionaire Platter.",achievements/BILLIONAIRE.png,achievements/BILLIONAIRE_locked.png
+PREMIUM,"Fancy Fryer","Discover 25 premium recipes.",achievements/PREMIUM.png,achievements/PREMIUM_locked.png
+THRIFTY,"Thrifty","Discover 25 object recipes.",achievements/THRIFTY.png,achievements/THRIFTY_locked.png
+FULLBOAT,"Full Boat","Discover a recipe that uses all 5 boat slots.",achievements/FULLBOAT.png,achievements/FULLBOAT_locked.png
+COOK100,"Short-Order Cook","Fry 100 boats.",achievements/COOK100.png,achievements/COOK100_locked.png
+COOK1000,"Fry Machine","Fry 1,000 boats.",achievements/COOK1000.png,achievements/COOK1000_locked.png
+AUTOCOOK,"Autopilot","Use Cook Best Known 25 times.",achievements/AUTOCOOK.png,achievements/AUTOCOOK_locked.png
+GOSSIP,"Gossip","Buy 5 recipe rumors.",achievements/GOSSIP.png,achievements/GOSSIP_locked.png
+MASTERCHEF,"Master Chef","Hire the Master Chef.",achievements/MASTERCHEF.png,achievements/MASTERCHEF_locked.png
+RICH,"Fry Tycoon","Earn $25,000 in total.",achievements/RICH.png,achievements/RICH_locked.png
+HUNDREDK,"Spud Baron","Earn $100,000 in total.",achievements/HUNDREDK.png,achievements/HUNDREDK_locked.png
+MILLIONAIRE,"Millionaire","Earn $1,000,000 in total.",achievements/MILLIONAIRE.png,achievements/MILLIONAIRE_locked.png
+TENMILLION,"Deep-Fried Fortune","Earn $10,000,000 in total.",achievements/TENMILLION.png,achievements/TENMILLION_locked.png
+PACKRAT,"Pack Rat","Open 25 card packs.",achievements/PACKRAT.png,achievements/PACKRAT_locked.png
+PACK100,"Pack Hoarder","Open 100 card packs.",achievements/PACK100.png,achievements/PACK100_locked.png
+UNLOCK_PREMIUM,"Fancy Pants","Unlock Premium Packs.",achievements/UNLOCK_PREMIUM.png,achievements/UNLOCK_PREMIUM_locked.png
+UNLOCK_THRIFT,"Bargain Hunter","Open the Thrift Store.",achievements/UNLOCK_THRIFT.png,achievements/UNLOCK_THRIFT_locked.png
+ODDITIES,"Collector of Oddities","Buy 10 objects from the Thrift Store.",achievements/ODDITIES.png,achievements/ODDITIES_locked.png
+ALLBASIC,"Spice Rack","Own every basic ingredient.",achievements/ALLBASIC.png,achievements/ALLBASIC_locked.png
+ALLPREMIUM,"Gourmet Pantry","Own every premium ingredient.",achievements/ALLPREMIUM.png,achievements/ALLPREMIUM_locked.png
+ALLOBJECTS,"Curiosity Cabinet","Own every thrift store object.",achievements/ALLOBJECTS.png,achievements/ALLOBJECTS_locked.png
+ALLCARDS,"Full Deck","Own every card in the game.",achievements/ALLCARDS.png,achievements/ALLCARDS_locked.png
+GARAGESALE,"Garage Sale","Sell a spare card.",achievements/GARAGESALE.png,achievements/GARAGESALE_locked.png
+UNLOCK_LAB,"Mad Science","Open The Lab.",achievements/UNLOCK_LAB.png,achievements/UNLOCK_LAB_locked.png
+ALIVE,"It's Alive!","Grow your first spud.",achievements/ALIVE.png,achievements/ALIVE_locked.png
+SPLICE,"Gene Jockey","Splice a trait into a fighter.",achievements/SPLICE.png,achievements/SPLICE_locked.png
+TRIPLE,"Triple Helix","Give a fighter 3 traits.",achievements/TRIPLE.png,achievements/TRIPLE_locked.png
+CORKSCREW,"Corkscrew","Grow a curly fry.",achievements/CORKSCREW.png,achievements/CORKSCREW_locked.png
+CRINKLE,"Ridge Runner","Grow a crinkle-cut fry.",achievements/CRINKLE.png,achievements/CRINKLE_locked.png
+CLEANSLATE,"Clean Slate","Remove a trait from a fighter.",achievements/CLEANSLATE.png,achievements/CLEANSLATE_locked.png
+STARCH,"Starch Junkie","Give 25 treatments.",achievements/STARCH.png,achievements/STARCH_locked.png
+SCIENTIST,"Mad Spud Scientist","Breed a generation 3 fry.",achievements/SCIENTIST.png,achievements/SCIENTIST_locked.png
+DYNASTY,"Dynasty","Breed a generation 10 fighter.",achievements/DYNASTY.png,achievements/DYNASTY_locked.png
+FULLHOUSE,"Full House","Fill all 12 vats in The Lab.",achievements/FULLHOUSE.png,achievements/FULLHOUSE_locked.png
+UNLOCK_FRYER,"Into the Oil","Open The Fryer.",achievements/UNLOCK_FRYER.png,achievements/UNLOCK_FRYER_locked.png
+FIRSTWIN,"Hot Start","Win a round in The Fryer.",achievements/FIRSTWIN.png,achievements/FIRSTWIN_locked.png
+CHAMP,"Rookie Champion","Win the Rookie Basket.",achievements/CHAMP.png,achievements/CHAMP_locked.png
+PRO,"Going Pro","Win the Pro Fryer.",achievements/PRO.png,achievements/PRO_locked.png
+MASTER,"Oil Master","Win the Master Deep-Fry.",achievements/MASTER.png,achievements/MASTER_locked.png
+LEGEND,"Legend of the Vat","Win the Legendary Vat.",achievements/LEGEND.png,achievements/LEGEND_locked.png
+CENTURION,"Centurion","Win 100 rounds in The Fryer.",achievements/CENTURION.png,achievements/CENTURION_locked.png
+FRIED,"Rest in Grease","Lose a fighter in The Fryer.",achievements/FRIED.png,achievements/FRIED_locked.png
+AWAYWIN,"Away Win","Win an arena on another world.",achievements/AWAYWIN.png,achievements/AWAYWIN_locked.png
+CONQUEROR,"Arena Conqueror","Win all eight arenas on the food worlds.",achievements/CONQUEROR.png,achievements/CONQUEROR_locked.png
+TRAVELER,"World Traveler","Unlock your first World.",achievements/TRAVELER.png,achievements/TRAVELER_locked.png
+GLOBETROTTER,"Globetrotter","Unlock all four food worlds.",achievements/GLOBETROTTER.png,achievements/GLOBETROTTER_locked.png
+EXPLORER,"Explorer","Go exploring on another world.",achievements/EXPLORER.png,achievements/EXPLORER_locked.png
+TRAILBLAZER,"Trailblazer","Go exploring 50 times.",achievements/TRAILBLAZER.png,achievements/TRAILBLAZER_locked.png
+DNA10,"DNA Collector","Collect 10 DNA samples.",achievements/DNA10.png,achievements/DNA10_locked.png
+DNA50,"Gene Bank","Collect 50 DNA samples.",achievements/DNA50.png,achievements/DNA50_locked.png
+FIELDGUIDE,"Field Guide Complete","Meet every creature on the four food worlds.",achievements/FIELDGUIDE.png,achievements/FIELDGUIDE_locked.png
+HYBRID,"Frankenfry","Splice creature DNA into a fry.",achievements/HYBRID.png,achievements/HYBRID_locked.png
+TAMER,"Creature Creator","Grow a creature from raw DNA.",achievements/TAMER.png,achievements/TAMER_locked.png
+ZOOKEEPER,"Zookeeper","Grow a creature from every world, the Alien Planet included.",achievements/ZOOKEEPER.png,achievements/ZOOKEEPER_locked.png
+LETTER,"You've Got Mail","Receive the mysterious letter.",achievements/LETTER.png,achievements/LETTER_locked.png
+ABDUCTED,"Abducted!","Travel to the Alien Planet.",achievements/ABDUCTED.png,achievements/ABDUCTED_locked.png
+CLOSEENCOUNTER,"Close Encounter","Collect alien DNA.",achievements/CLOSEENCOUNTER.png,achievements/CLOSEENCOUNTER_locked.png
+UNIVERSE,"Champion of the Universe","Win the Champions of the Universe tournament.",achievements/UNIVERSE.png,achievements/UNIVERSE_locked.png
+HALLOFFAME,"Hall of Famer","Induct a fighter into the Hall of Fame.",achievements/HALLOFFAME.png,achievements/HALLOFFAME_locked.png
+LEGACY,"Legacy","Breed a fighter with a Hall of Famer.",achievements/LEGACY.png,achievements/LEGACY_locked.png
+HEAT,"Turn Up the Heat","Raise the difficulty above Normal.",achievements/HEAT.png,achievements/HEAT_locked.png
+HARDBOILED,"Hard Boiled","Win the Champions of the Universe on Hard or higher.",achievements/HARDBOILED.png,achievements/HARDBOILED_locked.png
+BRUTAL,"Brutally Crispy","Win the Champions of the Universe on Brutal or higher.",achievements/BRUTAL.png,achievements/BRUTAL_locked.png
+IMPOSSIBLE,"Impossible Fry","Win the Champions of the Universe on Impossible.",achievements/IMPOSSIBLE.png,achievements/IMPOSSIBLE_locked.png

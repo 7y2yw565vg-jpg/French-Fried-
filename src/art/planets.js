@@ -127,3 +127,22 @@ export function planet(id, { cls = '' } = {}) {
     ${r ? ring(r, 'front') : ''}
   </span>`;
 }
+
+/** A still planet as a standalone SVG fragment (for achievement icons and exports). */
+export function planetSvg(id, { x = 0, y = 0, size = 100 } = {}) {
+  if (!SURFACES[id]) return '';
+  const tile = SURFACES[id](makeRng(`planet-${id}`));
+  const k = `pl-${id}-${Math.round(x)}-${Math.round(y)}`;
+  const r = RINGS[id];
+  const ringPath = (half) => (half === 'back' ? 'M-44 50A94 22 0 0 1 144 50' : 'M144 50A94 22 0 0 1 -44 50');
+  const ring = (half) => (r ? `<g transform="rotate(-14 50 50)"><path d="${ringPath(half)}" fill="none" stroke="${INK}" stroke-width="11" stroke-linecap="round"/><path d="${ringPath(half)}" fill="none" stroke="${r}" stroke-width="6" stroke-linecap="round"/></g>` : '');
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100" overflow="visible">
+    <defs><clipPath id="${k}c"><circle cx="50" cy="50" r="48"/></clipPath>
+      <radialGradient id="${k}s" cx="34%" cy="30%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#0a041e" stop-opacity=".2"/><stop offset="1" stop-color="#0a041e" stop-opacity=".75"/></radialGradient></defs>
+    <circle cx="50" cy="50" r="54" fill="${GLOW[id]}" opacity=".35"/>
+    ${ring('back')}
+    <g clip-path="url(#${k}c)"><g transform="rotate(-14 50 50) translate(-30 0)">${tile}<g transform="translate(${W} 0)">${tile}</g></g><circle cx="50" cy="50" r="48" fill="url(#${k}s)"/></g>
+    <circle cx="50" cy="50" r="48" fill="none" stroke="${INK}" stroke-width="3"/>
+    ${ring('front')}
+  </svg>`;
+}

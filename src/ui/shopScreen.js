@@ -24,7 +24,7 @@ export function renderShop(app, root) {
     const have = discoveredCount(s);
     return `<div class="unlock ${done ? 'done' : ''}">
       <div><h3>${done ? '✅' : '🔒'} ${u.name}</h3><p>${u.blurb}</p>
-      <p class="muted">Requires ${u.needRecipes} recipes (${Math.min(have, u.needRecipes)}/${u.needRecipes})${u.needUnlock ? ` + ${UNLOCKS[u.needUnlock].name}` : ''} · Costs ${fmt(u.cost)}</p></div>
+      <p class="muted">${u.needRecipes ? `Requires ${u.needRecipes} recipes (${Math.min(have, u.needRecipes)}/${u.needRecipes})${u.needUnlock ? ` + ${UNLOCKS[u.needUnlock].name}` : ''} · ` : ''}Costs ${fmt(u.cost)}</p></div>
       ${done ? '<span class="owned">Unlocked</span>' : `<button class="btn ${chk.ok ? 'btn-primary' : ''}" data-unlock="${key}" ${chk.ok ? '' : 'disabled'} title="${esc(chk.reason || '')}">${chk.ok ? `Unlock · ${fmt(u.cost)}` : esc(chk.reason)}</button>`}
     </div>`;
   }).join('');

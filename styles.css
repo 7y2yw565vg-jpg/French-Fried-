@@ -219,6 +219,7 @@ kbd { background: #fff; border: 2px solid var(--ink); border-radius: 5px; paddin
   animation: pop .3s cubic-bezier(.3, 1.5, .5, 1);
 }
 .modal.wide { max-width: min(860px, 96vw); }
+.modal.ach-modal { width: min(900px, 96vw); }
 .modal.center { text-align: center; }
 .modal-x { position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted); }
 @keyframes pop { from { transform: scale(.7); opacity: 0; } }
@@ -427,9 +428,10 @@ button.entry:hover { transform: translateY(-2px); }
 .tb1 { right: 3%; top: 8%; animation-delay: 1s; }
 .tb2 { right: 8%; bottom: 4%; animation-delay: 2s; }
 .ach-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
-.ach { display: flex; gap: 10px; align-items: center; background: #efe4cc; border: 2px solid #b9a98f; border-radius: 10px; padding: 8px; opacity: .7; }
+.ach { display: flex; gap: 10px; align-items: center; background: #efe4cc; border: 2px solid #b9a98f; border-radius: 10px; padding: 8px; }
+.ach .ach-icon { width: 56px; height: 56px; flex: none; }
+.ach:not(.got) b { color: var(--muted); }
 .ach.got { background: #fff3c4; border-color: var(--ink); opacity: 1; }
-.ach span { font-size: 1.6rem; }
 .ach b { display: block; font-family: var(--font-head); font-weight: 400; }
 .ach small { color: var(--muted); }
 .setting { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 8px 0; font-weight: 800; }
@@ -724,3 +726,27 @@ button.entry:hover { transform: translateY(-2px); }
 .collection-tile.complete { background: #eaf8df; }
 @media (max-width: 700px) { .collection-bar { gap: 6px; } .collection-tile { padding: 4px 6px 6px; } .ct-count b { font-size: 1.2rem; } .ct-label { font-size: .62rem; } }
 .collection-title { margin: 4px 0 0; font-size: 1.1rem; }
+
+/* Master Chef */
+.card.chef-pick { box-shadow: 0 0 0 4px #ffd84a, 0 0 22px 8px rgba(255, 196, 0, .75), 0 6px 0 var(--ink); animation: chef-glow 1.4s ease-in-out infinite; }
+@keyframes chef-glow { 50% { box-shadow: 0 0 0 4px #fff3a6, 0 0 30px 12px rgba(255, 196, 0, .95), 0 6px 0 var(--ink); } }
+.chef-badge { position: absolute; top: 30px; right: 4px; width: 28px; height: 28px; display: grid; place-items: center; background: #fff; border: 2.5px solid var(--ink); border-radius: 50%; font-size: 16px; z-index: 3; }
+.chef-strip { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 auto 6px; padding: 4px 12px; max-width: 720px; background: #fffbe6; border: 2.5px solid var(--ink); border-radius: 99px; font-size: .88rem; }
+.chef-strip.has { background: #fff3b8; }
+.chef-strip .pay { color: #1f7a36; }
+.chef-hat { font-size: 1.2rem; }
+@media (max-width: 700px) { .chef-strip { font-size: .72rem; padding: 2px 8px; gap: 6px; border-radius: 12px; margin-bottom: 2px; } .chef-strip .btn { padding: 2px 8px; font-size: .72rem; } .chef-hat { display: none; } }
+@media (prefers-reduced-motion: reduce) { .card.chef-pick { animation: none; } }
+.ach-cat { margin: 14px 0 6px; padding-left: 10px; border-left: 6px solid var(--cc); }
+.ach-cat small { color: var(--muted); font-size: .8rem; }
+.ach-progress { height: 12px; border: 2.5px solid var(--ink); border-radius: 99px; overflow: hidden; background: #f3e6cf; margin: 4px 0 6px; }
+.ach-progress i { display: block; height: 100%; background: linear-gradient(90deg, #f2b33d, #e2533b); }
+.toast-ach { display: flex; align-items: center; gap: 10px; }
+.toast-ach .ach-icon { width: 48px; height: 48px; flex: none; }
+.chef-ready { font-weight: 900; color: #c0392b; }
+.chef-strip.chef-phone { display: none; }
+@media (max-width: 700px) {
+  .chef-strip.chef-desk { display: none; }
+  .chef-strip.chef-phone { display: flex; flex-wrap: nowrap; margin: 4px 0; white-space: nowrap; justify-content: space-between; }
+  .possible-note + .chef-phone, .chef-phone { justify-content: flex-start; }
+}

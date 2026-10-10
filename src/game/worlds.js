@@ -105,6 +105,7 @@ export function growFromDNA(s, creatureId, rng) {
   e.traits = [WORLD_MAP[c.world].trait];
   s.lab.fries.push(e);
   s.worlds.grown++;
+  s.worlds.grownSpecies = { ...(s.worlds.grownSpecies || {}), [c.world]: 1 };
   return { ok: true, fry: e };
 }
 

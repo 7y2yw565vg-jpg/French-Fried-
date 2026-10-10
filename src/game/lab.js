@@ -133,6 +133,7 @@ export function growSpud(state, rng) {
   state.money -= GROW_COST;
   const f = newFry(state, rng);
   state.lab.fries.push(f);
+  state.stats.spuds = (state.stats.spuds || 0) + 1;
   return { ok: true, fry: f };
 }
 
@@ -153,6 +154,7 @@ export function splice(state, fryId, traitId) {
   if (state.money < offer.cost) return { ok: false, reason: `Need $${offer.cost}` };
   state.money -= offer.cost;
   f.traits.push(traitId);
+  state.stats.spliced = (state.stats.spliced || 0) + 1;
   return { ok: true };
 }
 
@@ -164,6 +166,7 @@ export function purgeTrait(state, fryId, traitId) {
   if (state.money < PURGE_COST) return { ok: false, reason: `Need $${PURGE_COST}` };
   state.money -= PURGE_COST;
   f.traits = f.traits.filter((t) => t !== traitId);
+  state.stats.purged = (state.stats.purged || 0) + 1;
   return { ok: true };
 }
 
@@ -185,6 +188,7 @@ export function train(state, fryId, stat) {
   state.money -= cost;
   f.base[stat] += table[stat].gain;
   f.trained++;
+  state.stats.trained = (state.stats.trained || 0) + 1;
   return { ok: true, cost };
 }
 
@@ -228,6 +232,8 @@ export function breed(state, aId, bId, rng) {
   if (!child.hybrid) delete child.hybrid;
   state.lab.fries.push(child);
   state.stats.bred++;
+  state.stats.maxGen = Math.max(state.stats.maxGen || 1, child.gen);
+  if (legacy) state.stats.legacy = (state.stats.legacy || 0) + 1;
   return { ok: true, fry: child, mutation, legacy };
 }
 
@@ -238,6 +244,7 @@ export function compost(state, fryId) {
   if (i < 0) return { ok: false };
   state.lab.fries.splice(i, 1);
   state.money += COMPOST_VALUE;
+  state.stats.composted = (state.stats.composted || 0) + 1;
   return { ok: true };
 }
 
@@ -406,6 +413,10 @@ export const DIFFICULTY = {
   impossible: { name: 'Impossible', power: 3.5, reward: 3 },
 };
 export const difficultyUnlocked = (state) => (state.universe?.champions || 0) > 0;
+export function difficultyKey(state) {
+  return (difficultyUnlocked(state) && DIFFICULTY[state.settings?.difficulty] && state.settings.difficulty) || 'normal';
+}
+
 export function getDifficulty(state) {
   return (difficultyUnlocked(state) && DIFFICULTY[state.settings?.difficulty]) || DIFFICULTY.normal;
 }
@@ -451,6 +462,7 @@ export function acceptLetter(state, fryId) {
   if (!f || !f.letter) return { ok: false, reason: 'No letter to answer.' };
   f.letter = false;
   f.invited = true;
+  state.universe.letters = (state.universe.letters || 0) + 1;
   state.worlds.alien = true;
   return { ok: true, fry: f };
 }
@@ -465,6 +477,7 @@ export function induct(state, fryId) {
   if (!f.titles?.includes('universe')) return { ok: false, reason: 'Only a Champion of the Universe can enter the Hall of Fame.' };
   f.hof = true;
   f.inducted = Date.now();
+  state.stats.inducted = (state.stats.inducted || 0) + 1;
   return { ok: true };
 }
 
@@ -559,6 +572,9 @@ export function fightRound(state, rng) {
       if (L.id === 'universe') {
         state.universe = state.universe || { champions: 0 };
         state.universe.champions++;
+        // Remember the difficulty it was won on (for the Hard / Brutal / Impossible achievements).
+        const dk = difficultyKey(state);
+        state.universe.wins = { ...(state.universe.wins || {}), [dk]: ((state.universe.wins || {})[dk] || 0) + 1 };
         out.universe = true;
       }
       if (letterEligible(state, fry)) {

@@ -13,6 +13,7 @@ export const UNLOCKS = {
   thrift: { name: 'The Thrift Store', cost: 900, needRecipes: 50, blurb: 'Buy weird objects. Put them on fries. Profit.' },
   lab: { name: 'The Lab', cost: 3000, needRecipes: 100, blurb: 'Genetically modify and breed super-fries.' },
   fryer: { name: 'The Fryer', cost: 1500, needRecipes: 100, needUnlock: 'lab', blurb: 'Battle arena. Losers get fried.' },
+  masterchef: { name: 'Master Chef', cost: 10000000, needRecipes: 0, blurb: 'A legendary chef joins your kitchen and makes the cards in your hand glow when they make a new recipe (the most valuable one if there are several).' },
 };
 
 export function defaultState(now = Date.now()) {
@@ -26,13 +27,13 @@ export function defaultState(now = Date.now()) {
     discovered: {},
     rumors: {},
     seen: {},
-    unlocks: { premium: false, thrift: false, lab: false, fryer: false },
+    unlocks: { premium: false, thrift: false, lab: false, fryer: false, masterchef: false },
     thrift: { slots: [], nextRefresh: 0, refreshes: 0 },
     lab: { fries: [], nextId: 1 },
     fryer: { run: null, champions: {}, wins: 0, losses: 0 },
     worlds: { owned: [], alien: false, dna: {}, seen: {}, explores: 0, dnaCollected: 0, grown: 0 },
-    universe: { champions: 0 },
-    stats: { cooks: 0, fails: 0, packs: 0, objects: 0, hints: 0, bred: 0, fried: 0, redraws: 0 },
+    universe: { champions: 0, wins: {}, letters: 0 },
+    stats: { cooks: 0, fails: 0, packs: 0, objects: 0, hints: 0, bred: 0, fried: 0, redraws: 0, spuds: 0, spliced: 0, purged: 0, trained: 0, legacy: 0, inducted: 0, composted: 0, sold: 0, autocooks: 0, maxGen: 1 },
     achievements: {},
     settings: { sfx: true, music: true, volume: 0.6, difficulty: 'normal' },
     tutorialDone: false,
@@ -97,7 +98,7 @@ export function canUnlock(s, key) {
   if (s.unlocks[key]) return { ok: false, reason: 'Already unlocked' };
   if (u.needUnlock && !s.unlocks[u.needUnlock]) return { ok: false, reason: `Requires ${UNLOCKS[u.needUnlock].name}` };
   if (discoveredCount(s) < u.needRecipes) return { ok: false, reason: `Discover ${u.needRecipes} recipes` };
-  if (s.money < u.cost) return { ok: false, reason: `Need $${u.cost}` };
+  if (s.money < u.cost) return { ok: false, reason: `Need ${fmt(u.cost)}` };
   return { ok: true };
 }
 
@@ -126,6 +127,7 @@ export function sellCard(s, card) {
   if ((s.benched[card.id] || 0) > n - 1) s.benched[card.id] = n - 1;
   const v = sellValue(card);
   s.money += v;
+  s.stats.sold = (s.stats.sold || 0) + 1;
   return { ok: true, value: v };
 }
 

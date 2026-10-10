@@ -107,6 +107,30 @@ export function bestKnownInHand(state, k) {
   return best;
 }
 
+/**
+ * Master Chef: the most valuable undiscovered recipe that can be made from the hand (and boat),
+ * plus the hand cards to play for it. Null if Master Chef isn't hired or nothing new is possible.
+ */
+export function chefPick(state, k) {
+  if (!state.unlocks?.masterchef) return null;
+  const have = new Set([...k.hand, ...k.boat].map((c) => c.id));
+  let best = null;
+  for (const r of RECIPES) {
+    if (state.discovered[r.key] || !r.ids.every((id) => have.has(id))) continue;
+    if (!best || discoveryReward(r) > discoveryReward(best)) best = r;
+  }
+  if (!best) return null;
+  const inBoat = new Set(k.boat.map((c) => c.id));
+  const uids = [];
+  for (const id of best.ids) {
+    if (inBoat.has(id)) continue;
+    const c = k.hand.find((x) => x.id === id);
+    if (c) uids.push(c.uid);
+  }
+  const extra = k.boat.some((c) => !best.ids.includes(c.id));
+  return { recipe: best, reward: discoveryReward(best), uids, extra };
+}
+
 /** Put exactly the recipe's cards in the boat (returning anything else to the hand). */
 export function loadRecipe(k, recipe) {
   clearBoat(k);

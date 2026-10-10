@@ -43,7 +43,9 @@ whether you've invented something new. Discover them all to win.
   can also buy recipe rumors. The Shop and Deck pages show how many basic, premium and object cards you own
   out of each set. Deck management lets you bench cards, sell spare copies, or add or remove a whole
   card type (basic, premium, objects) at once.
-- 23 achievements, generated sound effects and music, keyboard shortcuts, autosave, and save
+- **Master Chef** ($10,000,000 in the Shop): makes the cards in your hand glow when they make a new recipe,
+  picking the most valuable one when there are several. One tap plays them into the boat.
+- 74 achievements across every feature, each with its own badge drawn from the game's art, plus generated sound effects and music, keyboard shortcuts, autosave, and save
   export/import.
 
 ## Play
@@ -74,12 +76,16 @@ The code has no runtime dependencies. It is plain ES modules:
 | `src/game/` | state/saves, kitchen (deck/hand/frying), shops, lab & fryer, achievements |
 | `src/ui/` | screens |
 | `electron/` | desktop shell + preload (fullscreen, quit, Steam achievements) |
-| `steam/` | SteamPipe build template and achievement list |
+| `steam/` | SteamPipe build template, achievement list and achievement icons |
 
 ## Shipping on Steam
 
 1. Create the app in Steamworks. Add the achievements from `steam/achievements.csv` (API names are
-   the upper-cased achievement ids).
+   the upper-cased achievement ids). Each row names its icons in `steam/achievements/`: a 256x256
+   `<API_NAME>.png` for the unlocked badge and `<API_NAME>_locked.png` for the greyscale one.
+   `steam/achievements/index.html` previews them all. After adding or changing achievements in
+   `src/game/achievements.js`, run `npm run steam:achievements` to regenerate the CSV and icons
+   (rendering the PNGs needs Playwright: `npm i -D playwright`).
 2. `npm run dist:win` / `dist:mac` / `dist:linux` (or run the **Desktop builds** GitHub workflow) to
    produce the `release/*-unpacked` folders.
 3. Set your App ID and depot IDs in `steam/app_build.vdf`, then upload with SteamPipe:

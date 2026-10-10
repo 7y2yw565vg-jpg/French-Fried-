@@ -4,6 +4,7 @@ import { load, save, defaultState, exportSave, importSave, fmt, discoveredCount,
 import { createKitchen, addToKitchen } from './game/kitchen.js';
 import { tickThrift } from './game/shop.js';
 import { checkAchievements, ACHIEVEMENTS } from './game/achievements.js';
+import { achievementIcon, CATEGORY } from './art/achievementIcons.js';
 import { makeRng } from './game/rng.js';
 import { TOTAL_RECIPES } from './data/recipes.js';
 import { renderBoat } from './art/fries.js';
@@ -107,7 +108,7 @@ const app = {
     save(app.state, storage);
     for (const a of checkAchievements(app.state)) {
       setTimeout(() => sfx('achievement'), 700);
-      toast(`🏆 <b>Achievement unlocked:</b> ${esc(a.name)}<br><small>${esc(a.desc)}</small>`, 'achieve', 4500);
+      toast(`<span class="toast-ach">${achievementIcon(a)}<span><b>Achievement unlocked:</b> ${esc(a.name)}<br><small>${esc(a.desc)}</small></span></span>`, 'achieve', 4500);
       try { steam?.unlockAchievement?.(a.id); } catch { /* optional */ }
     }
     if (silentRender) renderTopbar();
@@ -210,8 +211,14 @@ function showHowTo(firstTime) {
 function showAchievements() {
   const s = app.state;
   const done = ACHIEVEMENTS.filter((a) => s.achievements[a.id]).length;
+  const groups = Object.entries(CATEGORY).map(([key, c]) => {
+    const list = ACHIEVEMENTS.filter((a) => a.cat === key);
+    const got = list.filter((a) => s.achievements[a.id]).length;
+    return `<h3 class="ach-cat" style="--cc:${c.color}">${c.name} <small>${got}/${list.length}</small></h3>
+      <div class="ach-list">${list.map((a) => `<div class="ach ${s.achievements[a.id] ? 'got' : ''}">${achievementIcon(a, { locked: !s.achievements[a.id] })}<div><b>${esc(a.name)}</b><small>${esc(a.desc)}</small></div></div>`).join('')}</div>`;
+  }).join('');
   openModal(`<h2>Achievements <small>${done}/${ACHIEVEMENTS.length}</small></h2>
-    <div class="ach-list">${ACHIEVEMENTS.map((a) => `<div class="ach ${s.achievements[a.id] ? 'got' : ''}"><span>${s.achievements[a.id] ? '🏆' : '🔒'}</span><div><b>${esc(a.name)}</b><small>${esc(a.desc)}</small></div></div>`).join('')}</div>`, { cls: 'wide' });
+    <div class="ach-progress"><i style="width:${(done / ACHIEVEMENTS.length) * 100}%"></i></div>${groups}`, { cls: 'wide ach-modal' });
 }
 
 function openSettings() {

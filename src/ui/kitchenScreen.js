@@ -2,7 +2,7 @@
 
 import { renderBoat } from '../art/fries.js';
 import { CARDS, MAX_BOAT, TOTAL_RECIPES } from '../data/recipes.js';
-import { playCard, unplayCard, clearBoat, redraw, fry, boatIds, REDRAW_COST, buyRumor, rumorCost, possibleRecipes, bestKnownInHand, loadRecipe, knownReward } from '../game/kitchen.js';
+import { playCard, unplayCard, clearBoat, redraw, fry, boatIds, REDRAW_COST, buyRumor, rumorCost, possibleRecipes, bestKnownInHand, loadRecipe, knownReward, chefPick } from '../game/kitchen.js';
 import { fmt, discoveredCount } from '../game/state.js';
 import { sfx } from '../audio.js';
 import { $, $$, cardHtml, chipHtml, esc, openModal, closeModal, toast } from './dom.js';
@@ -19,11 +19,18 @@ export function renderKitchen(app, root) {
       : `<div class="slot empty"><span>${i + 1}</span></div>`;
   }).join('');
 
+  // Master Chef makes the cards for the best new recipe in this hand glow.
+  const chef = chefPick(app.state, k);
+  const chefUids = new Set(chef?.uids || []);
+  // Shown above the hand on desktop and inside the info panel on phones (where the hand is sticky).
+  const chefHtml = (where) => (app.state.unlocks.masterchef ? `<div class="chef-strip chef-${where} ${chef ? 'has' : ''}"><span class="chef-hat" aria-hidden="true">👨‍🍳</span>${chef
+    ? `<span>${where === 'phone' ? `<b>Chef:</b> glowing cards = new recipe <b class="pay">${fmt(chef.reward)}</b>` : `<b>Master Chef:</b> the glowing cards make a <b>new recipe</b> worth <b class="pay">${fmt(chef.reward)}</b>${chef.extra ? '. Clear the boat first.' : ''}`}</span>${chef.uids.length || chef.extra ? '<button class="btn small" data-chef>Play them</button>' : `<span class="chef-ready">${where === 'phone' ? 'Fry it!' : 'It\'s in the boat. Fry it!'}</span>`}`
+    : `<span><b>${where === 'phone' ? 'Chef' : 'Master Chef'}:</b> no new recipes in this hand.${where === 'phone' ? '' : ' Try a redraw.'}</span>`}</div>` : '');
   const handHtml = k.hand.map((c, i) => {
     const isNew = app.newDrawn.has(c.uid);
     const extra = `<span class="hotkey">${i < 9 ? i + 1 : ''}</span>`;
     const off = i - (k.hand.length - 1) / 2;
-    return `<div class="hand-slot" style="--i:${i};--rot:${off * 3}deg;--lift:${Math.abs(off) * 4}px">${cardHtml(c.id, { uid: c.uid, cls: isNew ? 'drawn' : '', extra })}</div>`;
+    return `<div class="hand-slot" style="--i:${i};--rot:${off * 3}deg;--lift:${Math.abs(off) * 4}px">${cardHtml(c.id, { uid: c.uid, cls: `${isNew ? 'drawn' : ''} ${chefUids.has(c.uid) ? 'chef-pick' : ''}`, extra: extra + (chefUids.has(c.uid) ? '<span class="chef-badge" aria-hidden="true">👨‍🍳</span>' : '') })}</div>`;
   }).join('');
   app.newDrawn.clear();
 
@@ -56,6 +63,7 @@ export function renderKitchen(app, root) {
             <span title="Undiscovered recipes you can make from every card you own, benched cards included"><em>🃏 All cards you own</em><i><b>${poss.owned.fresh}</b> to discover</i><small>${poss.owned.total - poss.owned.fresh} known</small></span>
             <p class="possible-note">Recipes to discover: new recipes, not yet in your book, that these cards can make.</p>
           </div>
+          ${chefHtml('phone')}
           <div class="progress"><div style="width:${(discoveredCount(app.state) / TOTAL_RECIPES) * 100}%"></div></div>
           <button class="btn small" id="rumorBtn">🕵️ Buy a Recipe Rumor (${fmt(rumorCost(app.state))})</button>
         </div>
@@ -64,6 +72,7 @@ export function renderKitchen(app, root) {
     <div class="hand-bar">${best
       ? `<button class="btn btn-auto" id="autoBtn" title="Plays and fries your best-paying known recipe from this hand (A)">⚡ Cook best known: <b>${esc(best.name)}</b> <span class="pay">+${fmt(knownReward(best))}</span></button>`
       : '<button class="btn btn-auto" id="autoBtn" disabled title="No recipe you know can be made from this hand">⚡ No known recipe in this hand</button>'}</div>
+    ${chefHtml('desk')}
     <div class="hand" aria-label="Your hand">${handHtml || '<div class="empty-hand">Your hand is empty. Redraw!</div>'}</div>
   </section>`;
   fresh = null;
@@ -76,6 +85,7 @@ export function renderKitchen(app, root) {
   $('#rumorBtn', root).onclick = () => doRumor(app);
   $('#autoBtn', root).onclick = () => doAutoCook(app);
   $('#autoBtnInline', root).onclick = () => doAutoCook(app);
+  $$('[data-chef]', root).forEach((b) => (b.onclick = () => { loadRecipe(k, chef.recipe); sfx('card'); app.render(); }));
 }
 
 function doPlay(app, uid) {
@@ -164,6 +174,7 @@ function doAutoCook(app) {
   const best = bestKnownInHand(app.state, app.kitchen);
   if (!best) { sfx('error'); toast('No recipe you know can be made from this hand.', 'warn'); return; }
   loadRecipe(app.kitchen, best);
+  app.state.stats.autocooks = (app.state.stats.autocooks || 0) + 1;
   doFry(app);
 }
 
