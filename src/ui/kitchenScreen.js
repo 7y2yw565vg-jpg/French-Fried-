@@ -39,7 +39,10 @@ export function renderKitchen(app, root) {
       <div class="boat-side">
         <div class="slots">${slots}</div>
         <div class="actions">
-          <button class="btn btn-fry" id="fryBtn" ${ids.length ? '' : 'disabled'}>🔥 Fry It!</button>
+          <div class="fry-row">
+            <button class="btn btn-fry" id="fryBtn" ${ids.length ? '' : 'disabled'}>🔥 Fry It!</button>
+            <button class="btn btn-auto inline" id="autoBtnInline" ${best ? '' : 'disabled'} title="${best ? `Cook ${esc(best.name)} for ${fmt(knownReward(best))} (A)` : 'No known recipe in this hand'}">⚡ ${best ? `Best: <b>${esc(best.name)}</b> <span class="pay">+${fmt(knownReward(best))}</span>` : 'No known combo'}</button>
+          </div>
           <div class="row">
             <button class="btn" id="clearBtn" ${ids.length ? '' : 'disabled'}>Clear</button>
             <button class="btn" id="redrawBtn">Redraw ${canRedrawFree ? '(free)' : `(${fmt(REDRAW_COST)})`}</button>
@@ -67,6 +70,7 @@ export function renderKitchen(app, root) {
   $('#redrawBtn', root).onclick = () => doRedraw(app);
   $('#rumorBtn', root).onclick = () => doRumor(app);
   $('#autoBtn', root).onclick = () => doAutoCook(app);
+  $('#autoBtnInline', root).onclick = () => doAutoCook(app);
 }
 
 function doPlay(app, uid) {
