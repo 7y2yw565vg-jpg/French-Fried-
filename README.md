@@ -2,6 +2,8 @@
 
 A single-player card game about discovering **1,001 french fry recipes**.
 
+**▶ Play it now: https://7y2yw565vg-jpg.github.io/French-Fried-/** (free, no sign-in, runs in any browser)
+
 Play ingredient cards from your hand onto a boat of fries — every card you play is drawn onto the
 illustration (ketchup drizzles, cheese melts, a cowboy hat lands on top). Hit **Fry It!** to find out
 whether you've invented something new. Discover them all to win.
