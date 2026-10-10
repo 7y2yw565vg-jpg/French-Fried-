@@ -3,7 +3,8 @@
 import { makeRng } from './rng.js';
 import { WORLD_ARENAS, WORLD_MAP, CREATURE_MAP } from '../data/worlds.js';
 
-export const LAB_CAPACITY = 8;
+export const LAB_CAPACITY = 12;
+export const WILD_PARENT = 'wild';
 export const GROW_COST = 300;
 export const BREED_COST = 250;
 export const PURGE_COST = 50;
@@ -100,7 +101,7 @@ export function fryColor(fry) {
 const busy = (state, id) => state.fryer.run && state.fryer.run.fryId === id;
 
 export function growSpud(state, rng) {
-  if (state.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: 'Lab is full (8 fries max).' };
+  if (state.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max).` };
   if (state.money < GROW_COST) return { ok: false, reason: `Need $${GROW_COST}` };
   state.money -= GROW_COST;
   const f = newFry(state, rng);
@@ -158,12 +159,17 @@ export function train(state, fryId, stat) {
   return { ok: true, cost };
 }
 
+/** A random gen-1 spud used as a donor parent, so breeding works even with one fighter. */
+function wildParent(rng) {
+  return newFry({ lab: { nextId: 0 } }, rng, { name: 'Wild Spud' });
+}
+
 export function breed(state, aId, bId, rng) {
-  const a = getFry(state, aId);
-  const b = getFry(state, bId);
-  if (!a || !b || a === b) return { ok: false, reason: 'Pick two different fries.' };
+  const a = aId === WILD_PARENT ? wildParent(rng) : getFry(state, aId);
+  const b = bId === WILD_PARENT ? wildParent(rng) : getFry(state, bId);
+  if (!a || !b || (a === b && aId !== WILD_PARENT)) return { ok: false, reason: 'Pick two different parents.' };
   if (busy(state, aId) || busy(state, bId)) return { ok: false, reason: 'A parent is mid-tournament.' };
-  if (state.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: 'Lab is full (8 fries max).' };
+  if (state.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max). Compost one to make room.` };
   if (state.money < BREED_COST) return { ok: false, reason: `Need $${BREED_COST}` };
   state.money -= BREED_COST;
   const base = {};

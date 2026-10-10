@@ -3,7 +3,7 @@
 import { RECIPES, MAX_BOAT, findRecipe, recipeKey, CARDS } from '../data/recipes.js';
 import { earn, ownedIds, discoveredCount } from './state.js';
 
-export const HAND_SIZE = 8;
+export const HAND_SIZE = 7;
 export const REDRAW_COST = 3;
 
 let uidSeq = 1;

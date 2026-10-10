@@ -39,7 +39,7 @@ whether you've invented something new. Discover them all to win.
 - **Single file**: `npm run build` produces a fully self-contained `dist/index.html` (fonts inlined,
   works offline, ready for itch.io).
 
-Controls: click cards, or use `1`–`8` to play, `Enter` to fry, `Backspace` to undo, `R` to redraw, `A` to cook your best known recipe,
+Controls: click cards, or use `1`–`7` to play, `Enter` to fry, `Backspace` to undo, `R` to redraw, `A` to cook your best known recipe,
 `F11` for fullscreen and `Esc` to close dialogs.
 
 ## Develop

@@ -153,7 +153,7 @@ function showHowTo(firstTime) {
       <li>Discover enough recipes to unlock <b>Premium Packs</b>, the <b>Thrift Store</b> (weird objects!), <b>The Lab</b> and <b>The Fryer</b>.</li>
       <li>Goal: discover all <b>${TOTAL_RECIPES.toLocaleString()}</b> recipes. Some are... unusual. 🤠</li>
     </ol>
-    <p class="muted">Keys: <kbd>1</kbd>–<kbd>8</kbd> play cards · <kbd>Enter</kbd> fry · <kbd>Backspace</kbd> undo · <kbd>R</kbd> redraw · <kbd>A</kbd> cook best known · <kbd>Esc</kbd> close</p>
+    <p class="muted">Keys: <kbd>1</kbd>–<kbd>7</kbd> play cards · <kbd>Enter</kbd> fry · <kbd>Backspace</kbd> undo · <kbd>R</kbd> redraw · <kbd>A</kbd> cook best known · <kbd>Esc</kbd> close</p>
     <button class="btn btn-primary" data-close>${firstTime ? "Let's fry!" : 'Got it'}</button>`, {
     cls: 'center',
     onClose: () => {

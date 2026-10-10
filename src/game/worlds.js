@@ -89,7 +89,7 @@ export function growFromDNA(s, creatureId, rng) {
   const c = CREATURE_MAP[creatureId];
   if (!c) return { ok: false, reason: 'Nope' };
   if ((s.worlds.dna[creatureId] || 0) < GROW_DNA_SAMPLES) return { ok: false, reason: `Need ${GROW_DNA_SAMPLES} ${c.name} DNA samples.` };
-  if (s.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: 'Lab is full (8 fighters max).' };
+  if (s.lab.fries.length >= LAB_CAPACITY) return { ok: false, reason: `Lab is full (${LAB_CAPACITY} fighters max).` };
   if (s.money < GROW_DNA_COST) return { ok: false, reason: `Need $${GROW_DNA_COST}` };
   s.money -= GROW_DNA_COST;
   s.worlds.dna[creatureId] -= GROW_DNA_SAMPLES;

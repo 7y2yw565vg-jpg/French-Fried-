@@ -332,3 +332,20 @@ test('kitchen counts possible recipes in hand and with all owned cards', () => {
   assert.equal(q.owned.fresh, p.owned.fresh - 1);
   assert.equal(q.owned.total, p.owned.total);
 });
+
+import { WILD_PARENT, purgeTrait } from '../src/game/lab.js';
+test('breeding works with a single fighter via a wild spud; traits can be removed; hand is 7', () => {
+  const rng = makeRng(77);
+  const s = defaultState(0);
+  s.money = 10000;
+  const a = growSpud(s, rng).fry;
+  const res = breed(s, a.id, WILD_PARENT, rng);
+  assert.ok(res.ok, res.reason);
+  assert.equal(res.fry.gen, 2);
+  assert.ok(breed(s, WILD_PARENT, WILD_PARENT, rng).ok);
+  assert.equal(breed(s, a.id, a.id, rng).ok, false);
+  assert.ok(splice(s, a.id, 'crispy').ok);
+  assert.ok(purgeTrait(s, a.id, 'crispy').ok);
+  assert.ok(!a.traits.includes('crispy'));
+  assert.equal(HAND_SIZE, 7);
+});

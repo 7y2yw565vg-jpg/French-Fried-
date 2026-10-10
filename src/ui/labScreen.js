@@ -1,6 +1,6 @@
 // The Lab: grow, modify, train and breed GMO fries.
 
-import { LAB_TRAITS, TRAIT_MAP, TRAINING, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
+import { LAB_TRAITS, TRAIT_MAP, TRAINING, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, WILD_PARENT, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
 import { renderFryGuy, traitBadges } from '../art/fryguy.js';
 import { fmt } from '../game/state.js';
 import { CREATURE_MAP, WORLD_MAP, RARITY, SPLICE_COST, GROW_DNA_COST, GROW_DNA_SAMPLES, MAX_DNA_SPLICES } from '../data/worlds.js';
@@ -72,8 +72,12 @@ export function renderLab(app, root) {
     const trainBtns = Object.entries(TRAINING).map(([k, t]) => `<button class="btn small" data-train="${k}" ${s.money < cost ? 'disabled' : ''}>${t.name}<br><small>${t.label} · ${fmt(cost)}</small></button>`).join('');
     const spliceBtns = LAB_TRAITS.map((t) => {
       const has = sel.traits.includes(t.id);
-      return `<button class="trait-btn ${has ? 'has' : ''}" data-splice="${t.id}" ${has || sel.traits.length >= 3 || s.money < t.cost ? 'disabled' : ''} title="${esc(t.desc)}">
-        <b>${t.name}</b><small>${t.desc}</small><span>${has ? 'Installed' : fmt(t.cost)}</span></button>`;
+      if (has) {
+        return `<button class="trait-btn has" data-purge="${t.id}" ${s.money < PURGE_COST ? 'disabled' : ''} title="Remove ${esc(t.name)}">
+          <b>${t.name}</b><small>${t.desc}</small><span class="remove">✓ Installed · Remove ${fmt(PURGE_COST)}</span></button>`;
+      }
+      return `<button class="trait-btn" data-splice="${t.id}" ${sel.traits.length >= 3 || s.money < t.cost ? 'disabled' : ''} title="${esc(t.desc)}">
+        <b>${t.name}</b><small>${t.desc}</small><span>${fmt(t.cost)}</span></button>`;
     }).join('');
     detail = `
       <div class="lab-detail">
@@ -83,11 +87,11 @@ export function renderLab(app, root) {
             <h2>${esc(sel.name)} <button class="btn tiny" id="renameBtn">✏️</button></h2>
             <p class="muted">Generation ${sel.gen} · ${sel.wins} Fryer wins · ${sel.trained} treatments</p>
             ${statBlock(sel)}
-            <div class="traits">${sel.traits.length ? sel.traits.map((t) => `<span class="trait">${TRAIT_MAP[t].name} <button class="x" data-purge="${t}" title="Purge trait (${fmt(PURGE_COST)})">✕</button></span>`).join('') : '<span class="muted">No traits spliced yet (max 3).</span>'}</div>
+            <div class="traits">${sel.traits.length ? sel.traits.map((t) => `<span class="trait removable" title="${esc(TRAIT_MAP[t].desc)}">${TRAIT_MAP[t].name} <button class="x" data-purge="${t}" title="Remove ${TRAIT_MAP[t].name} for ${fmt(PURGE_COST)}">✕ Remove</button></span>`).join('') : '<span class="muted">No traits spliced yet (max 3).</span>'}</div>
           </div>
         </div>
         <h3>Treatments</h3><div class="row wrap">${trainBtns}</div>
-        <h3>Gene Splicing <small>${sel.traits.length}/3 slots</small></h3><div class="trait-grid">${spliceBtns}</div>
+        <h3>Gene Splicing <small>${sel.traits.length}/3 slots${sel.traits.length >= 3 ? ' · full: remove a trait to splice a new one' : ''}</small></h3><div class="trait-grid">${spliceBtns}</div>
         ${dnaVault(s, sel)}
         <div class="row lab-foot"><button class="btn danger small" id="compostBtn">Compost (+${fmt(COMPOST_VALUE)})</button></div>
       </div>`;
@@ -96,7 +100,7 @@ export function renderLab(app, root) {
   root.innerHTML = `<section class="lab">
     <div class="lab-head"><h1>🧪 The Lab</h1>
       <p class="muted">Grow spuds, splice in traits, pump them full of starch, and breed champions. ${fries.length}/${LAB_CAPACITY} vats in use.</p>
-      <button class="btn btn-primary" id="breedBtn" ${fries.length >= 2 ? '' : 'disabled'}>🧬 Breeding Chamber (${fmt(BREED_COST)})</button>
+      <button class="btn btn-primary" id="breedBtn" ${s.money >= BREED_COST ? '' : 'disabled'} title="${s.money >= BREED_COST ? 'Breed two fighters, or one fighter with a wild spud' : `Need ${fmt(BREED_COST)}`}">🧬 Breeding Chamber (${fmt(BREED_COST)})</button>
     </div>
     <div class="lab-body"><div class="fry-list">${list}</div>${detail}</div>
   </section>`;
@@ -134,27 +138,39 @@ function act(app, res, onOk) {
   app.commit();
 }
 
+const WILD_PROTO = { name: 'Wild Spud', traits: [], titles: [], hue: 44, base: {} };
+
 function openBreeding(app) {
   const s = app.state;
-  const fries = s.lab.fries;
-  if (!getFry(s, ui.breedA)) ui.breedA = fries[0]?.id;
-  if (!getFry(s, ui.breedB) || ui.breedB === ui.breedA) ui.breedB = fries.find((f) => f.id !== ui.breedA)?.id;
-  const pick = (side) => fries.map((f) => `<button class="mini-fry ${(side === 'A' ? ui.breedA : ui.breedB) === f.id ? 'sel' : ''}" data-side="${side}" data-id="${f.id}">${renderFryGuy(f)}<span>${esc(f.name)}</span></button>`).join('');
-  const A = getFry(s, ui.breedA);
-  const B = getFry(s, ui.breedB);
-  const pool = A && B ? [...new Set([...A.traits, ...B.traits])] : [];
+  const fries = s.lab.fries.filter((f) => s.fryer.run?.fryId !== f.id);
+  const valid = (id) => id === WILD_PARENT || fries.some((f) => f.id === id);
+  if (!valid(ui.breedA)) ui.breedA = fries[0]?.id ?? WILD_PARENT;
+  if (!valid(ui.breedB) || (ui.breedB === ui.breedA && ui.breedA !== WILD_PARENT)) ui.breedB = fries.find((f) => f.id !== ui.breedA)?.id ?? WILD_PARENT;
+  const parentOf = (id) => (id === WILD_PARENT ? WILD_PROTO : getFry(s, id));
+  const option = (side, id, f, extra = '') => `<button class="mini-fry ${(side === 'A' ? ui.breedA : ui.breedB) === id ? 'sel' : ''}" data-side="${side}" data-id="${id}">${renderFryGuy(f)}<span>${esc(f.name)}</span>${extra}</button>`;
+  const pick = (side) => fries.map((f) => option(side, f.id, f)).join('') + option(side, WILD_PARENT, WILD_PROTO, '<small>random donor</small>');
+  const A = parentOf(ui.breedA);
+  const B = parentOf(ui.breedB);
+  const pool = [...new Set([...(A?.traits || []), ...(B?.traits || [])])];
+  const full = s.lab.fries.length >= LAB_CAPACITY;
+  const broke = s.money < BREED_COST;
+  const problem = full ? `Your Lab is full (${LAB_CAPACITY} fighters). Compost one to make room for the baby.` : broke ? `You need ${fmt(BREED_COST)} to breed.` : '';
   openModal(`<h2>🧬 Breeding Chamber</h2>
-    <p class="muted">Offspring lean toward the stronger parent's stats, inherit 1–2 traits, and have a 20% chance of a wild mutation.</p>
+    <p class="muted">Offspring lean toward the stronger parent's stats, inherit 1–2 traits, and have a 20% chance of a wild mutation. No partner? Pick a <b>Wild Spud</b>, a random fresh spud donor.</p>
     <div class="breed">
       <div><h3>Parent A</h3><div class="mini-list">${pick('A')}</div></div>
       <div class="heart">❤️</div>
       <div><h3>Parent B</h3><div class="mini-list">${pick('B')}</div></div>
     </div>
-    <p>Possible inherited traits: ${pool.length ? pool.map((t) => `<span class="trait">${TRAIT_MAP[t].name}</span>`).join(' ') : '<span class="muted">none</span>'}</p>
-    <div class="row center"><button class="btn btn-primary" id="doBreed" ${A && B && A !== B && s.money >= BREED_COST ? '' : 'disabled'}>Breed · ${fmt(BREED_COST)}</button></div>`, { cls: 'wide' });
+    <p>Possible inherited traits: ${pool.length ? pool.map((t) => `<span class="trait">${TRAIT_MAP[t].name}</span>`).join(' ') : '<span class="muted">none (a mutation could still happen)</span>'}</p>
+    ${problem ? `<p class="hint">${problem}</p>` : ''}
+    <div class="row center"><button class="btn btn-primary" id="doBreed" ${problem ? 'disabled' : ''}>Breed · ${fmt(BREED_COST)}</button></div>`, { cls: 'wide' });
   $$('.mini-fry').forEach((b) => (b.onclick = () => {
-    if (b.dataset.side === 'A') ui.breedA = +b.dataset.id;
-    else ui.breedB = +b.dataset.id;
+    const id = b.dataset.id === WILD_PARENT ? WILD_PARENT : +b.dataset.id;
+    const [mine, other] = b.dataset.side === 'A' ? ['breedA', 'breedB'] : ['breedB', 'breedA'];
+    // Picking the fighter already chosen on the other side swaps the two parents.
+    if (id === ui[other] && id !== WILD_PARENT) ui[other] = ui[mine];
+    ui[mine] = id;
     sfx('click');
     openBreeding(app);
   }));

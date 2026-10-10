@@ -339,13 +339,16 @@ button.entry:hover { transform: translateY(-2px); }
 .traits { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; justify-content: center; }
 .lab-hero .traits { justify-content: flex-start; }
 .trait { display: inline-flex; align-items: center; gap: 4px; background: #e9e1ff; border: 2px solid var(--ink); border-radius: 99px; padding: 1px 10px; font-size: .75rem; font-weight: 900; }
-.trait .x { background: none; border: none; cursor: pointer; font-size: .75rem; padding: 0; }
+.trait .x { background: #ffd9d4; border: 1.5px solid var(--ink); border-radius: 99px; cursor: pointer; font-size: .65rem; font-weight: 900; padding: 0 6px; margin-left: 2px; font-family: var(--font-body); color: var(--ink); }
+.trait .x:hover { background: #ffb3a7; }
 .trait-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
 .trait-btn { display: flex; flex-direction: column; text-align: left; gap: 2px; background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 6px 10px; cursor: pointer; font-family: var(--font-body); color: var(--ink); box-shadow: 0 2px 0 var(--ink); }
 .trait-btn small { color: var(--muted); font-size: .72rem; }
 .trait-btn span { font-family: var(--font-head); color: #1f7a36; }
 .trait-btn:disabled { opacity: .5; cursor: not-allowed; }
 .trait-btn.has { background: #dff5e3; opacity: 1; }
+.trait-btn.has:hover:not(:disabled) { background: #ffe1dc; }
+.trait-btn .remove { color: var(--red-d); }
 .lab-foot { justify-content: flex-end; margin-top: 14px; }
 .lab-empty { display: flex; align-items: center; justify-content: center; min-height: 200px; font-family: var(--font-head); color: var(--muted); }
 .breed { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
