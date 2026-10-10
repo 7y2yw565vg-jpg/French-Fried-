@@ -2,7 +2,7 @@
 
 import { renderBoat } from '../art/fries.js';
 import { CARDS, MAX_BOAT, TOTAL_RECIPES } from '../data/recipes.js';
-import { playCard, unplayCard, clearBoat, redraw, fry, boatIds, REDRAW_COST, buyRumor, rumorCost, makeableCount } from '../game/kitchen.js';
+import { playCard, unplayCard, clearBoat, redraw, fry, boatIds, REDRAW_COST, buyRumor, rumorCost, makeableCount, bestKnownInHand, loadRecipe, knownReward } from '../game/kitchen.js';
 import { fmt, discoveredCount } from '../game/state.js';
 import { sfx } from '../audio.js';
 import { $, $$, cardHtml, chipHtml, esc, openModal, closeModal, toast } from './dom.js';
@@ -28,6 +28,7 @@ export function renderKitchen(app, root) {
   app.newDrawn.clear();
 
   const canRedrawFree = app.state.money < REDRAW_COST;
+  const best = bestKnownInHand(app.state, k);
   root.innerHTML = `
   <section class="kitchen">
     <div class="stage">
@@ -52,6 +53,9 @@ export function renderKitchen(app, root) {
         </div>
       </div>
     </div>
+    <div class="hand-bar">${best
+      ? `<button class="btn btn-auto" id="autoBtn" title="Plays and fries your best-paying known recipe from this hand (A)">⚡ Cook best known: <b>${esc(best.name)}</b> <span class="pay">+${fmt(knownReward(best))}</span></button>`
+      : '<button class="btn btn-auto" id="autoBtn" disabled title="No recipe you know can be made from this hand">⚡ No known recipe in this hand</button>'}</div>
     <div class="hand" aria-label="Your hand">${handHtml || '<div class="empty-hand">Your hand is empty. Redraw!</div>'}</div>
   </section>`;
   fresh = null;
@@ -62,6 +66,7 @@ export function renderKitchen(app, root) {
   $('#clearBtn', root).onclick = () => { clearBoat(k); sfx('remove'); app.render(); };
   $('#redrawBtn', root).onclick = () => doRedraw(app);
   $('#rumorBtn', root).onclick = () => doRumor(app);
+  $('#autoBtn', root).onclick = () => doAutoCook(app);
 }
 
 function doPlay(app, uid) {
@@ -146,6 +151,13 @@ export function doFry(app) {
   app.commit({ silentRender: true });
 }
 
+function doAutoCook(app) {
+  const best = bestKnownInHand(app.state, app.kitchen);
+  if (!best) { sfx('error'); toast('No recipe you know can be made from this hand.', 'warn'); return; }
+  loadRecipe(app.kitchen, best);
+  doFry(app);
+}
+
 export function kitchenKeys(app, e) {
   const k = app.kitchen;
   if (e.key >= '1' && e.key <= '9') {
@@ -156,6 +168,8 @@ export function kitchenKeys(app, e) {
   } else if (e.key === 'Backspace') {
     const last = k.boat[k.boat.length - 1];
     if (last) doUnplay(app, last.uid);
+  } else if (e.key === 'a' || e.key === 'A') {
+    doAutoCook(app);
   } else if (e.key === 'r' || e.key === 'R') {
     doRedraw(app);
   } else {

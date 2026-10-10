@@ -15,6 +15,8 @@ import { renderDeck } from './ui/deckScreen.js';
 import { renderShop, renderThrift, thriftTick } from './ui/shopScreen.js';
 import { renderLab } from './ui/labScreen.js';
 import { renderFryer } from './ui/fryerScreen.js';
+import { renderWorlds } from './ui/worldsScreen.js';
+import { worldsUnlocked } from './game/worlds.js';
 
 const storage = (() => { try { return globalThis.localStorage; } catch { return null; } })();
 const steam = globalThis.frenchFriedNative || null; // provided by the Electron preload
@@ -27,7 +29,10 @@ const SCREENS = {
   thrift: { label: 'Thrift', icon: '🧥', render: renderThrift, lock: 'thrift' },
   lab: { label: 'Lab', icon: '🧪', render: renderLab, lock: 'lab' },
   fryer: { label: 'Fryer', icon: '🔥', render: renderFryer, lock: 'fryer' },
+  worlds: { label: 'Worlds', icon: '🌍', render: renderWorlds, lock: 'worlds', hidden: true },
 };
+
+const isLocked = (scr) => !!scr.lock && (scr.lock === 'worlds' ? !worldsUnlocked(app.state) : !app.state.unlocks[scr.lock]);
 
 const app = {
   state: load(storage),
@@ -47,10 +52,16 @@ const app = {
 
   go(name) {
     const scr = SCREENS[name];
-    if (scr?.lock && !app.state.unlocks[scr.lock]) {
+    if (scr && isLocked(scr)) {
       sfx('error');
-      toast(`🔒 ${UNLOCKS[scr.lock].name} is locked. Unlock it in the Shop.`, 'warn');
-      name = 'shop';
+      if (scr.lock === 'worlds') {
+        toast('🔒 Win the Legendary Vat in The Fryer to discover Worlds.', 'warn');
+        name = 'fryer';
+        if (isLocked(SCREENS.fryer)) name = 'shop';
+      } else {
+        toast(`🔒 ${UNLOCKS[scr.lock].name} is locked. Unlock it in the Shop.`, 'warn');
+        name = 'shop';
+      }
     }
     app.screen = name;
     sfx('click');
@@ -84,7 +95,8 @@ function renderTopbar() {
   const s = app.state;
   const n = discoveredCount(s);
   const nav = Object.entries(SCREENS).map(([id, scr]) => {
-    const locked = scr.lock && !s.unlocks[scr.lock];
+    const locked = isLocked(scr);
+    if (scr.hidden && locked) return '';
     return `<button class="nav ${app.screen === id ? 'on' : ''} ${locked ? 'locked' : ''}" data-go="${id}"><span>${locked ? '🔒' : scr.icon}</span><em>${scr.label}</em></button>`;
   }).join('');
   $('#topbar').innerHTML = `
@@ -141,7 +153,7 @@ function showHowTo(firstTime) {
       <li>Discover enough recipes to unlock <b>Premium Packs</b>, the <b>Thrift Store</b> (weird objects!), <b>The Lab</b> and <b>The Fryer</b>.</li>
       <li>Goal: discover all <b>${TOTAL_RECIPES.toLocaleString()}</b> recipes. Some are... unusual. 🤠</li>
     </ol>
-    <p class="muted">Keys: <kbd>1</kbd>–<kbd>8</kbd> play cards · <kbd>Enter</kbd> fry · <kbd>Backspace</kbd> undo · <kbd>R</kbd> redraw · <kbd>Esc</kbd> close</p>
+    <p class="muted">Keys: <kbd>1</kbd>–<kbd>8</kbd> play cards · <kbd>Enter</kbd> fry · <kbd>Backspace</kbd> undo · <kbd>R</kbd> redraw · <kbd>A</kbd> cook best known · <kbd>Esc</kbd> close</p>
     <button class="btn btn-primary" data-close>${firstTime ? "Let's fry!" : 'Got it'}</button>`, {
     cls: 'center',
     onClose: () => {

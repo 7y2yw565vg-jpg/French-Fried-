@@ -85,8 +85,37 @@ export function redraw(k) {
   return drawCards(k, HAND_SIZE);
 }
 
+/** First-time discovery payout. Bigger combos pay more. */
 export function discoveryReward(recipe) {
-  return recipe.value * 3;
+  return Math.round(recipe.value * (3 + 0.5 * (recipe.ids.length - 1)));
+}
+
+/** Payout for cooking a recipe you already know. Multi-card combos scale up. */
+export function knownReward(recipe) {
+  const n = recipe.ids.length;
+  return Math.max(2, Math.round(recipe.value * (n === 1 ? 0.6 : 1 + 0.5 * (n - 1))));
+}
+
+/** The highest-paying discovered recipe that can be made from the cards in hand (and boat). */
+export function bestKnownInHand(state, k) {
+  const have = new Set([...k.hand, ...k.boat].map((c) => c.id));
+  let best = null;
+  for (const r of RECIPES) {
+    if (!state.discovered[r.key] || !r.ids.every((id) => have.has(id))) continue;
+    if (!best || knownReward(r) > knownReward(best)) best = r;
+  }
+  return best;
+}
+
+/** Put exactly the recipe's cards in the boat (returning anything else to the hand). */
+export function loadRecipe(k, recipe) {
+  clearBoat(k);
+  for (const id of recipe.ids) {
+    const c = k.hand.find((x) => x.id === id);
+    if (!c) return false;
+    playCard(k, c.uid);
+  }
+  return true;
 }
 
 /** Finds a nudge for a failed combo: one ingredient short, or one too many. */
@@ -121,7 +150,7 @@ export function fry(state, k, now = Date.now()) {
     earn(state, reward);
     result = { type: 'new', recipe, reward, ids, count: discoveredCount(state) };
   } else if (recipe) {
-    const reward = Math.max(2, Math.round(recipe.value * 0.6));
+    const reward = knownReward(recipe);
     earn(state, reward);
     result = { type: 'known', recipe, reward, ids };
   } else {

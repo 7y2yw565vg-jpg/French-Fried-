@@ -197,3 +197,112 @@ test('selling spares and achievements', () => {
   assert.ok(got.some((a) => a.id === 'first_fry'));
   assert.equal(checkAchievements(s).length, 0);
 });
+
+// ---------- Known-recipe payouts and auto-cook ----------
+import { knownReward, discoveryReward, bestKnownInHand, loadRecipe } from '../src/game/kitchen.js';
+
+test('multi-card known recipes pay more, and discovery always beats repeats', () => {
+  const single = findRecipe(['salt']);
+  const pair = findRecipe(['salt', 'vinegar']);
+  const big = RECIPES.find((r) => r.ids.length === 5);
+  assert.ok(knownReward(pair) >= pair.value * 1.5);
+  assert.ok(knownReward(big) >= big.value * 3);
+  assert.ok(knownReward(single) < single.value);
+  for (const r of RECIPES) assert.ok(discoveryReward(r) > knownReward(r), r.name);
+});
+
+test('auto-cook picks the best known recipe in hand and fries it', () => {
+  const s = defaultState(0);
+  s.deck = { salt: 1, vinegar: 1, curds: 1, gravy: 1, bacon: 1, pepper: 1, ketchup: 1, mayo: 1 };
+  const k = createKitchen(s, makeRng(4));
+  assert.equal(bestKnownInHand(s, k), null, 'nothing discovered yet');
+  for (const ids of [['salt'], ['salt', 'vinegar'], ['curds', 'gravy'], ['bacon', 'curds', 'gravy']]) s.discovered[recipeKey(ids)] = 1;
+  const best = bestKnownInHand(s, k);
+  assert.equal(best.name, 'Bacon Poutine');
+  assert.ok(loadRecipe(k, best));
+  const before = s.money;
+  const res = fry(s, k);
+  assert.equal(res.type, 'known');
+  assert.equal(s.money - before, knownReward(best));
+});
+
+// ---------- Bracket tournaments ----------
+import { currentMatch, LEAGUE_MAP } from '../src/game/lab.js';
+
+test('fryer brackets: 8-fighter rookie bracket, $300 first win, $1,000 champion', () => {
+  const rng = makeRng(21);
+  const s = defaultState(0);
+  s.money = 100000;
+  const champ = growSpud(s, rng).fry;
+  champ.base = { hp: 900, atk: 120, def: 60, spd: 80 };
+  assert.ok(startRun(s, champ.id, 'rookie', 5).ok);
+  const run = s.fryer.run;
+  assert.equal(run.slots.length, 8);
+  assert.ok(currentMatch(run).opp.name);
+  const m0 = s.money;
+  const r1 = fightRound(s, rng);
+  assert.equal(r1.prize, 300);
+  assert.equal(s.money - m0, 300);
+  assert.equal(s.fryer.run.rounds[1].length, 4);
+  fightRound(s, rng);
+  const m2 = s.money;
+  const fin = fightRound(s, rng);
+  assert.ok(fin.champion);
+  assert.equal(fin.bonus, 1000);
+  assert.equal(s.money - m2, 1000);
+  assert.equal(fin.bracket.rounds.at(-1).length, 1);
+  assert.equal(LEAGUE_MAP.legend.rounds, 5);
+});
+
+// ---------- Worlds ----------
+import { worldsUnlocked, worldCost, unlockWorld, explore, spliceDNA, growFromDNA, wildCreature } from '../src/game/worlds.js';
+import { WORLDS, WORLD_COST, CREATURE_MAP } from '../src/data/worlds.js';
+import { renderFryGuy } from '../src/art/fryguy.js';
+
+test('worlds unlock after the Legendary Vat; first world free, others cost', () => {
+  const s = defaultState(0);
+  s.money = 50000;
+  assert.equal(unlockWorld(s, 'soda').ok, false);
+  s.fryer.champions.legend = 1;
+  assert.ok(worldsUnlocked(s));
+  assert.equal(worldCost(s), 0);
+  assert.ok(unlockWorld(s, 'soda').ok);
+  assert.equal(s.money, 50000);
+  assert.equal(worldCost(s), WORLD_COST);
+  assert.ok(unlockWorld(s, 'burger').ok);
+  assert.equal(s.money, 50000 - WORLD_COST);
+  assert.equal(unlockWorld(s, 'burger').ok, false);
+});
+
+test('explore collects DNA; DNA splices into fries or grows creatures; arenas use creature brackets', () => {
+  const rng = makeRng(33);
+  const s = defaultState(0);
+  s.money = 1e7;
+  s.fryer.champions.legend = 1;
+  unlockWorld(s, 'hotdog');
+  const hero = growSpud(s, rng).fry;
+  hero.base = { hp: 2000, atk: 300, def: 120, spd: 150 };
+  let wins = 0;
+  for (let i = 0; i < 12; i++) { const r = explore(s, 'hotdog', hero.id, rng); assert.ok(r.ok); if (r.won) wins++; }
+  assert.equal(wins, 12);
+  assert.equal(Object.values(s.worlds.dna).reduce((a, b) => a + b, 0), 12);
+  const [cid] = Object.entries(s.worlds.dna).sort((a, b) => b[1] - a[1])[0];
+  const before = { ...hero.base };
+  assert.ok(spliceDNA(s, hero.id, cid).ok);
+  assert.equal(hero.hybrid, 'hotdog');
+  assert.ok(hero.traits.includes('relish'));
+  assert.ok(hero.base.atk > before.atk);
+  s.worlds.dna[cid] = 3;
+  const grown = growFromDNA(s, cid, rng);
+  assert.ok(grown.ok);
+  assert.equal(grown.fry.species, 'hotdog');
+  assert.ok(renderFryGuy(grown.fry).includes('<svg'));
+  assert.ok(startRun(s, hero.id, 'hd1', 9).ok);
+  assert.equal(s.fryer.run.slots.length, 16);
+  assert.ok(s.fryer.run.slots.slice(1).every((e) => e.species === 'hotdog'));
+  for (const w of WORLDS) for (const c of w.creatures) {
+    const svg = renderFryGuy(wildCreature(c.id, rng));
+    assert.ok(!svg.includes('NaN') && !svg.includes('undefined'), c.id);
+    assert.equal(CREATURE_MAP[c.id].world, w.id);
+  }
+});

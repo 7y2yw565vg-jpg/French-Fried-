@@ -1,6 +1,8 @@
 // GMO fry characters for The Lab and The Fryer.
 
 import { fryShape, fryColor, TRAIT_MAP } from '../game/lab.js';
+import { creatureBody, hybridParts } from './creatures.js';
+import { CREATURE_MAP } from '../data/worlds.js';
 
 const K = '#2b1d14';
 const W = `stroke="${K}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
@@ -32,8 +34,8 @@ function body(shape, color) {
   }
 }
 
-function face(mood, shape) {
-  const y = shape === 'tot' ? 52 : shape === 'curly' ? 38 : 40;
+function face(mood, shape, yOverride) {
+  const y = yOverride ?? (shape === 'tot' ? 52 : shape === 'curly' ? 38 : 40);
   if (mood === 'dead') {
     return `<path d="M38 ${y - 4} l8 8 m0 -8 l-8 8 M54 ${y - 4} l8 8 m0 -8 l-8 8" ${W}/><path d="M42 ${y + 14} q8 -6 16 0" fill="none" ${W}/>`;
   }
@@ -55,6 +57,16 @@ export function renderFryGuy(fry, { mood = 'idle', flip = false, cls = '' } = {}
   const glow = fry.traits?.includes('glow') ? `<ellipse cx="50" cy="52" rx="44" ry="48" fill="#b6ff6b" opacity=".25"/>` : '';
   const flames = fry.traits?.includes('spicy') ? `<path d="M22 92 q-4 -14 6 -20 q-2 10 6 12 q-2 -10 6 -16 q0 12 8 14" fill="#ff7a1a" opacity=".85"/>` : '';
   const fangs = fry.traits?.includes('vampire') && mood !== 'dead' ? `<path d="M45 ${fryShape(fry) === 'tot' ? 63 : 51} l2 5 l2 -5 M51 ${fryShape(fry) === 'tot' ? 63 : 51} l2 5 l2 -5" fill="#fff" stroke="${K}" stroke-width="1.2"/>` : '';
+  let main;
+  let faceY;
+  if (fry.species && fry.species !== 'fry') {
+    const cr = creatureBody(fry.species, CREATURE_MAP[fry.creature]?.variant, mood === 'dead');
+    main = cr.body;
+    faceY = cr.faceY;
+  } else {
+    const [behind, front] = fry.hybrid ? hybridParts(fry.hybrid) : ['', ''];
+    main = behind + body(shape, color) + front;
+  }
   const shield = fry.traits?.includes('cheesy') ? `<path d="M70 58 q14 0 14 10 q0 14 -14 20 q-14 -6 -14 -20 q0 -10 14 -10Z" fill="#f5a623" ${W}/>` : '';
   return `<svg class="fryguy ${cls}" viewBox="-6 -14 112 124" xmlns="http://www.w3.org/2000/svg" aria-label="${fry.name}">
     <g transform="${flip ? 'translate(100 0) scale(-1 1)' : ''}">
@@ -62,9 +74,9 @@ export function renderFryGuy(fry, { mood = 'idle', flip = false, cls = '' } = {}
       <ellipse cx="50" cy="104" rx="26" ry="5" fill="#000" opacity=".2"/>
       <path d="M40 90 l-6 12 h-6 M60 90 l6 12 h6" fill="none" ${W}/>
       <path d="M30 56 l-14 -10 M70 56 l14 -10" fill="none" ${W}/>
-      ${body(shape, color)}
+      ${main}
       ${shield}
-      ${face(mood, shape)}
+      ${face(mood, shape, faceY)}
       ${fangs}
       ${flames}
       ${crown}

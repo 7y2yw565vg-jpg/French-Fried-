@@ -1,8 +1,10 @@
 // The Lab: grow, modify, train and breed GMO fries.
 
-import { TRAITS, TRAIT_MAP, TRAINING, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
+import { LAB_TRAITS, TRAIT_MAP, TRAINING, LAB_CAPACITY, GROW_COST, BREED_COST, PURGE_COST, COMPOST_VALUE, computeStats, power, growSpud, splice, purgeTrait, train, trainCost, breed, compost, getFry, LEAGUE_MAP } from '../game/lab.js';
 import { renderFryGuy, traitBadges } from '../art/fryguy.js';
 import { fmt } from '../game/state.js';
+import { CREATURE_MAP, WORLD_MAP, RARITY, SPLICE_COST, GROW_DNA_COST, GROW_DNA_SAMPLES, MAX_DNA_SPLICES } from '../data/worlds.js';
+import { spliceDNA, growFromDNA, worldsUnlocked } from '../game/worlds.js';
 import { sfx } from '../audio.js';
 import { $, $$, esc, openModal, closeModal, toast } from './dom.js';
 
@@ -17,11 +19,37 @@ export function statBlock(fry) {
   </div>`;
 }
 
+export function kindLabel(fry) {
+  if (fry.species && fry.species !== 'fry') return `${WORLD_MAP[fry.species]?.name.replace(' World', '')} creature`;
+  if (fry.hybrid) return `Gen ${fry.gen} ${WORLD_MAP[fry.hybrid]?.name.replace(' World', '')} hybrid`;
+  return `Gen ${fry.gen}`;
+}
+
+function dnaVault(s, sel) {
+  const owned = Object.entries(s.worlds.dna).filter(([, n]) => n > 0);
+  if (!owned.length && !worldsUnlocked(s)) return '';
+  const isFry = !sel.species || sel.species === 'fry';
+  const items = owned.map(([id, n]) => {
+    const c = CREATURE_MAP[id];
+    const proto = { name: c.name, species: c.world, creature: c.id, traits: [], titles: [], base: {} };
+    return `<div class="dna-item rarity-${c.rarity}">
+      ${renderFryGuy(proto)}
+      <div><b>${esc(c.name)}</b><small>${RARITY[c.rarity].label} · ${WORLD_MAP[c.world].name} · ${n} sample${n > 1 ? 's' : ''}</small>
+      <div class="row wrap">
+        <button class="btn tiny" data-dna-splice="${id}" ${isFry && (sel.dnaSplices || 0) < MAX_DNA_SPLICES && s.money >= SPLICE_COST ? '' : 'disabled'} title="Boost stats and add ${TRAIT_MAP[WORLD_MAP[c.world].trait].name}">Splice into ${esc(sel.name)} · ${fmt(SPLICE_COST)}</button>
+        <button class="btn tiny" data-dna-grow="${id}" ${n >= GROW_DNA_SAMPLES && s.money >= GROW_DNA_COST ? '' : 'disabled'}>Grow creature (${Math.min(n, GROW_DNA_SAMPLES)}/${GROW_DNA_SAMPLES}) · ${fmt(GROW_DNA_COST)}</button>
+      </div></div></div>`;
+  }).join('');
+  return `<h3>🧬 DNA Vault <small>${isFry ? `${sel.dnaSplices || 0}/${MAX_DNA_SPLICES} DNA splices used` : 'creatures can\'t take DNA splices'}</small></h3>
+    <p class="muted small">Splicing mixes a creature's DNA into this fry: a stat boost plus its world's signature trait. Collect ${GROW_DNA_SAMPLES} samples to grow the creature itself. Find DNA by exploring Worlds.</p>
+    <div class="dna-list">${items || '<p class="muted">No DNA yet. Go exploring!</p>'}</div>`;
+}
+
 export function fryCardHtml(fry, { selected = false, busy = false } = {}) {
   return `<button class="fry-card ${selected ? 'sel' : ''}" data-fry="${fry.id}">
     ${renderFryGuy(fry)}
     <span class="fname">${esc(fry.name)}</span>
-    <span class="muted">Gen ${fry.gen} · Power ${power(fry)}${fry.wins ? ` · ${fry.wins}W` : ''}</span>
+    <span class="muted">${kindLabel(fry)} · Power ${power(fry)}${fry.wins ? ` · ${fry.wins}W` : ''}</span>
     ${fry.titles.length ? `<span class="titles">${fry.titles.map((t) => `👑 ${LEAGUE_MAP[t].name}`).join('<br>')}</span>` : ''}
     ${busy ? '<span class="busy">In the Fryer</span>' : ''}
   </button>`;
@@ -42,7 +70,7 @@ export function renderLab(app, root) {
   if (sel) {
     const cost = trainCost(sel);
     const trainBtns = Object.entries(TRAINING).map(([k, t]) => `<button class="btn small" data-train="${k}" ${s.money < cost ? 'disabled' : ''}>${t.name}<br><small>${t.label} · ${fmt(cost)}</small></button>`).join('');
-    const spliceBtns = TRAITS.map((t) => {
+    const spliceBtns = LAB_TRAITS.map((t) => {
       const has = sel.traits.includes(t.id);
       return `<button class="trait-btn ${has ? 'has' : ''}" data-splice="${t.id}" ${has || sel.traits.length >= 3 || s.money < t.cost ? 'disabled' : ''} title="${esc(t.desc)}">
         <b>${t.name}</b><small>${t.desc}</small><span>${has ? 'Installed' : fmt(t.cost)}</span></button>`;
@@ -60,6 +88,7 @@ export function renderLab(app, root) {
         </div>
         <h3>Treatments</h3><div class="row wrap">${trainBtns}</div>
         <h3>Gene Splicing <small>${sel.traits.length}/3 slots</small></h3><div class="trait-grid">${spliceBtns}</div>
+        ${dnaVault(s, sel)}
         <div class="row lab-foot"><button class="btn danger small" id="compostBtn">Compost (+${fmt(COMPOST_VALUE)})</button></div>
       </div>`;
   }
@@ -80,6 +109,8 @@ export function renderLab(app, root) {
   $$('[data-train]', root).forEach((b) => (b.onclick = () => act(app, train(s, sel.id, b.dataset.train))));
   $$('[data-splice]', root).forEach((b) => (b.onclick = () => act(app, splice(s, sel.id, b.dataset.splice), () => toast(`🧬 ${TRAIT_MAP[b.dataset.splice].name} spliced!`, 'good'))));
   $$('[data-purge]', root).forEach((b) => (b.onclick = (e) => { e.stopPropagation(); act(app, purgeTrait(s, sel.id, b.dataset.purge)); }));
+  $$('[data-dna-splice]', root).forEach((b) => (b.onclick = () => act(app, spliceDNA(s, sel.id, b.dataset.dnaSplice), (r) => toast(`🧬 ${esc(sel.name)} absorbed ${esc(CREATURE_MAP[b.dataset.dnaSplice].name)} DNA${r.trait ? ` and gained ${TRAIT_MAP[r.trait].name}` : ''}!`, 'good'))));
+  $$('[data-dna-grow]', root).forEach((b) => (b.onclick = () => act(app, growFromDNA(s, b.dataset.dnaGrow, app.rng), (r) => { ui.selected = r.fry.id; toast(`🧪 ${esc(r.fry.name)} emerged from the vat!`, 'good'); })));
   $('#compostBtn', root).onclick = () => {
     openModal(`<h2>Compost ${esc(sel.name)}?</h2><p>This fry will be returned to the earth. Forever.</p><div class="row center"><button class="btn" data-close>Keep</button><button class="btn danger" data-yes>Compost</button></div>`, { cls: 'center' });
     $('[data-close]').onclick = closeModal;

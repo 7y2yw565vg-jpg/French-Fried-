@@ -23,6 +23,11 @@ export const ACHIEVEMENTS = [
   { id: 'scientist', name: 'Mad Spud Scientist', desc: 'Breed a generation 3 fry.', test: (s) => s.lab.fries.some((f) => f.gen >= 3) },
   { id: 'champ', name: 'Rookie Champion', desc: 'Win the Rookie Basket.', test: (s) => !!s.fryer.champions.rookie },
   { id: 'legend', name: 'Legend of the Vat', desc: 'Win the Legendary Vat.', test: (s) => !!s.fryer.champions.legend },
+  { id: 'traveler', name: 'World Traveler', desc: 'Unlock your first World.', test: (s) => s.worlds?.owned?.length >= 1 },
+  { id: 'globetrotter', name: 'Globetrotter', desc: 'Unlock all four Worlds.', test: (s) => s.worlds?.owned?.length >= 4 },
+  { id: 'dna10', name: 'DNA Collector', desc: 'Collect 10 DNA samples.', test: (s) => (s.worlds?.dnaCollected || 0) >= 10 },
+  { id: 'hybrid', name: 'Frankenfry', desc: 'Splice creature DNA into a fry.', test: (s) => s.lab.fries.some((f) => f.hybrid) },
+  { id: 'tamer', name: 'Creature Creator', desc: 'Grow a creature from raw DNA.', test: (s) => (s.worlds?.grown || 0) >= 1 },
   { id: 'fried', name: 'Rest in Grease', desc: 'Lose a fry in The Fryer.', test: (s) => s.stats.fried >= 1 },
 ];
 

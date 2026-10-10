@@ -3,6 +3,7 @@
 import { RECIPES, TOTAL_RECIPES } from '../data/recipes.js';
 import { renderBoat } from '../art/fries.js';
 import { discoveredCount } from '../game/state.js';
+import { knownReward } from '../game/kitchen.js';
 import { $, $$, chipHtml, esc, openModal } from './dom.js';
 
 const PAGE = 40;
@@ -95,6 +96,6 @@ export function renderBook(app, root) {
     openModal(`<div class="result">${renderBoat(r.ids, { cls: 'result-boat' })}
       <h2>${esc(r.name)}</h2><p class="desc">${esc(r.desc)}</p>
       <div class="chips big">${r.ids.map((id) => chipHtml(id)).join('')}</div>
-      <p class="muted">Recipe #${r.id + 1} · Worth $${r.value} a boat · Discovered ${when.toLocaleDateString()}</p></div>`, { cls: 'center result-modal' });
+      <p class="muted">Recipe #${r.id + 1} · Sells for $${knownReward(r)} a boat · Discovered ${when.toLocaleDateString()}</p></div>`, { cls: 'center result-modal' });
   }));
 }
