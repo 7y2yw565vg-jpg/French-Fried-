@@ -60,6 +60,7 @@ const mode = await g(() => window.__game.mode);
 console.log('mode after bell:', mode);
 // Pass a note.
 if (mode === 'class') {
+  await g(() => window.__bl.closeAllModals());
   await page.click('text=Pass a note');
   await shot('10-seat-picker', 500);
   await page.keyboard.press('Escape');
