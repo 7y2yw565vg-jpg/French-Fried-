@@ -32,18 +32,23 @@ jobs:
       - run: npm ci --omit=optional
       - run: npm test
       - run: npm run build
-      # Recess Rivals is published next to it at /recess-rivals/.
+      # Site layout: Recess Rivals is the main page, French Fried lives at /french-fried/.
       - name: Build Recess Rivals
         working-directory: backyard-league
         run: |
           npm ci --omit=optional
           npm test
           npm run build
-          mkdir -p ../dist/recess-rivals
-          cp dist/index.html ../dist/recess-rivals/index.html
+      - name: Assemble site
+        run: |
+          mkdir -p site/french-fried site/recess-rivals
+          cp dist/index.html dist/embed.html site/french-fried/
+          cp backyard-league/dist/index.html site/index.html
+          cp backyard-league/dist/index.html site/recess-rivals/index.html
+          touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
