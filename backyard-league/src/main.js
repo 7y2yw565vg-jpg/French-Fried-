@@ -25,7 +25,8 @@ function loadSettings() {
 }
 
 function title() {
-  if (game) { game.destroy(); game = null; }
+  const current = game ? game.state : null;
+  if (game) { saveToStorage(game.state); game.destroy(); game = null; }
   clear($('#panel'));
   clear($('#hud'));
   $('#prompt').classList.remove('show');
@@ -34,7 +35,7 @@ function title() {
     ensureSeason(state);
     saveToStorage(state);
     start(state);
-  }), (state) => start(state));
+  }), (state) => start(state), current);
 }
 
 function start(state) {
@@ -45,7 +46,11 @@ function start(state) {
   game.start();
 }
 
-window.addEventListener('beforeunload', () => { if (game) saveToStorage(game.state); });
+// Save whenever the page goes away: phones rarely fire beforeunload.
+const saveNow = () => { if (game) saveToStorage(game.state); };
+window.addEventListener('beforeunload', saveNow);
+window.addEventListener('pagehide', saveNow);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveNow(); });
 window.addEventListener('error', (e) => {
   console.error(e.error || e.message);
   if (game && !document.querySelector('.modal-card.crash')) {

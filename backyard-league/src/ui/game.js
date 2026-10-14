@@ -137,6 +137,7 @@ export class Game {
     this.hud.render();
     this.checkPeriodArrival();
     this.showArrival(loc);
+    saveToStorage(s); // autosave on every trip
   }
 
   /** Cut-to-black and fade back in, with a broadcast-style location banner. */

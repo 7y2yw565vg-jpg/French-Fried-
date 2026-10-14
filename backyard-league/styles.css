@@ -103,19 +103,11 @@ h1, h2, h3, .display { font-family: var(--font-display); font-weight: 400; lette
 .title-buttons .btn { min-width: 260px; }
 .credits { margin-top: 26px; font-size: 13px; opacity: 0.9; text-shadow: 0 1px 0 var(--ink); }
 
-/* "working title" sign hanging under the logo */
-.logo-wrap { --wt-pad: 64px; position: relative; display: inline-block; padding-bottom: var(--wt-pad); }
-.wt-banner { position: absolute; left: 50%; top: calc(100% - var(--wt-pad) - 4px); width: 230px; height: 84px; margin-left: -60px; transform-origin: 50% 0; animation: wtSway 4.5s ease-in-out infinite, wtDrop 0.9s 0.7s cubic-bezier(.2,1.6,.4,1) both; pointer-events: none; }
-.wt-string { position: absolute; top: -8px; width: 3px; height: 36px; background: linear-gradient(#5a4632, #8a6d4e); border-radius: 2px; }
-.wt-string.l { left: 34px; transform: rotate(9deg); }
-.wt-string.r { right: 34px; transform: rotate(-7deg); }
-.wt-card { position: absolute; top: 24px; left: 0; right: 0; padding: 4px 14px 8px; background: #fffdf2; background-image: repeating-linear-gradient(transparent 0 21px, rgba(90,140,200,0.25) 21px 22px); border: 2px solid #3a2a1d; border-radius: 4px 6px 5px 3px; box-shadow: 0 6px 14px rgba(0,0,0,0.3); transform: rotate(-4deg);
-  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; font-weight: 700; font-size: 38px; line-height: 1; color: #1f3d7a; text-shadow: none; letter-spacing: 0.5px; white-space: nowrap; }
-.wt-card::before, .wt-card::after { content: ''; position: absolute; top: -5px; width: 9px; height: 9px; border-radius: 50%; background: #c9ced4; border: 2px solid #3a2a1d; }
-.wt-card::before { left: 28px; } .wt-card::after { right: 28px; }
-@keyframes wtSway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
-@keyframes wtDrop { from { opacity: 0; translate: 0 -30px; } }
-
+/* title logo (SVG word art) */
+.logo-art { width: min(880px, 94vw); margin: 0 auto 14px; animation: logoIn 0.9s cubic-bezier(.2,1.4,.4,1) both; filter: drop-shadow(0 18px 26px rgba(0,0,0,0.35)); }
+.logo-art svg { display: block; width: 100%; height: auto; overflow: visible; }
+.title-buttons .cont { display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+.title-buttons .cont small { font-family: var(--font-body); font-weight: 800; font-size: 13px; opacity: 0.8; margin-top: 2px; }
 /* creator */
 .creator { width: min(1100px, 100%); display: grid; grid-template-columns: 1fr 360px; gap: 16px; align-items: stretch; }
 .creator .card { max-height: calc(100vh - 40px); overflow: auto; }
@@ -337,16 +329,11 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
   .ticker .line { font-size: 15px; }
   #banner .banner-title { font-size: 26px; padding-right: 60px; }
   .logo { font-size: 56px; }
-  .tagline { font-size: 16px; margin: 70px 0 18px; }
-  .wt-card { font-size: 30px; }
-  .wt-banner { width: 190px; margin-left: -50px; }
   .classbar .btn.small { padding: 4px 8px; font-size: 12px; }
 }
 @media (max-height: 500px) {
   .touch-btn.act { width: 76px; height: 76px; font-size: 28px; }
-  .logo-wrap { --wt-pad: 56px; }
-  .logo { font-size: 44px; }
-  .tagline { margin: 30px 0 10px; }
+  .logo-art { width: min(560px, 70vw); margin-bottom: 6px; }
   .title-buttons { gap: 8px; }
 }
 

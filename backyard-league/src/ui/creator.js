@@ -2,7 +2,8 @@
 import * as THREE from 'three';
 import { h, btn, clear, $, modal } from './dom.js';
 import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world3d/toon.js';
-import { buildHome } from '../world3d/scenes.js';
+import { buildVenue } from '../world3d/scenes.js';
+import { buildLogo } from './logo.js';
 import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS } from '../world3d/kidModel.js';
 import { HAIR_STYLES } from '../world3d/hair.js';
 import { SPORTS, PERKS, NEIGHBORHOODS } from '../data/world.js';
@@ -21,51 +22,77 @@ export function randomTeamName() {
   return `${ADJ[Math.floor(Math.random() * ADJ.length)]} ${NOUN[Math.floor(Math.random() * NOUN.length)]}`;
 }
 
-/** Scenic title background: the backyard with kids running around. */
-export function titleBackdrop(engine) {
-  const desc = buildHome({ sport: 'soccer', upgrades: { goals: 1, lines: 1, flags: 1, benches: 1, seating: 1, scoreboard: 1, announcer: 0, concessions: 1, uniforms: 0, training: 0 }, colors: ['#e63946', '#ffffff'] });
-  engine.loadWorld(desc, { x: 0, z: 30, rot: 0 });
+// Title background: a slideshow of fully upgraded championship fields, one per
+// sport, seen from high above.
+const SHOWCASE = [
+  ['soccer', ['#e63946', '#ffffff'], ['ROCKETS', 'SHARKS'], [3, 2]],
+  ['baseball', ['#24427a', '#f9d342'], ['COMETS', 'BANDITS'], [7, 5]],
+  ['basketball', ['#8a5cd6', '#ffffff'], ['THUNDER', 'HORNETS'], [48, 44]],
+  ['football', ['#2fa35b', '#ffffff'], ['GORILLAS', 'DRAGONS'], [21, 17]],
+];
+const MAXED = { goals: 4, lines: 4, flags: 4, benches: 4, seating: 4, scoreboard: 4, announcer: 4, concessions: 4, uniforms: 4, training: 0 };
+let slideTimer = null;
+let slideIndex = 0;
+
+function showSlide(engine, i) {
+  const [sport, colors, names, score] = SHOWCASE[i % SHOWCASE.length];
+  const desc = buildVenue(sport, MAXED, colors, 'Championship Field');
+  engine.loadWorld(desc, { x: 0, z: 60, rot: 0 });
   if (engine.player) engine.player.root.visible = false;
-  engine.setTimeOfDay(16 * 60 + 30, false);
-  const picks = [0, 7, 19, 33, 48, 61, 77, 90, 104, 131];
-  picks.forEach((i, n) => {
-    const k = KIDS[i];
-    engine.addNPC({ id: `title-${k.id}`, look: lookFromKid(k, k.grade_at_start), x: -8 + n * 1.8, z: 15 + (n % 3) * 2, mode: 'wander', area: { x: 0, z: 17, w: 22, d: 12 } });
-  });
-  engine.cinematic({ x: 0, z: 17 }, 24, { height: 11, spin: 0.04 });
+  engine.clearNPCs();
+  engine.setTimeOfDay(17 * 60 + 15, false);
+  if (desc.setScore) desc.setScore(score[0], score[1], 'FINAL', names);
+  const f = desc.fieldInfo || { cx: 0, cz: 2 };
+  const height = { baseball: 46, basketball: 24, football: 34, soccer: 30 }[sport] || 30;
+  engine.cinematic({ x: f.cx, z: f.cz }, height * 0.27, { height, spin: 0.03, angle: i * 1.1 + 0.4 });
+  engine.cine.look.set(f.cx, 0, f.cz);
 }
 
-export function showTitle(engine, onNew, onContinue) {
+export function titleBackdrop(engine) {
+  stopTitleBackdrop();
+  showSlide(engine, slideIndex);
+  const curtain = document.getElementById('curtain');
+  slideTimer = setInterval(() => {
+    if (!curtain) { showSlide(engine, ++slideIndex); return; }
+    curtain.classList.remove('fade');
+    curtain.style.transition = 'opacity 0.5s ease';
+    curtain.style.opacity = '1';
+    setTimeout(() => {
+      showSlide(engine, ++slideIndex);
+      curtain.style.opacity = '0';
+    }, 520);
+  }, 8000);
+}
+
+export function stopTitleBackdrop() {
+  clearInterval(slideTimer);
+  slideTimer = null;
+  const curtain = document.getElementById('curtain');
+  if (curtain) { curtain.style.opacity = ''; curtain.style.transition = ''; }
+}
+
+export function showTitle(engine, onNew, onContinue, current = null) {
   titleBackdrop(engine);
   const ov = $('#overlay');
   clear(ov);
   ov.classList.add('show');
-  const saved = loadFromStorage();
+  // The save on disk, or the game you just quit (if storage is blocked).
+  const saved = loadFromStorage() || current;
   const fileInput = h('input', { type: 'file', accept: '.json,application/json', style: { display: 'none' } });
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files[0];
     if (!f) return;
-    try { onContinue(deserialize(await f.text())); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); }
+    try { const st = deserialize(await f.text()); stopTitleBackdrop(); onContinue(st); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); }
   });
   ov.appendChild(h('div', { class: 'screen' },
     h('div', { class: 'title-wrap' },
-      h('div', { class: 'logo-wrap' },
-        h('div', { class: 'logo' }, 'Recess', h('small', {}, 'RIVALS')),
-        // A hand-lettered "working title" sign hanging from the logo on two strings.
-        h('div', { class: 'wt-banner', 'aria-label': 'working title' },
-          h('i', { class: 'wt-string l' }), h('i', { class: 'wt-string r' }),
-          h('div', { class: 'wt-card' }, 'working title'))),
-      h('div', { class: 'tagline' }, 'Recruit kids. Run a lemonade stand. Pass notes. Win the league.'),
+      buildLogo(),
       h('div', { class: 'title-buttons' },
-        saved ? btn(`Continue: ${saved.team.name}`, () => onContinue(saved), 'big green') : null,
-        btn('New Game', () => onNew(), 'big'),
+        saved ? btn(h('span', { class: 'cont' }, 'Continue', h('small', {}, `${saved.team.name} · Day ${saved.time.day}`)), () => { stopTitleBackdrop(); onContinue(saved); }, 'big green') : null,
+        btn('New Game', () => { stopTitleBackdrop(); onNew(); }, saved ? 'big white' : 'big'),
         btn('Load save file', () => fileInput.click(), 'white'),
         fileInput,
       ),
-      h('div', { class: 'credits' },
-        h('span', { class: 'kb' }, 'WASD / arrows to move - Shift to run - E to talk & interact - M map - Tab phone - drag to look around'),
-        h('span', { class: 'touch' }, 'Drag the left side to move (push far to run) - tap ✋ to talk - drag the right side to look, pinch to zoom'),
-        h('span', { class: 'pad' }, 'Left stick move - RT run - A talk / select - B back - Y map - Start phone - right stick camera')),
     )));
 }
 

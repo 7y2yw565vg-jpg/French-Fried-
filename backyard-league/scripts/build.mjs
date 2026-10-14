@@ -15,7 +15,6 @@ const fonts = [
   ['Nunito', 600, '@fontsource/nunito/files/nunito-latin-600-normal.woff2'],
   ['Nunito', 800, '@fontsource/nunito/files/nunito-latin-800-normal.woff2'],
   ['Nunito', 900, '@fontsource/nunito/files/nunito-latin-900-normal.woff2'],
-  ['Caveat', 700, '@fontsource/caveat/files/caveat-latin-700-normal.woff2'],
 ];
 
 async function fontCss() {

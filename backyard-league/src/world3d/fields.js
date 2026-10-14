@@ -125,6 +125,22 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
     bleachers(b, cx, farZ - 0.3, w, rows, 0, '#b0b7c0');
     for (let r = 0; r < rows; r++) for (let k = 0; k < w / 1.2; k++) info.fanSpots.push({ x: cx - w / 2 + 0.6 + k * 1.2, z: farZ - 0.3 - r * 0.7, y: 0.42 + r * 0.45 });
   }
+  if (st >= 4) {
+    // Stadium bowl: stands behind both ends too, in team colors, plus light towers.
+    const endRows = 7; const endW = sport === 'baseball' ? 20 : W + 4;
+    const endX = sport === 'baseball' ? 22 : L / 2 + 3.2;
+    for (const sd of [-1, 1]) {
+      bleachers(b, cx + sd * endX, cz, endW, endRows, sd < 0 ? Math.PI / 2 : -Math.PI / 2, sd < 0 ? colors[0] : colors[1] === '#ffffff' ? '#d9dde2' : colors[1]);
+      for (let r = 0; r < endRows; r++) for (let k = 0; k < endW / 1.2; k++) info.fanSpots.push({ x: cx + sd * (endX + r * 0.7), z: cz - endW / 2 + 0.6 + k * 1.2, y: 0.42 + r * 0.45 });
+    }
+    const towers = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+    for (const [tx, tz] of towers) {
+      const x = cx + tx * (endX + 6); const z = (tz < 0 ? farZ - 7 : sideZ + 6);
+      b.cyl(0.18, 0.26, 13, '#8a8f96', x, 0, z, { mat: 'metal', collide: true });
+      b.box(3.2, 1.6, 0.4, '#5b6168', x, 13, z, { mat: 'metal' });
+      for (let r = 0; r < 2; r++) for (let k = 0; k < 4; k++) b.box(0.6, 0.55, 0.12, '#fff8e1', x - 1.1 + k * 0.73, 13.15 + r * 0.75, z - tz * 0.22, { mat: 'glow' });
+    }
+  }
   if (!info.fanSpots.length) for (let k = 0; k < 12; k++) info.fanSpots.push({ x: cx - 8 + k * 1.4, z: farZ, y: 0, standing: true });
 
   // concessions
