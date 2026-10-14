@@ -1,0 +1,328 @@
+// Static game data: sports, places, shops, drills, upgrades, jobs, school.
+
+export const SPORTS = {
+  soccer: {
+    id: 'soccer', name: 'Soccer', icon: '⚽', minRoster: 7, recRoster: 10, setupCost: 15, entryFee: 40, shirtCost: 6,
+    lineup: ['GK', 'DEF', 'DEF', 'MID', 'MID', 'FWD', 'FWD'],
+    blurb: '7v7 on the lawn. Crooked wooden goals, no nets, lots of running after the ball.',
+  },
+  baseball: {
+    id: 'baseball', name: 'Baseball', icon: '⚾', minRoster: 9, recRoster: 12, setupCost: 20, entryFee: 50, shirtCost: 6,
+    lineup: ['P', 'C', 'IF', 'IF', 'IF', 'IF', 'OF', 'OF', 'OF'],
+    blurb: 'Hardest to start: you need 9 kids. Cardboard bases and a backstop made of a mattress.',
+  },
+  basketball: {
+    id: 'basketball', name: 'Basketball', icon: '🏀', minRoster: 5, recRoster: 8, setupCost: 0, entryFee: 30, shirtCost: 6,
+    lineup: ['PG', 'SG', 'SF', 'PF', 'C'],
+    blurb: 'Cheapest start: the driveway hoop is already there. Only 5 kids needed.',
+  },
+  football: {
+    id: 'football', name: 'Flag Football', icon: '🏈', minRoster: 7, recRoster: 10, setupCost: 12, entryFee: 40, shirtCost: 6,
+    lineup: ['QB', 'RB', 'WR', 'WR', 'DB', 'DB', 'LB'],
+    blurb: '7v7 flag football in the Jr League. Cones for end zones, dish towels for flags.',
+  },
+};
+export const SPORT_IDS = Object.keys(SPORTS);
+
+// Position rating = weighted stats (weights add to 1). HGT = height score.
+export const POSITIONS = {
+  soccer: {
+    GK: { name: 'Goalkeeper', w: { LEP: 0.25, HND: 0.3, AGI: 0.25, CLU: 0.2 } },
+    DEF: { name: 'Defender', w: { STR: 0.25, SPD: 0.2, IQ: 0.3, STA: 0.25 } },
+    MID: { name: 'Midfielder', w: { STA: 0.3, BCL: 0.25, IQ: 0.25, ACC: 0.2 } },
+    FWD: { name: 'Forward', w: { SPD: 0.3, BCL: 0.25, ACC: 0.25, CLU: 0.2 } },
+  },
+  baseball: {
+    P: { name: 'Pitcher', w: { ARM: 0.3, ACC: 0.35, CLU: 0.2, STA: 0.15 } },
+    C: { name: 'Catcher', w: { HND: 0.3, ARM: 0.25, IQ: 0.3, STR: 0.15 } },
+    IF: { name: 'Infield', w: { HND: 0.3, AGI: 0.25, ARM: 0.25, IQ: 0.2 } },
+    OF: { name: 'Outfield', w: { SPD: 0.3, HND: 0.3, ARM: 0.25, IQ: 0.15 } },
+    BAT: { name: 'Batting', w: { EYE: 0.45, STR: 0.3, SPD: 0.1, CLU: 0.15 } },
+  },
+  basketball: {
+    PG: { name: 'Point Guard', w: { BCL: 0.3, IQ: 0.3, SPD: 0.2, ACC: 0.2 } },
+    SG: { name: 'Shooting Guard', w: { ACC: 0.35, EYE: 0.25, AGI: 0.2, CLU: 0.2 } },
+    SF: { name: 'Small Forward', w: { AGI: 0.25, ACC: 0.25, LEP: 0.25, STA: 0.25 } },
+    PF: { name: 'Power Forward', w: { STR: 0.3, LEP: 0.3, HND: 0.2, HUS: 0.2 } },
+    C: { name: 'Center', w: { LEP: 0.3, STR: 0.3, HND: 0.2, HGT: 0.2 } },
+  },
+  football: {
+    QB: { name: 'Quarterback', w: { ARM: 0.3, ACC: 0.35, IQ: 0.2, CLU: 0.15 } },
+    RB: { name: 'Running Back', w: { SPD: 0.3, AGI: 0.3, STR: 0.2, HND: 0.2 } },
+    WR: { name: 'Receiver', w: { SPD: 0.3, HND: 0.35, LEP: 0.15, AGI: 0.2 } },
+    DB: { name: 'Defensive Back', w: { SPD: 0.3, AGI: 0.3, IQ: 0.25, HND: 0.15 } },
+    LB: { name: 'Linebacker', w: { STR: 0.3, SPD: 0.25, IQ: 0.25, HUS: 0.2 } },
+  },
+};
+
+export const STAT_NAMES = {
+  SPD: 'Speed', AGI: 'Agility', STR: 'Strength', STA: 'Stamina', LEP: 'Leaping', HND: 'Hands',
+  ARM: 'Arm Power', ACC: 'Accuracy', BCL: 'Ball Control', EYE: 'Hand-Eye', IQ: 'Game Smarts',
+  CLU: 'Clutch', HUS: 'Hustle', TMW: 'Teamwork',
+};
+export const STAT_CODES = Object.keys(STAT_NAMES);
+
+// ------------------------------------------------------------- places ---
+export const NEIGHBORHOODS = [
+  { id: 'maple', name: 'Maple Hollow', color: '#e8833a' },
+  { id: 'sunnyside', name: 'Sunnyside Acres', color: '#f2c94c' },
+  { id: 'pickle', name: 'Pickle Creek', color: '#7bbf4b' },
+  { id: 'oakridge', name: 'Oakridge Heights', color: '#9b7fd1' },
+  { id: 'riverside', name: 'Riverside Apartments', color: '#4aa3df' },
+  { id: 'oldtown', name: 'Old Town', color: '#d0675a' },
+];
+export const HOOD_BY_NAME = Object.fromEntries(NEIGHBORHOODS.map((n) => [n.name, n.id]));
+
+// Map coordinates are in "walking minutes" (1 unit = 1 minute on foot).
+export const LOCATIONS = {
+  home: { name: 'Your House', icon: '🏠', kind: 'home' },
+  school: { name: 'Grubbsville Elementary', icon: '🏫', kind: 'school', map: { x: 50, y: 42 } },
+  mall: { name: 'Grubbsville Mall', icon: '🛍️', kind: 'mall', map: { x: 78, y: 30 } },
+  library: { name: 'Public Library', icon: '📚', kind: 'library', map: { x: 40, y: 22 } },
+  museum: { name: 'Museum of Neat Stuff', icon: '🦖', kind: 'museum', map: { x: 64, y: 12 } },
+  grocery: { name: 'Grub-N-Go Grocery', icon: '🛒', kind: 'grocery', map: { x: 28, y: 50 } },
+  maple: { name: 'Maple Hollow', icon: '🍁', kind: 'hood', map: { x: 18, y: 26 } },
+  sunnyside: { name: 'Sunnyside Acres', icon: '🌻', kind: 'hood', map: { x: 30, y: 74 } },
+  pickle: { name: 'Pickle Creek', icon: '🥒', kind: 'hood', map: { x: 12, y: 62 } },
+  oakridge: { name: 'Oakridge Heights', icon: '🏰', kind: 'hood', map: { x: 86, y: 62 } },
+  riverside: { name: 'Riverside Apartments', icon: '🏢', kind: 'hood', map: { x: 62, y: 80 } },
+  oldtown: { name: 'Old Town', icon: '🕰️', kind: 'hood', map: { x: 60, y: 54 } },
+};
+
+/** Map a routine string like "Mall: arcade" to a {loc, zone} pair for a kid. */
+export function parseSpot(text, kid) {
+  const [place, zone] = text.split(': ');
+  const table = { Mall: 'mall', Library: 'library', Museum: 'museum', 'Grocery Store': 'grocery', School: 'school' };
+  if (place === 'Home Neighborhood') return { loc: HOOD_BY_NAME[kid.residence.neighborhood], zone };
+  return { loc: table[place], zone };
+}
+
+export const RECESS_ZONES = {
+  'tetherball pole': 'playground', swings: 'playground', 'monkey bars': 'playground',
+  'blacktop four square': 'playground', 'kickball diamond': 'playground', 'under the slide': 'playground',
+  sandbox: 'playground', 'the big oak tree': 'playground',
+  'library (indoor recess kid)': 'school library', "nurse's office (frequent flyer)": 'nurse',
+};
+
+// ------------------------------------------------------------- school ---
+// Times are minutes after midnight.
+const t = (h, m) => h * 60 + m;
+export const SCHOOL_BLOCKS = [
+  { start: t(7, 45), end: t(8, 0), kind: 'arrival', label: 'Before school' },
+  { start: t(8, 0), end: t(8, 50), kind: 'class', period: 1, subject: 'Math' },
+  { start: t(8, 50), end: t(8, 55), kind: 'hall', label: 'Hallway' },
+  { start: t(8, 55), end: t(9, 45), kind: 'class', period: 2, subject: 'Reading' },
+  { start: t(9, 45), end: t(10, 5), kind: 'recess', label: 'Recess' },
+  { start: t(10, 5), end: t(10, 55), kind: 'class', period: 3, subject: ['Science', 'Social Studies', 'Science', 'Social Studies', 'Science'] },
+  { start: t(10, 55), end: t(11, 0), kind: 'hall', label: 'Hallway' },
+  { start: t(11, 0), end: t(11, 40), kind: 'special', period: 4, label: 'Specials' },
+  { start: t(11, 40), end: t(12, 10), kind: 'lunch', label: 'Lunch' },
+  { start: t(12, 10), end: t(12, 15), kind: 'hall', label: 'Hallway' },
+  { start: t(12, 15), end: t(13, 5), kind: 'class', period: 5, subject: 'Spelling' },
+  { start: t(13, 5), end: t(13, 10), kind: 'hall', label: 'Hallway' },
+  { start: t(13, 10), end: t(14, 0), kind: 'class', period: 6, subject: 'Project Time' },
+];
+export const SCHOOL_START = t(8, 0);
+export const SCHOOL_END = t(14, 0);
+export const PLAYER_SPECIALS = ['Art', 'Music', 'PE', 'Library', 'Computer Lab']; // Mon..Fri
+export const SPECIAL_ROOMS = { Art: 'art room', Music: 'music room', PE: 'gym', Library: 'school library', 'Computer Lab': 'computer lab', Spanish: 'spanish room' };
+export const PLAYER_LUNCH = '11:30 (B Lunch)';
+
+export const TEACHERS = {
+  'Mrs. Bramblebee': { alert: 0.45, tardyGrace: 2, vibe: 'is sweet, but has eyes in the back of her head' },
+  'Mr. Okonkwo': { alert: 0.35, tardyGrace: 3, vibe: 'tells dad jokes and misses a lot' },
+  'Ms. Valdez': { alert: 0.6, tardyGrace: 1, vibe: 'is strict but fair, and LOVES science' },
+  'Ms. Puddle': { alert: 0.3, tardyGrace: 3 }, 'Mr. Hopper': { alert: 0.4, tardyGrace: 2 }, 'Mrs. Glitter': { alert: 0.35, tardyGrace: 2 },
+  'Mr. Fussbudget': { alert: 0.8, tardyGrace: 0, vibe: 'notices EVERYTHING' }, 'Mrs. Tanaka': { alert: 0.5, tardyGrace: 2 },
+  'Ms. Featherly': { alert: 0.4, tardyGrace: 2 }, 'Mrs. Grumbleton': { alert: 0.7, tardyGrace: 1 },
+  'Mr. Sparks': { alert: 0.45, tardyGrace: 2 }, 'Ms. Abara': { alert: 0.5, tardyGrace: 2 },
+  '(Grubbsville Middle) Mr. Krantz': { alert: 0.6, tardyGrace: 1 }, '(Grubbsville Middle) Ms. Ruiz': { alert: 0.5, tardyGrace: 2 },
+};
+export const TEACHERS_BY_GRADE = {
+  2: ['Ms. Puddle', 'Mr. Hopper', 'Mrs. Glitter'],
+  3: ['Mrs. Bramblebee', 'Mr. Okonkwo', 'Ms. Valdez'],
+  4: ['Mr. Fussbudget', 'Mrs. Tanaka', 'Ms. Featherly'],
+  5: ['Mrs. Grumbleton', 'Mr. Sparks', 'Ms. Abara'],
+  6: ['(Grubbsville Middle) Mr. Krantz', '(Grubbsville Middle) Ms. Ruiz'],
+  7: ['(Grubbsville Middle) Mr. Krantz', '(Grubbsville Middle) Ms. Ruiz'],
+  8: ['(Grubbsville Middle) Mr. Krantz', '(Grubbsville Middle) Ms. Ruiz'],
+};
+
+// ------------------------------------------------------------- items ----
+// shop: where it is sold. kind: gift | equipment | consumable | drill | team
+export const ITEMS = {
+  // Grocery
+  lemon_batch: { name: 'Lemonade Ingredients (12 cups)', price: 3, shop: 'grocery', kind: 'consumable', icon: '🍋' },
+  cups: { name: 'Paper Cups (30)', price: 2, shop: 'grocery', kind: 'consumable', icon: '🥤' },
+  pitcher: { name: 'Lemonade Pitcher', price: 4, shop: 'grocery', kind: 'equipment', icon: '🫗' },
+  buckets: { name: 'Empty Buckets (3)', price: 3, shop: 'grocery', kind: 'drill', icon: '🪣' },
+  candy_bar: { name: 'Candy Bar', price: 1, shop: 'grocery', kind: 'gift', like: 'candy', food: true, icon: '🍫' },
+  spicy_chips: { name: 'Spicy Chips', price: 1.5, shop: 'grocery', kind: 'gift', like: 'spicy chips', food: true, icon: '🌶️' },
+  cookie_dough: { name: 'Cookie Dough', price: 2, shop: 'grocery', kind: 'gift', like: 'baking', food: true, icon: '🍪' },
+  pudding: { name: 'Pudding Cup', price: 1, shop: 'grocery', kind: 'gift', food: true, icon: '🍮' },
+  // Mall: sporting goods
+  team_shirt: { name: 'Plain Team Shirt', price: 6, shop: 'sporting goods', kind: 'team', icon: '👕' },
+  cones: { name: 'Orange Cones (10)', price: 8, shop: 'sporting goods', kind: 'drill', icon: '🔶' },
+  sport_ball: { name: 'Practice Ball', price: 10, shop: 'sporting goods', kind: 'drill', icon: '🏐' },
+  chalk_tape: { name: 'Chalk + Measuring Tape', price: 5, shop: 'sporting goods', kind: 'drill', icon: '📏' },
+  tennis_balls: { name: 'Tennis Balls (6)', price: 4, shop: 'sporting goods', kind: 'drill', icon: '🎾' },
+  throw_ball: { name: 'Long Toss Ball', price: 6, shop: 'sporting goods', kind: 'drill', icon: '🏈' },
+  batting_tee: { name: 'Batting Tee', price: 12, shop: 'sporting goods', kind: 'drill', icon: '🏏' },
+  lap_flags: { name: 'Lap Marker Flags', price: 5, shop: 'sporting goods', kind: 'drill', icon: '🚩' },
+  pinnies: { name: 'Scrimmage Pinnies', price: 8, shop: 'sporting goods', kind: 'drill', icon: '🦺' },
+  air_horn: { name: 'Air Horn', price: 7, shop: 'sporting goods', kind: 'drill', icon: '📯' },
+  whistle: { name: 'Coach Whistle', price: 3, shop: 'sporting goods', kind: 'drill', icon: '🎵' },
+  rope: { name: 'Rope (for 3-legged races)', price: 3, shop: 'sporting goods', kind: 'drill', icon: '🪢' },
+  laser_gates: { name: 'Laser Timing Gates', price: 45, shop: 'sporting goods', kind: 'drill', icon: '📡', desc: 'Tryout drills show exact grades instead of a range.' },
+  fishing_lure: { name: 'Fishing Lure', price: 3, shop: 'sporting goods', kind: 'gift', like: 'fishing', icon: '🎣' },
+  bike_basket: { name: 'Bike Basket', price: 15, shop: 'sporting goods', kind: 'equipment', icon: '🧺' },
+  paper_bag: { name: 'Newspaper Bag', price: 10, shop: 'sporting goods', kind: 'equipment', icon: '👜' },
+  push_mower: { name: 'Push Mower (used)', price: 60, shop: 'sporting goods', kind: 'equipment', icon: '🚜' },
+  // Mall: other shops
+  comic_book: { name: 'Comic Book', price: 2, shop: 'game shop', kind: 'gift', like: 'comic books', icon: '📕' },
+  slime: { name: 'Slime Jar', price: 2, shop: 'game shop', kind: 'gift', like: 'slime', icon: '🟢' },
+  card_pack: { name: 'Trading Card Pack', price: 3, shop: 'game shop', kind: 'gift', like: 'trading cards', icon: '🃏' },
+  video_game: { name: 'Used Video Game', price: 8, shop: 'game shop', kind: 'gift', like: 'video games', icon: '🎮' },
+  robot: { name: 'Wind-Up Robot', price: 4, shop: 'game shop', kind: 'gift', like: 'robots', icon: '🤖' },
+  kpop_card: { name: 'K-pop Photocard', price: 2, shop: 'game shop', kind: 'gift', like: 'K-pop', icon: '💜' },
+  virtual_pet: { name: 'Virtual Pet Keychain', price: 6, shop: 'game shop', kind: 'gift', like: 'tamagotchis', icon: '🥚' },
+  wrestling_mask: { name: 'Wrestling Mask', price: 5, shop: 'game shop', kind: 'gift', like: 'wrestling', icon: '🎭' },
+  skate_stickers: { name: 'Skateboard Stickers', price: 2, shop: 'shoe store', kind: 'gift', like: 'skateboards', icon: '🛹' },
+  ninja_band: { name: 'Ninja Headband', price: 2, shop: 'shoe store', kind: 'gift', like: 'ninja movies', icon: '🥷' },
+  light_sneakers: { name: 'Light-Up Sneakers', price: 15, shop: 'shoe store', kind: 'gift', cool: true, icon: '👟' },
+  bracelet_kit: { name: 'Friendship Bracelet Kit', price: 3, shop: 'dollar store', kind: 'gift', like: 'friendship bracelets', icon: '📿' },
+  horse_fig: { name: 'Horse Figurine', price: 3, shop: 'dollar store', kind: 'gift', like: 'horses', icon: '🐴' },
+  magic_kit: { name: 'Magic Trick Kit', price: 4, shop: 'dollar store', kind: 'gift', like: 'magic tricks', icon: '🎩' },
+  rubber_duck: { name: 'Rubber Duck', price: 1, shop: 'dollar store', kind: 'gift', like: 'rubber ducks', icon: '🦆' },
+  gel_pens: { name: 'Gel Pens', price: 2, shop: 'dollar store', kind: 'gift', like: 'drawing', icon: '🖊️' },
+  sticker_sheet: { name: 'Sticker Sheet', price: 1, shop: 'dollar store', kind: 'gift', like: 'stickers', icon: '⭐' },
+  yoyo: { name: 'Yo-Yo', price: 2, shop: 'dollar store', kind: 'gift', like: 'yo-yos', icon: '🪀' },
+  race_car: { name: 'Toy Race Car', price: 3, shop: 'dollar store', kind: 'gift', like: 'cars', icon: '🏎️' },
+  foam_sword: { name: 'Foam Sword', price: 4, shop: 'dollar store', kind: 'gift', like: 'knights', icon: '🗡️' },
+  googly_eyes: { name: 'Googly Eyes (100)', price: 1, shop: 'dollar store', kind: 'gift', like: 'sock puppets', icon: '👀' },
+  toy_frog: { name: 'Toy Frog', price: 2, shop: 'pet store', kind: 'gift', like: 'frogs', icon: '🐸' },
+  cat_toy: { name: 'Cat Toy', price: 2, shop: 'pet store', kind: 'gift', like: 'cats', icon: '🐱' },
+  pizza_slice: { name: 'Pizza Slice', price: 2, shop: 'food court', kind: 'gift', like: 'pizza', food: true, icon: '🍕' },
+  // Museum gift shop
+  dino_fig: { name: 'Dino Figure', price: 3, shop: 'gift shop', kind: 'gift', like: 'dinosaurs', icon: '🦕' },
+  space_icecream: { name: 'Astronaut Ice Cream', price: 3, shop: 'gift shop', kind: 'gift', like: 'space', food: true, icon: '🚀' },
+  amber_bug: { name: 'Bug in Amber', price: 4, shop: 'gift shop', kind: 'gift', like: 'bugs', icon: '🐞' },
+  shark_plush: { name: 'Shark Plushie', price: 5, shop: 'gift shop', kind: 'gift', like: 'sharks', icon: '🦈' },
+  gem_pouch: { name: 'Gem Pouch', price: 3, shop: 'gift shop', kind: 'gift', like: 'rocks & gems', icon: '💎' },
+  volcano_kit: { name: 'Volcano Kit', price: 5, shop: 'gift shop', kind: 'gift', like: 'volcanoes', icon: '🌋' },
+  // Library book sale & checkout
+  mystery_novel: { name: 'Used Mystery Novel', price: 1, shop: 'book sale', kind: 'gift', like: 'mystery novels', icon: '🔍' },
+  origami_paper: { name: 'Origami Paper', price: 1, shop: 'book sale', kind: 'gift', like: 'origami', icon: '🦢' },
+  team_spirit_book: { name: 'Book: "Team Spirit!"', price: 0, shop: 'book sale', kind: 'drill', icon: '📘', desc: 'Free to check out. Unlocks the Three-Legged Relay drill (with rope).' },
+  // Found in the world
+  old_tire: { name: 'Old Tire', price: 0, kind: 'drill', icon: '🛞', desc: 'Found down by Pickle Creek. Unlocks Tire Push.' },
+  trophy: { name: 'Trophy', price: 0, kind: 'trophy', icon: '🏆' },
+};
+
+export const SHOPS = {
+  grocery: { name: 'Grub-N-Go Checkout', loc: 'grocery', zone: 'checkout' },
+  'sporting goods': { name: 'Sporty Spice Sporting Goods', loc: 'mall', zone: 'sporting goods' },
+  'game shop': { name: 'Level Up Games', loc: 'mall', zone: 'game shop' },
+  'shoe store': { name: 'Sole Patrol Shoes', loc: 'mall', zone: 'shoe store' },
+  'dollar store': { name: 'Dollar Dreams', loc: 'mall', zone: 'dollar store' },
+  'pet store': { name: 'Pawsome Pets', loc: 'mall', zone: 'pet store' },
+  'food court': { name: 'Food Court', loc: 'mall', zone: 'food court' },
+  'gift shop': { name: 'Museum Gift Shop', loc: 'museum', zone: 'gift shop' },
+  'book sale': { name: 'Friends of the Library Book Cart', loc: 'library', zone: 'reading nook' },
+};
+
+// ------------------------------------------------------------- drills ---
+export const DRILLS = [
+  { id: 'sprints', name: 'Sprints', stats: ['SPD'], needs: [] },
+  { id: 'cones', name: 'Cone Weave', stats: ['AGI'], needs: ['cones'] },
+  { id: 'tire', name: 'Tire Push', stats: ['STR'], needs: ['old_tire'] },
+  { id: 'lap', name: 'The Long Lap', stats: ['STA'], needs: ['lap_flags'] },
+  { id: 'jump', name: 'Jump & Reach', stats: ['LEP'], needs: ['chalk_tape'] },
+  { id: 'catch', name: 'Catch Gauntlet', stats: ['HND'], needs: ['tennis_balls'] },
+  { id: 'longtoss', name: 'Long Toss', stats: ['ARM'], needs: ['throw_ball'] },
+  { id: 'bucket', name: 'Bucket Toss', stats: ['ACC'], needs: ['buckets'] },
+  { id: 'dribble', name: 'Dribble Maze', stats: ['BCL'], needs: ['cones', 'sport_ball'] },
+  { id: 'tee', name: 'Batting Tee & Free Throws', stats: ['EYE'], needs: ['batting_tee'] },
+  { id: 'scrimmage', name: 'Scrimmage', stats: ['IQ'], needs: ['pinnies'] },
+  { id: 'pressure', name: 'Pressure Cooker', stats: ['CLU'], needs: ['air_horn'] },
+  { id: 'hill', name: 'Hustle Hill', stats: ['HUS'], needs: ['lap_flags', 'whistle'] },
+  { id: 'relay', name: 'Three-Legged Relay', stats: ['TMW'], needs: ['rope', 'team_spirit_book'] },
+];
+
+// ------------------------------------------------------------ upgrades --
+export const UPGRADES = {
+  goals: {
+    label: 'Goals / Hoops / Bases',
+    names: {
+      soccer: ['Wooden frames, no nets (crooked)', 'PVC goals + fishing net', 'Pop-up goals with real nets', 'Aluminum goals', 'Pro goals'],
+      baseball: ['Cardboard bases', 'Rubber bases', 'Real bases + backstop', 'Dugouts', 'Pro diamond'],
+      basketball: ['Driveway hoop (no net)', 'Hoop + chain net', 'Adjustable hoop', 'Glass backboard', 'Pro hoop'],
+      football: ['Cones for end zones', 'Broom goalposts', 'PVC goalposts', 'Real goalposts', 'Pro posts'],
+    },
+    costs: [0, 25, 60, 150, 400], facility: [0, 4, 8, 13, 20],
+  },
+  lines: { label: 'Field Lines', names: ['Crooked spray paint', 'Straight chalk', 'Line-marking machine', 'Pro paint job', 'Logo at midfield'], costs: [0, 10, 30, 80, 200], facility: [0, 2, 4, 7, 10] },
+  flags: { label: 'Corner Flags & Markers', names: ['Backpacks', 'Pool noodles', 'Real flags', 'Team-color flags', 'Light-up flags'], costs: [0, 6, 15, 40, 100], facility: [0, 1, 3, 5, 8] },
+  benches: { label: 'Team Benches', names: ['Lawn chairs', 'Picnic bench', 'Aluminum benches', 'Covered benches', 'Heated benches'], costs: [0, 20, 50, 120, 300], facility: [0, 2, 4, 7, 10] },
+  seating: { label: 'Fan Seating', names: ['The grass', 'Lawn chairs', '3-row bleachers', 'Grandstand', 'Stadium bowl'], costs: [0, 15, 80, 400, 2000], capacity: [12, 25, 60, 200, 1000], facility: [0, 3, 7, 14, 25] },
+  scoreboard: { label: 'Scoreboard', names: ['Kid holding a whiteboard', 'Flip-number board', 'Electronic scoreboard', 'Video board', 'Jumbotron'], costs: [0, 8, 60, 300, 1500], facility: [0, 2, 5, 10, 18] },
+  announcer: { label: 'Announcer Gear', names: ['You, yelling', 'Toy megaphone', 'PA system', 'Play-by-play booth', 'Broadcast duo'], costs: [0, 5, 40, 150, 500], facility: [0, 1, 4, 8, 14] },
+  concessions: { label: 'Concessions', names: ['Juice boxes from the fridge', 'Lemonade stand', 'Snack shack', 'Grill & nachos', 'Food court'], costs: [0, 10, 40, 150, 600], perFan: [0.15, 0.35, 0.7, 1.1, 2], facility: [0, 2, 5, 9, 15] },
+  uniforms: { label: 'Uniforms', names: ['Plain T-shirts', 'Iron-on numbers', 'Real jerseys', 'Home & away kits', 'Pro kits'], costs: [0, 20, 60, 150, 400], facility: [0, 3, 6, 10, 15] },
+  training: { label: 'Training Facility', names: ['Nothing', 'Equipment shed', 'Garage gym', 'Training barn', 'Training center'], costs: [0, 30, 100, 400, 1500], growth: [1, 1.1, 1.25, 1.4, 1.6], facility: [0, 2, 5, 9, 14] },
+};
+export const UPGRADE_IDS = Object.keys(UPGRADES);
+
+export const FIELDS = {
+  backyard: {
+    name: "Mom & Dad's Backyard", rent: 0, parentCut: 0.5, maxAdmission: 1, caps: { seating: 1, concessions: 1 }, maxTier: 3,
+    blurb: 'Free! But fans sit on the lawn, and Mom & Dad take 50% of the money "for eating all our food."',
+  },
+  schoolfield: {
+    name: 'School Playground Field', rent: 10, parentCut: 0, maxAdmission: 2, caps: { seating: 2, concessions: 2 }, maxTier: 4,
+    needs: 'principal', blurb: '$10 per home game. The principal only says yes to kids with a B average and no recent trouble.',
+  },
+  park: {
+    name: 'Old Town Park', rent: 25, parentCut: 0, maxAdmission: 3, caps: { seating: 3, concessions: 3 }, maxTier: 4,
+    needs: 'permit', blurb: '$25 per home game plus a $15 city permit. The tai chi seniors will not move.',
+  },
+};
+
+// ------------------------------------------------------------- jobs ----
+export const JOBS = {
+  lemonade: { name: 'Lemonade Stand', needs: ['pitcher'], unlock: { earned: 0 }, desc: 'Buy a pitcher, cups and ingredients at the grocery store, then set up your stand on any street.' },
+  paper: { name: 'Paper Route', needs: ['bike_basket', 'paper_bag'], unlock: { earned: 50, trust: 55 }, desc: 'Weekday mornings in your neighborhood. Hit porches, not windows. $0.50 per paper.' },
+  mowing: { name: 'Lawn Mowing', needs: ['push_mower'], unlock: { earned: 150 }, desc: 'Customers post on the grocery store bulletin board. Neat stripes earn tips.' },
+};
+
+// ------------------------------------------------------------- staff ---
+export const STAFF_ROLES = {
+  announcer: { name: 'Announcer', kidPay: 2, effect: 'More fans and funnier commentary' },
+  gate: { name: 'Ticket Gate', kidPay: 1, effect: '+30% admission (no sneaking in!)' },
+  coach: { name: 'Assistant Coach', kidPay: 2, effect: '+2 team rating, faster growth' },
+  scout: { name: 'Scout', kidPay: 3, effect: 'Reveals potential and rumors about kids' },
+};
+export const ADULTS = {
+  coach_dave: { name: 'Coach Dave', role: 'coach', pay: 12, loc: 'mall', zone: 'sporting goods', bonus: 6, ask: 'I coached the Gravy Train to three titles. Then they fired me for bringing a tuba to practice.', needs: { attraction: 45 } },
+  mrs_pham: { name: 'Mrs. Pham', role: 'scout', pay: 6, loc: 'library', zone: 'homework tables', bonus: 0, ask: 'I played college softball. I can spot a late bloomer from across a parking lot.', needs: { attraction: 35 } },
+};
+
+export const RIVAL_COLORS = {
+  'Oakridge Thunder Ponies': ['#6b4bd1', '#f5d76e'], 'Riverside River Rats': ['#3a7bd5', '#9aa5b1'],
+  'Mall Rats United': ['#e84a8a', '#1a1a2e'], 'Pickle Creek Kickles': ['#5aa83a', '#f1f1f1'],
+  'Pickle Creek Dillweeds': ['#3f8f2a', '#c9e265'], 'Pinecrest Polo Penguins': ['#1b2a49', '#ffffff'],
+  'Maple Hollow Maple Bats': ['#c0392b', '#f39c12'], 'Old Town Clocktower Crows': ['#2c2c2c', '#c9a227'],
+  'Maple Hollow Hoopsters': ['#e67e22', '#2c3e50'], 'Old Town Firecrackers': ['#e74c3c', '#f1c40f'],
+  'The Library Lions': ['#8e5a2b', '#f4d03f'], 'Sunnyside Swish': ['#f7b733', '#4ecdc4'],
+  'Sunnyside Sun Bears': ['#f39c12', '#8b4513'], 'Grubbsville Gravy Train': ['#7f5539', '#ddb892'],
+  'Riverside Rapids': ['#00a8e8', '#003459'], 'Oakridge Golden Gophers': ['#d4af37', '#4a4a4a'],
+  'Middle School Mega Moose (6-8)': ['#6d4c41', '#ffcc80'], 'Grubbsville Middle Meteors (6-8)': ['#512da8', '#ff7043'],
+};
+
+export const PERKS = {
+  smooth: { name: 'Smooth Talker', desc: '+Charisma. Kids warm up to you faster.' },
+  teacherskid: { name: "Teacher's Kid", desc: 'Quizzes are easier, but troublemakers trust you less.' },
+  hustler: { name: 'Born Hustler', desc: 'Jobs pay 25% more.' },
+  gymrat: { name: 'Gym Rat', desc: 'You are a better player yourself.' },
+  sneaky: { name: 'Sneaky Pete', desc: '+Sneakiness. Notes, dares and hall sneaking are safer.' },
+};

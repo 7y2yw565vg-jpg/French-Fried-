@@ -252,13 +252,17 @@ WEEKEND_SLOTS = ["Sat AM", "Sat PM", "Sun AM", "Sun PM"]
 
 # Rival teams already in the Jr League (grades 3-5) and the Middle League (6-8).
 RIVAL_TEAMS = [
-    ("Oakridge Thunder Ponies", "Soccer"), ("Pickle Creek Dillweeds", "Baseball"),
-    ("Maple Hollow Hoopsters", "Basketball"), ("Sunnyside Sun Bears", "Football"),
-    ("Riverside River Rats", "Soccer"), ("Old Town Firecrackers", "Basketball"),
-    ("Pinecrest Polo Penguins", "Baseball"), ("Grubbsville Gravy Train", "Football"),
-    ("Mall Rats United", "Soccer"), ("The Library Lions", "Basketball"),
+    ("Oakridge Thunder Ponies", "Soccer"), ("Riverside River Rats", "Soccer"),
+    ("Mall Rats United", "Soccer"), ("Pickle Creek Kickles", "Soccer"),
+    ("Pickle Creek Dillweeds", "Baseball"), ("Pinecrest Polo Penguins", "Baseball"),
+    ("Maple Hollow Maple Bats", "Baseball"), ("Old Town Clocktower Crows", "Baseball"),
+    ("Maple Hollow Hoopsters", "Basketball"), ("Old Town Firecrackers", "Basketball"),
+    ("The Library Lions", "Basketball"), ("Sunnyside Swish", "Basketball"),
+    ("Sunnyside Sun Bears", "Football"), ("Grubbsville Gravy Train", "Football"),
+    ("Riverside Rapids", "Football"), ("Oakridge Golden Gophers", "Football"),
     ("Middle School Mega Moose (6-8)", "Football"), ("Grubbsville Middle Meteors (6-8)", "Baseball"),
 ]
+JR_TEAMS = [t for t in RIVAL_TEAMS if "6-8" not in t[0]]
 
 GRADE_COUNTS = {2: 30, 3: 68, 4: 50, 5: 44, 6: 24}  # grade 6 = older "ringers"
 assert sum(GRADE_COUNTS.values()) == KID_COUNT
@@ -354,11 +358,14 @@ def build_kid(rng, idx, grade, first, last, home):
     if roll < 0.52:
         status, team, difficulty = "Free Agent", None, rng.choice(["Easy", "Easy", "Medium"])
     elif roll < 0.77:
-        status, team, difficulty = "On Rival Team (Poachable)", rng.choice(RIVAL_TEAMS)[0], rng.choice(["Medium", "Hard"])
+        status, team, difficulty = "On Rival Team (Poachable)", rng.choice(JR_TEAMS)[0], rng.choice(["Medium", "Hard"])
     elif roll < 0.88:
-        status, team, difficulty = "On Rival Team (Loyal)", rng.choice(RIVAL_TEAMS)[0], "Locked this season"
+        status, team, difficulty = "On Rival Team (Loyal)", rng.choice(JR_TEAMS)[0], "Locked this season"
     else:
         status, team, difficulty = "Not Into Sports (Yet)", None, rng.choice(["Medium", "Hard"])
+    if grade == 2 and team:
+        # Too young for the Jr League; they sign with someone next year.
+        status, team, difficulty = "Free Agent", None, "Too young (joins Jr League next year)"
     if grade >= 6:
         if rng.random() < 0.6:
             team = rng.choice([t for t, _ in RIVAL_TEAMS if "6-8" in t])

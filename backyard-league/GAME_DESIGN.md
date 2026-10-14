@@ -1,4 +1,6 @@
-# BACKYARD LEAGUE — Game Design Document (v0.1)
+# BACKYARD LEAGUE — Game Design Document (v0.2)
+
+> **A playable build exists!** See `README.md` in this folder for what's implemented, how to run it, and what's next.
 
 > *Working title. Alternates: "Lemonade to League", "Recess Moguls", "Kid Commissioner".*
 
@@ -180,10 +182,10 @@ Every kid gets a radial interaction menu:
 ### Recruitment status (data-driven)
 | Status | Share | How to get them |
 |---|---|---|
-| **Free Agent** | ~48% | Friendship + invite. Some have a hook ("beat me at tetherball first") |
-| **On Rival Team (Poachable)** | ~30% | Convince them: better facilities, friends on your roster, a task, beating their team, or a payment (Mercenary trait) |
-| **On Rival Team (Loyal)** | ~9% | Locked this season. Can flip in the offseason if their team stinks or their friend joins you |
-| **Not Into Sports (Yet)** | ~14% | Special quests. Often hidden gems (the Bookworm with an A+ Game Smarts) |
+| **Free Agent** | ~54% | Friendship + invite. Some have a hook ("beat me at tetherball first") |
+| **On Rival Team (Poachable)** | ~25% | Convince them: better facilities, friends on your roster, a task, beating their team, or a payment (Mercenary trait) |
+| **On Rival Team (Loyal)** | ~8% | Locked this season. Can flip in the offseason if their team stinks or their friend joins you |
+| **Not Into Sports (Yet)** | ~12% | Special quests. Often hidden gems (the Bookworm with an A+ Game Smarts) |
 
 **Team Attraction** (see §11) multiplies every recruiting roll.
 
@@ -268,13 +270,13 @@ Each kid has a **growth curve** (fixed per kid):
 
 | Curve | Share | Story |
 |---|---|---|
-| Steady Climber | ~37% | Reliable. Gets a bit better every year |
-| Late Bloomer | ~12% | Meh until 7th–8th grade, then a monster in high school |
-| Early Peaker | ~13% | Jr League star who plateaus in middle school and declines |
-| Growth Spurt | ~14% | One huge jump around 6th–7th grade (height and strength) |
-| Dud | ~12% | Never gets much better. Heart might make up for it |
+| Steady Climber | ~38% | Reliable. Gets a bit better every year |
+| Late Bloomer | ~15% | Meh until 7th–8th grade, then a monster in high school |
+| Early Peaker | ~16% | Jr League star who plateaus in middle school and declines |
+| Growth Spurt | ~11% | One huge jump around 6th–7th grade (height and strength) |
+| Dud | ~10% | Never gets much better. Heart might make up for it |
 | Morale Machine | ~8% | Stats barely grow, but Teamwork/Hustle are elite and keep rising |
-| Phenom | ~4% | Great now, great later. Everyone wants them |
+| Phenom | ~3% | Great now, great later. Everyone wants them |
 
 - Growth per year = curve value × (Potential factor) × (training facility multiplier) × (coach quality) × (Coachability).
 - **Appearance aging:** each kid has a modular character rig with per-age morph targets for *Kid (8–10)*, *Tween (11–13)* and *Teen (14–18)*. Height is driven by data. Hairstyles/fashion evolve with personality (the Gamer gets headphones, the Jock gets a letterman jacket, the Drama Kid dyes their hair). Braces come and go, glasses can turn into contacts.
@@ -391,7 +393,7 @@ Each kid weights these differently by personality: Jocks care about results, Soc
 
 ## 12. Games
 
-- **League schedule:** 8 regular season games and a 4-team playoff. Saturday game days.
+- **League schedule:** each sport has 4 rival Jr League teams (5 with yours). 8 regular season games (double round-robin with byes) and a 4-team playoff. Saturday game days. Rival teams sign free agents before the season starts, so they compete with you for the same kids.
 - **If you're on your own roster** (default in the Jr League): you play the game in an **arcade-style** controlled mode, as your character, with AI teammates. You can call simple plays.
 - **If you're not playing** (coach-only, or later as owner): the game is **simulated**. You can:
   - **Spectate in 3D** (watch the sim play out with commentary), or
