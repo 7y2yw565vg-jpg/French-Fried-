@@ -7,16 +7,16 @@ import { registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, 
 import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
-import { friendshipLabel, parseHook } from '../game/social.js';
+import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game/social.js';
 import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
-import { portrait } from './talk.js';
+import { portrait, openTalk } from './talk.js';
 import { touchPref, setTouchPref } from './input.js';
 import { setVolume, getVolume, sfx } from './audio.js';
 
-const TABS = [['team', '🏟️ Team'], ['kids', '📒 Kids'], ['field', '🔧 Field & Staff'], ['league', '🏆 League'], ['school', '🏫 School'], ['money', '💰 Money & Stuff'], ['settings', '⚙️ Settings']];
+const TABS = [['team', '🏟️ Team'], ['contacts', '📞 Contacts'], ['kids', '📒 Kids'], ['field', '🔧 Field & Staff'], ['league', '🏆 League'], ['school', '🏫 School'], ['money', '💰 Money & Stuff'], ['settings', '⚙️ Settings']];
 
 export function openPhone(game, tab = 'team') {
   const ov = $('#overlay');
@@ -33,7 +33,7 @@ export function openPhone(game, tab = 'team') {
     tabs.querySelectorAll('.tab').forEach((t) => t.classList.toggle('sel', t.dataset.id === id));
     clear(body);
     const redraw = () => show(tab);
-    ({ team: teamTab, kids: kidsTab, field: fieldTab, league: leagueTab, school: schoolTab, money: moneyTab, settings: settingsTab })[id](game, body, redraw, close);
+    ({ team: teamTab, contacts: contactsTab, kids: kidsTab, field: fieldTab, league: leagueTab, school: schoolTab, money: moneyTab, settings: settingsTab })[id](game, body, redraw, close);
   };
   for (const [id, label] of TABS) tabs.appendChild(h('div', { class: 'tab', 'data-id': id, onclick: () => { sfx('click'); show(id); } }, label));
   ov.appendChild(h('div', { class: 'screen-bg', onclick: close }));
@@ -157,6 +157,33 @@ function scoutLine(s, k) {
   return `${'★'.repeat(stars)}${'☆'.repeat(5 - stars)} potential${adult ? `, ${curve}` : ''}.`;
 }
 
+// -------------------------------------------------------------- contacts --
+function contactsTab(game, root, redraw, close) {
+  const s = game.state;
+  const list = KIDS.filter((k) => s.kids[k.id].phone).sort((a, b) => s.kids[b.id].f - s.kids[a.id].f);
+  if (!list.length) {
+    root.append(h('p', {}, `No contacts yet. Become Friends with a kid (${PHONE_FRIENDSHIP} friendship) and swap numbers when you talk to them.`));
+    return;
+  }
+  const table = h('table', { class: 'list' }, h('tr', {}, h('th', {}, ''), h('th', {}, 'Kid'), h('th', {}, 'Friendship'), h('th', {}, 'Team'), h('th', {}, '')));
+  for (const k of list) {
+    const ks = s.kids[k.id];
+    const call = btn('📞 Call', () => {
+      const c = callCheck(s, k.id);
+      if (!c.ok) { sfx('bad'); toast(c.text, 'bad'); return; }
+      sfx('click');
+      close();
+      openTalk(game, k.id, { phone: true, line: `Hello? Oh hi ${s.player.name}!` });
+    }, 'small green');
+    table.appendChild(h('tr', {},
+      h('td', { style: { width: '44px' } }, portrait(k, 20)), h('td', {}, h('b', {}, shortName(k)), h('div', { class: 'muted' }, k.personality)),
+      h('td', {}, h('div', { class: 'row' }, h('div', { class: 'bar' }, h('i', { style: { width: `${ks.f}%` } })), friendshipLabel(ks.f))),
+      h('td', {}, s.team.roster.includes(k.id) ? '★ Yours' : s.team.invites.includes(k.id) ? '✉ Invited' : ks.team || 'Free'),
+      h('td', {}, call)));
+  }
+  root.append(h('p', { class: 'muted' }, 'Call a friend to chat, hang out, or invite them to a tryout. No calls during school or after 9 PM.'), table);
+}
+
 // ------------------------------------------------------------------ kids --
 function kidsTab(game, root, redraw) {
   const s = game.state;
@@ -194,7 +221,7 @@ function notebookEntry(game, id) {
   const s = game.state;
   const k = KID_BY_ID.get(id);
   const ks = s.kids[id];
-  const routine = ks.known.length ? ks.known.map((slot) => describeSlot(k, slot, kidGrade(s, id))).filter(Boolean).map((txt) => h('div', {}, `📍 ${txt}`)) : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (once a day) to learn it.')];
+  const routine = ks.known.length ? ks.known.map((slot) => describeSlot(k, slot, kidGrade(s, id))).filter(Boolean).map((txt) => h('div', {}, `📍 ${txt}`)) : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (good chats reveal it) or hang out to learn it.')];
   const hook = ks.hookAsked ? parseHook(k) : null;
   const body = h('div', {},
     h('div', { class: 'row' }, portrait(k, 80), h('div', {}, h('b', { style: { fontSize: '20px' } }, kidName(k)), h('div', { class: 'muted' }, `${k.personality}. Lives in ${k.residence.neighborhood} (${k.residence.address}). ${k.routine.school}${sectionOf(k, kidGrade(s, id)) != null && kidGrade(s, id) === playerGrade(s) ? (sectionOf(k, kidGrade(s, id)) === s.player.section ? ', in your class section' : ', in the other class section') : ''}.`),

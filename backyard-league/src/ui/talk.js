@@ -3,7 +3,8 @@ import { $, h, clear, btn, toast, modal, money } from './dom.js';
 import { KID_BY_ID, kidName } from '../data/kids.js';
 import { ITEMS, STAFF_ROLES, ADULTS, SPORTS } from '../data/world.js';
 import { SKIN, HAIR, OUTFIT } from '../world3d/toon.js';
-import { chat, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, recruitState } from '../game/social.js';
+import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, recruitState, inviteHangout, doHangout, canExchangeNumbers, exchangeNumbers, PHONE_FRIENDSHIP } from '../game/social.js';
+import { formatTime } from '../game/time.js';
 import { kidGrade, addLog } from '../game/state.js';
 import { attraction, kidSchoolAverage, isRegistered } from '../game/team.js';
 import { acceptRinger, declineRinger } from '../game/league.js';
@@ -81,7 +82,7 @@ export function openTalk(game, id, opts = {}) {
   const firstMeet = !ks.met;
   let line = '';
   if (opts.line) line = opts.line;
-  else if (firstMeet) { const r = chat(s, id); line = `${r.text}${r.revealedText ? `\n(You learned: ${r.revealedText})` : ''}`; }
+  else if (firstMeet) { ks.met = true; addFriendship(s, id, 2); line = say(s, kid, 'greet'); } // introductions; chatting is still open
   else line = say(s, kid, 'greet');
   render(game, id, line, opts);
 }
@@ -98,6 +99,8 @@ function statusPills(game, kid) {
   else if (ks.team) pills.push(h('span', { class: 'pill warn' }, `Plays for ${ks.team}`));
   else if (kid.recruitment.status === 'Not Into Sports (Yet)') pills.push(h('span', { class: 'pill' }, 'Not into sports'));
   else pills.push(h('span', { class: 'pill good' }, 'Free agent'));
+  if (ks.phone) pills.push(h('span', { class: 'pill good' }, '📱 In your contacts'));
+  else if (ks.f >= PHONE_FRIENDSHIP - 15) pills.push(h('span', { class: 'pill' }, `📱 Swap numbers at ${PHONE_FRIENDSHIP} friendship`));
   if (ks.f >= 30) pills.push(h('span', { class: 'pill' }, `Likes: ${kid.likes.join(', ')}`));
   if (ks.f >= 45) pills.push(h('span', { class: 'pill' }, kid.traits[0]));
   if (ks.f >= 65) pills.push(h('span', { class: 'pill' }, kid.traits[1]));
@@ -115,13 +118,39 @@ function render(game, id, line, opts = {}) {
   const redo = (text) => render(game, id, text, opts);
   const add = (label, fn, cls = 'small white', attrs = {}) => buttons.appendChild(btn(label, fn, cls, attrs));
 
+  if (opts.topics) {
+    // Pick what to talk about: their interests land best.
+    for (const t of chatTopics(s, id)) add(t.label, () => {
+      const r = chat(s, id, t.id);
+      sfx(r.quality >= 2 ? 'good' : 'talk');
+      if (r.gained) toast(`${r.result.mood} ${r.result.label} +${r.gained} friendship with ${kid.first_name}`, r.quality >= 2 ? 'good' : '');
+      else toast(`${r.result.mood} ${r.result.label}`, 'bad');
+      render(game, id, `${r.text}${r.revealedText ? `\n📒 You learned: ${r.revealedText}` : ''}`, { ...opts, topics: false });
+    }, 'small');
+    add('↩ Never mind', () => render(game, id, line, { ...opts, topics: false }), 'small white');
+    return finish();
+  }
   add('💬 Chat', () => {
-    const r = chat(s, id);
-    sfx('talk');
-    if (r.gained) toast(`+${r.gained} friendship with ${kid.first_name}`, 'good');
-    redo(r.repeat ? `${r.text}\n(You already chatted today. Friendship only grows once a day.)` : `${r.text}${r.revealedText ? `\n📒 You learned: ${r.revealedText}` : ''}`);
+    if (ks.chatKey === routineKey(s)) { redo(`${say(s, kid, 'chat')}\n(You already chatted with ${kid.first_name} this ${partName(s)}. Catch them again later.)`); return; }
+    render(game, id, `What do you want to talk about?`, { ...opts, topics: true });
   });
-  if (!opts.whisper) {
+  if (!opts.whisper) add('🛹 Hang out', () => {
+    const r = inviteHangout(s, id);
+    if (!r.ok) { sfx(r.code === 'no' ? 'bad' : 'click'); redo(r.text + (r.code === 'no' ? `\n(${kid.first_name} said no this time. Better friends say yes more often.)` : '')); return; }
+    sfx('good');
+    if (r.when === 'after') { toast(`📅 Hanging out with ${kid.first_name} at ${formatTime(14 * 60 + 30)}`, 'good'); redo(`${r.text}\n(📅 Be free at ${formatTime(14 * 60 + 30)}. Flaking costs friendship!)`); return; }
+    const h1 = doHangout(s, id);
+    game.skip(60);
+    toast(`+${h1.gained} friendship with ${kid.first_name}`, 'good');
+    redo(`${r.text}\n${h1.text}${h1.revealedText ? `\n📒 You learned: ${h1.revealedText}` : ''}`);
+  }, 'small');
+  if (!opts.phone && canExchangeNumbers(s, id)) add('📱 Swap numbers', () => {
+    exchangeNumbers(s, id);
+    sfx('good');
+    toast(`📱 ${kid.first_name} is in your contacts!`, 'good');
+    redo(`Here's my number! Call me anytime. Well, not during school.\n(Find ${kid.first_name} in your phone: 📞 Contacts.)`);
+  }, 'small green');
+  if (!opts.whisper && !opts.phone) {
     const gifts = Object.entries(s.inv.items).filter(([iid, n]) => n > 0 && ITEMS[iid] && ITEMS[iid].kind === 'gift');
     add('🎁 Give gift', () => {
       if (!gifts.length) { redo('(You don\'t have any gifts. Shops at the mall, museum and grocery store sell them.)'); return; }
@@ -168,14 +197,14 @@ function render(game, id, line, opts = {}) {
       }, 'small');
       if (hook.type === 'promise') add('🤞 Promise a starting spot', () => { promiseStart(s, id); redo('You promise? Pinky promise? ...Okay. I trust you.'); }, 'small');
     }
-  } else {
+  } else if (!opts.phone) {
     if (kidSchoolAverage(s, id) < 70 && ['library', 'school'].includes(s.loc)) add('📚 Tutor (1 hr)', () => {
       ks.tutor = (ks.tutor || 0) + 6;
       game.skip(60);
       redo('Ohhh, THAT\'S how fractions work! Thanks!');
     });
   }
-  if (!opts.whisper) {
+  if (!opts.whisper && !opts.phone) {
     if (ks.favor && (ks.favor.type !== 'errand' || ks.favor.done)) {
       add(`✅ Finish favor`, () => {
         const r = completeFavor(s, id);
@@ -195,16 +224,25 @@ function render(game, id, line, opts = {}) {
     if (s.scandal.offer && s.scandal.offer.fixer === id) add('🕵️ About that "ringer"...', () => ringerTalk(game, id, redo), 'small purple');
     if (!s.team.roster.includes(id) && ks.f >= 50) add('💼 Job offer', () => hireKid(game, id, redo));
   }
-  add('👋 Bye', () => closeTalk(game), 'small red');
+  add(opts.phone ? '📵 Hang up' : '👋 Bye', () => closeTalk(game), 'small red');
+  return finish();
 
-  const f = ks.f;
-  panel.appendChild(h('div', { class: 'card dialog' },
-    h('div', { class: 'who' }, portrait(kid), h('div', {},
-      h('div', { class: 'name' }, ks.met ? kidName(kid) : '???'),
-      h('div', { class: 'meta' }, `${friendshipLabel(f)} (${f})`),
-      h('div', { class: 'bar', style: { width: '100px', margin: '4px auto' } }, h('i', { style: { width: `${f}%` } })))),
-    h('div', {}, sayEl, h('div', { style: { marginBottom: '8px' } }, ...statusPills(game, kid)), buttons)));
-  typewrite(sayEl, line);
+  /** Draw the panel with whatever buttons were added. */
+  function finish() {
+    const f = ks.f;
+    panel.appendChild(h('div', { class: 'card dialog' },
+      h('div', { class: 'who' }, portrait(kid), h('div', {},
+        h('div', { class: 'name' }, ks.met ? kidName(kid) : '???'),
+        h('div', { class: 'meta' }, `${opts.phone ? '📞 ' : ''}${friendshipLabel(f)} (${f})`),
+        h('div', { class: 'bar', style: { width: '100px', margin: '4px auto' } }, h('i', { style: { width: `${f}%` } })))),
+      h('div', {}, sayEl, h('div', { style: { marginBottom: '8px' } }, ...statusPills(game, kid)), buttons)));
+    typewrite(sayEl, line);
+  }
+}
+
+function partName(s) {
+  const k = routineKey(s).split(':')[1];
+  return k.startsWith('school') ? 'period' : { morning: 'morning', after: 'afternoon', evening: 'evening', am: 'morning', pm: 'afternoon' }[k] || 'time';
 }
 
 function hookLine(kid, hook) {

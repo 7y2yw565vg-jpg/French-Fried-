@@ -1,11 +1,12 @@
 // Talking, friendship, gifts, favors, recruit hooks, and tryout invites.
-import { KID_BY_ID, kidName, shortName } from '../data/kids.js';
+import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { LINES, GENERIC } from '../data/dialogue.js';
 import { ITEMS } from '../data/world.js';
 import { addItem, addLog, hasItem, kidGrade } from './state.js';
 import { routineSlots, describeSlot, kidHood } from './routines.js';
 import { attraction, playerBand, isRegistered } from './team.js';
 import { seeded, pick, clamp } from './rng.js';
+import { dayInfo, schoolBlockAt } from './time.js';
 
 export function fill(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? `{${k}}`));
@@ -36,28 +37,177 @@ export function addFriendship(state, id, n) {
   return ks.f;
 }
 
+// ------------------------------------------------------- routines -------
+/**
+ * Which part of the day it is: each class, passing period, recess and lunch at
+ * school, then after school and evening (weekends: morning/afternoon/evening).
+ * You can chat with (and invite) each kid once per part.
+ */
+export function routineKey(state) {
+  const m = state.time.minute;
+  const info = dayInfo(state.time.day);
+  let part;
+  if (info.isSchoolDay) {
+    const b = schoolBlockAt(m);
+    if (m < 7 * 60 + 45) part = 'morning';
+    else if (b) part = `school${b.start}`;
+    else if (m < 17 * 60 + 45) part = 'after';
+    else part = 'evening';
+  } else part = m < 12 * 60 ? 'am' : m < 17 * 60 + 30 ? 'pm' : 'evening';
+  return `${state.time.day}:${part}`;
+}
+
 // --------------------------------------------------------- chat ---------
-export function chat(state, id) {
+const ALL_LIKES = [...new Set(KIDS.flatMap((k) => k.likes))];
+const JOKERS = ['Class Clown', 'Prankster', 'Troublemaker', 'Social Butterfly', 'Gamer'];
+const SERIOUS = ['Rule Follower', "Teacher's Pet", 'Know-It-All', 'Shy', 'Bookworm'];
+const SPORTY = ['Jock', 'Hothead'];
+const CHAT_RESULT = [
+  { label: 'Awkward...', gain: 0, mood: '😬' },
+  { label: 'Okay chat', gain: 2, mood: '🙂' },
+  { label: 'Good chat!', gain: 5, mood: '😄' },
+  { label: 'Great chat!', gain: 8, mood: '🤩' },
+];
+
+/** Things you can bring up: two interests (one of them theirs), sports, or a joke. */
+export function chatTopics(state, id) {
+  const kid = KID_BY_ID.get(id);
+  const rng = seeded(state.seed, 'topics', id, routineKey(state));
+  const like = pick(rng, kid.likes);
+  const decoy = pick(rng, ALL_LIKES.filter((l) => !kid.likes.includes(l)));
+  const pair = rng() < 0.5 ? [like, decoy] : [decoy, like];
+  return [
+    ...pair.map((t) => ({ id: `like:${t}`, label: `Talk about ${t}` })),
+    { id: 'sports', label: 'Talk sports' },
+    { id: 'joke', label: 'Tell a joke' },
+  ];
+}
+
+/** How well a topic lands with a kid: 0 awkward, 1 okay, 2 good, 3 great. */
+function chatQuality(state, kid, topic, rng) {
+  let q;
+  if (!topic || topic === 'smalltalk') q = 2;
+  else if (topic.startsWith('like:')) q = kid.likes.includes(topic.slice(5)) ? 3 : rng() < 0.5 ? 1 : 0;
+  else if (topic === 'sports') q = kid.recruitment.status === 'Not Into Sports (Yet)' ? 0 : SPORTY.includes(kid.personality) ? 3 : 2;
+  else if (topic === 'joke') q = JOKERS.includes(kid.personality) ? 3 : SERIOUS.includes(kid.personality) ? (rng() < 0.5 ? 0 : 1) : 2;
+  else q = 2;
+  // A smooth talker can save a so-so chat; everyone has off days.
+  const roll = rng() * 100;
+  if (q < 3 && roll < (state.player.charisma - 30) / 2) q++;
+  else if (q > 0 && roll > 93) q--;
+  return q;
+}
+
+export function chat(state, id, topic = 'smalltalk') {
   const kid = KID_BY_ID.get(id);
   const ks = state.kids[id];
   const first = !ks.met;
   ks.met = true;
-  if (ks.chatDay === state.time.day) {
+  const key = routineKey(state);
+  if (ks.chatKey === key) {
     return { text: say(state, kid, 'chat'), gained: 0, revealed: null, repeat: true };
   }
+  ks.chatKey = key;
   ks.chatDay = state.time.day;
-  const rng = seeded(state.seed, 'chat', id, state.time.day);
-  const gained = Math.round(3 + rng() * 4 + (state.player.charisma - 40) / 10 + (first ? 3 : 0));
+  const rng = seeded(state.seed, 'chat', id, key, topic);
+  const q = chatQuality(state, kid, topic, rng);
+  const res = CHAT_RESULT[q];
+  const gained = q === 0 ? 0 : Math.max(1, Math.round(res.gain + rng() * 2 + (state.player.charisma - 40) / 15 + (first ? 3 : 0))); // awkward chats earn nothing
   addFriendship(state, id, gained);
-  // Reveal one routine fact they mention.
-  const unknown = routineSlots(kid).filter((s) => !ks.known.includes(s));
+  // A good chat reveals one routine fact they mention.
   let revealed = null;
-  if (unknown.length) {
+  const unknown = routineSlots(kid).filter((s) => !ks.known.includes(s));
+  if (unknown.length && (q >= 2 || first)) {
     revealed = unknown[Math.floor(rng() * unknown.length)];
     ks.known.push(revealed);
   }
-  state.player.charisma = Math.min(100, state.player.charisma + 0.2);
-  return { text: say(state, kid, first ? 'greet' : 'chat'), gained, revealed, revealedText: revealed ? describeSlot(kid, revealed, kidGrade(state, id)) : null };
+  state.player.charisma = Math.min(100, state.player.charisma + (q >= 2 ? 0.3 : 0.1));
+  const line = q === 0 ? pick(rng, [`Uh... okay?`, `...Cool. I guess.`, `Why would you say that?`, `*blinks slowly*`]) : say(state, kid, first ? 'greet' : 'chat');
+  return { text: line, gained, quality: q, result: res, revealed, revealedText: revealed ? describeSlot(kid, revealed, kidGrade(state, id)) : null };
+}
+
+// ------------------------------------------------------- hangouts -------
+const ACTIVITIES = ['rode bikes around the block', 'built a blanket fort', 'played tag until someone cried (not you)', 'traded snacks', 'had a water balloon fight', 'made a secret handshake', 'raced to the corner and back', 'drew chalk monsters on the sidewalk', 'played video games', 'looked for frogs at the creek'];
+const EXCUSES = ['I have to help my mom with stuff.', 'Can\'t, I have piano. Ugh.', 'Maybe another time?', 'I promised my cousin I\'d hang out with them.', 'I\'m grounded. Long story.', 'Hmm... nah, not today.', 'I have SO much homework.'];
+const HANGOUT_START = 14 * 60 + 30;
+
+export function hangoutCheck(state, id) {
+  const ks = state.kids[id];
+  const m = state.time.minute;
+  const info = dayInfo(state.time.day);
+  if ((state.hangouts || []).some((x) => x.id === id && x.day === state.time.day)) return { ok: false, code: 'planned', text: 'We\'re already hanging out later! Don\'t forget!' };
+  if (ks.hangDay === state.time.day) return { ok: false, code: 'done', text: 'That was fun today! Let\'s do it again another day.' };
+  if (m >= 19 * 60) return { ok: false, code: 'late', text: 'It\'s too late! My parents would freak.' };
+  if (ks.hangKey === routineKey(state)) return { ok: false, code: 'asked', text: 'You just asked me that! Ask me again later.' };
+  return { ok: true, when: info.isSchoolDay && m < HANGOUT_START ? 'after' : 'now' };
+}
+
+/** Ask a kid to hang out. Doesn't always work; better friends say yes more often. */
+export function inviteHangout(state, id) {
+  const kid = KID_BY_ID.get(id);
+  const ks = state.kids[id];
+  const c = hangoutCheck(state, id);
+  if (!c.ok) return c;
+  ks.hangKey = routineKey(state);
+  ks.met = true;
+  const p = kid.personality;
+  const chance = clamp(0.15 + (ks.f / 100) * 0.85 + (p === 'Social Butterfly' ? 0.15 : p === 'Shy' ? -0.15 : 0) + (state.player.charisma - 50) / 300, 0.1, 0.92);
+  const rng = seeded(state.seed, 'hang', id, ks.hangKey);
+  if (rng() > chance) return { ok: false, code: 'no', text: pick(rng, EXCUSES) };
+  if (c.when === 'after') {
+    state.hangouts = (state.hangouts || []).filter((x) => x.day >= state.time.day);
+    state.hangouts.push({ id, day: state.time.day, at: HANGOUT_START });
+    return { ok: true, when: 'after', text: pick(rng, ['YES! After school, let\'s go!', 'Okay! Meet you after school!', 'Sure! After school it is.']) };
+  }
+  return { ok: true, when: 'now', text: pick(rng, ['Right now? Heck yeah!', 'Okay, let\'s go!', 'Sure! What do you wanna do?']) };
+}
+
+/** Spend an hour hanging out: a bigger friendship boost than chatting. */
+export function doHangout(state, id) {
+  const kid = KID_BY_ID.get(id);
+  const ks = state.kids[id];
+  const rng = seeded(state.seed, 'hangout', id, state.time.day);
+  ks.hangDay = state.time.day;
+  ks.met = true;
+  state.hangouts = (state.hangouts || []).filter((x) => !(x.id === id && x.day === state.time.day));
+  const gained = Math.round(11 + rng() * 5 + (state.player.charisma - 40) / 12);
+  addFriendship(state, id, gained);
+  const unknown = routineSlots(kid).filter((s) => !ks.known.includes(s));
+  let revealed = null;
+  if (unknown.length) { revealed = unknown[Math.floor(rng() * unknown.length)]; ks.known.push(revealed); }
+  const did = rng() < 0.4 ? `talked about ${pick(rng, kid.likes)} for an hour` : pick(rng, ACTIVITIES);
+  return { gained, text: `You and ${kid.first_name} ${did}.`, revealedText: revealed ? describeSlot(kid, revealed, kidGrade(state, id)) : null };
+}
+
+/** Standing someone up hurts a little. */
+export function missHangout(state, id) {
+  state.hangouts = (state.hangouts || []).filter((x) => !(x.id === id && x.day === state.time.day));
+  addFriendship(state, id, -5);
+}
+
+// ------------------------------------------------------ phone numbers ---
+export const PHONE_FRIENDSHIP = 45; // "Friends"
+
+export function canExchangeNumbers(state, id) {
+  const ks = state.kids[id];
+  return !ks.phone && ks.f >= PHONE_FRIENDSHIP;
+}
+
+export function exchangeNumbers(state, id) {
+  if (!canExchangeNumbers(state, id)) return false;
+  state.kids[id].phone = true;
+  addLog(state, `Swapped numbers with ${shortName(KID_BY_ID.get(id))}.`);
+  return true;
+}
+
+/** Can you reach a kid on the phone right now? */
+export function callCheck(state, id) {
+  const m = state.time.minute;
+  const info = dayInfo(state.time.day);
+  if (!state.kids[id].phone) return { ok: false, text: 'You don\'t have their number.' };
+  if (m >= 21 * 60 || m < 7 * 60) return { ok: false, text: 'It\'s too late to call. Their parents would answer. Grumpily.' };
+  if (info.isSchoolDay && m >= 8 * 60 && m < 14 * 60) return { ok: false, text: 'No phones during school! Call after 2:00.' };
+  return { ok: true };
 }
 
 // --------------------------------------------------------- gifts --------

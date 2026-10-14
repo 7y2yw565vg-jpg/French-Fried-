@@ -9,6 +9,7 @@ import { advance, sleep, finishPractice } from '../game/clock.js';
 import { whereIsKid, schoolLocFor, sectionOf } from '../game/routines.js';
 import { seatChart, markTardy, markAbsent, applyPunishment, playerClass, teacherInfo } from '../game/school.js';
 import { practiceToday } from '../game/team.js';
+import { doHangout, missHangout } from '../game/social.js';
 import { pickupsFor, collectPickup, jobReady, mowJobs } from '../game/economy.js';
 import { playerGameThisWeek, ensureSeason, kitBottoms } from '../game/league.js';
 import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue } from '../world3d/scenes.js';
@@ -405,7 +406,33 @@ export class Game {
       this.streamNPCs();
       this.checkPeriodArrival();
       this.monitorPatrol();
+      this.checkHangouts();
     }
+  }
+
+  /** A friend you planned to hang out with is ready (after school). */
+  checkHangouts() {
+    const s = this.state;
+    if (!s.hangouts || !s.hangouts.length) return;
+    s.hangouts = s.hangouts.filter((x) => x.day >= s.time.day); // yesterday's plans are gone
+    const due = s.hangouts.find((x) => x.day === s.time.day && s.time.minute >= x.at);
+    if (!due || this.mode !== 'free' || modalOpen() || this.talking || $('#overlay').classList.contains('show')) return;
+    const kid = KID_BY_ID.get(due.id);
+    sfx('good');
+    modal({
+      title: `🛹 ${kid.first_name} wants to hang out!`,
+      body: `You told ${kid.first_name} you'd hang out after school. Ready?`,
+      dismissable: false,
+      buttons: [
+        { label: 'Hang out (1 hr)', cls: 'green', onClick: () => {
+          const r = doHangout(s, due.id);
+          this.skip(60);
+          toast(`+${r.gained} friendship with ${kid.first_name}`, 'good');
+          modal({ title: 'Good times', body: `${r.text}${r.revealedText ? `\n📒 You learned: ${r.revealedText}` : ''}` });
+        } },
+        { label: 'Bail (-5 friendship)', cls: 'white', onClick: () => { missHangout(s, due.id); toast(`${kid.first_name} is bummed you bailed.`, 'bad'); } },
+      ],
+    });
   }
 
   /** Advance the clock, handling bells and other events. */

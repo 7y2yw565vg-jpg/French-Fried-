@@ -50,7 +50,7 @@ export function newGame(opts) {
     },
     league: null,
     scandal: { offerSeason: 0, offer: null, caught: 0, downAManSeason: 0, playoffBanUntil: 0, points: 0 },
-    tasks: [],
+    tasks: [], hangouts: [],
     news: [],
     log: [],
     flags: {},
