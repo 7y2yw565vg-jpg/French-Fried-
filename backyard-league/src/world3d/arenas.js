@@ -107,6 +107,16 @@ function seatingBand(b, path, { closed = true, rows = 14, depth = 0.85, rise = 0
     const w6 = push(jx, top + 1.2, jz, '#aab0b8'); const w7 = push(ix, top + 1.2, iz, '#aab0b8');
     quad(w4, w5, w6, w7);
   }
+  // End walls on open bands so the stepped profile isn't left hollow.
+  if (!closed) {
+    for (const p of [path[0], path[n - 1]]) {
+      const [ox, oz] = off(p, rows * depth);
+      for (const w of [0, 1]) {
+        const v = [push(p.x, 0, p.z, '#c9cdd3'), push(ox, 0, oz, '#c9cdd3'), push(ox, top + 1.2, oz, '#dfe3e8'), push(p.x, base, p.z, '#dfe3e8')];
+        if (w) idx.push(v[0], v[1], v[2], v[0], v[2], v[3]); else idx.push(v[0], v[2], v[1], v[0], v[3], v[2]);
+      }
+    }
+  }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setIndex(idx);
@@ -217,32 +227,60 @@ export function buildArena(sport, colors = ['#e63946', '#ffffff'], label = 'RIVA
     // Ballpark: a grandstand wrapping from foul pole to foul pole behind home,
     // outfield bleachers past the wall, and a giant scoreboard in center.
     const f = field.info; const hx = f.home.x; const hz = f.home.z; const R = f.outfieldR || 22;
-    b.add(new THREE.CylinderGeometry(1, 1, 1, 48), '#5fa83f', [hx + 4, 0.0, hz], [0, 0, 0], [R + 9, 0.02, R + 9], null, 'grass'); // foul territory + beyond the wall
-    // Inner edge: down the 3rd-base side, around behind home, up the 1st-base side.
-    const raw = [];
-    const lineOff = 6.5;
-    const along = (deg, d, off) => { const a = deg * Math.PI / 180; return { x: hx + Math.cos(a) * d - Math.sin(a) * off, z: hz + Math.sin(a) * d + Math.cos(a) * off }; };
-    for (let d = R + 1; d >= 7; d -= 1.5) raw.push(along(-45, d, -lineOff));
-    const r0 = Math.hypot(raw[raw.length - 1].x - hx, raw[raw.length - 1].z - hz);
-    const a0 = Math.atan2(raw[raw.length - 1].z - hz, raw[raw.length - 1].x - hx);
-    for (let i = 1; i < 16; i++) { const a = a0 - (i / 16) * (Math.PI * 2 + 2 * a0); raw.push({ x: hx + Math.cos(a) * r0, z: hz + Math.sin(a) * r0 }); }
-    for (let d = 7; d <= R + 1; d += 1.5) raw.push(along(45, d, lineOff));
-    const path = resample(withNormals(raw, 1), 1.1, false);
+    const D2R = Math.PI / 180;
+    // Grass for foul territory, out to the stands.
+    b.add(new THREE.CylinderGeometry(1, 1, 1, 64), '#5fa83f', [hx, 0.0, hz], [0, 0, 0], [R + 3, 0.02, R + 3], null, 'grass');
+    // Grandstand front edge: the outline of the two foul lines pushed out by `off`
+    // (straight runs down each line joined by an arc behind home plate).
+    const grandstand = (off, reach) => {
+      const raw = [];
+      const leg = (deg, sd, d) => { const a = deg * D2R; const nx = -Math.sin(a) * sd; const nz = Math.cos(a) * sd; return { x: hx + Math.cos(a) * d + nx * off, z: hz + Math.sin(a) * d + nz * off, nx, nz }; };
+      for (let d = reach; d > 0.01; d -= 1) raw.push(leg(-45, -1, d));
+      for (let i = 0; i <= 12; i++) { const t = (-135 - i * 7.5) * D2R; raw.push({ x: hx + Math.cos(t) * off, z: hz + Math.sin(t) * off, nx: Math.cos(t), nz: Math.sin(t) }); }
+      for (let d = 1; d <= reach + 0.01; d += 1) raw.push(leg(45, 1, d));
+      return resample(raw, 1.1, false);
+    };
+    const off = 5.5;
+    const wallR = R + 1.2; // outfield seating starts just behind the wall
+    const reach = Math.sqrt(wallR * wallR - off * off); // lower deck runs out to where it meets the outfield seats
+    const path = grandstand(off, reach);
     const lower = seatingBand(b, path, { closed: false, rows: 12, seat: seatCol, alt: altCol, seatsOut: seats });
     ribbon(b, path, lower.outer + 0.05, lower.top + 0.3, 0.6, [team, '#ffffff', team], false);
-    const upperPath = path.map((p) => ({ ...p, x: p.x + p.nx * (lower.outer + 1.6), z: p.z + p.nz * (lower.outer + 1.6) }));
-    const upper = seatingBand(b, upperPath, { closed: false, rows: 12, rise: 0.62, base: lower.top + 1.6, seat: seatCol, alt: altCol, seatsOut: seats });
-    canopy(b, upperPath, upper.outer * 0.45, upper.outer + 1.5, upper.top + 3.5, '#e9ecef', false);
-    // outfield bleachers in a curve past the wall
-    const ofRaw = [];
-    for (let i = 0; i <= 20; i++) { const a = -Math.PI / 4 + 0.08 + (i / 20) * (Math.PI / 2 - 0.16); ofRaw.push({ x: hx + Math.cos(a) * (R + 2.4), z: hz + Math.sin(a) * (R + 2.4) }); }
-    const ofPath = ofRaw.map((p) => { const dx = p.x - hx; const dz = p.z - hz; const l = Math.hypot(dx, dz); return { ...p, nx: dx / l, nz: dz / l }; });
-    for (const part of [resample(ofPath.slice(0, 8), 1.1, false), resample(ofPath.slice(13), 1.1, false)]) seatingBand(b, part, { closed: false, rows: 10, seat: altCol, alt: seatCol, seatsOut: seats });
-    setScore = videoBoard(group, hx + R + 12, 12, hz, -Math.PI / 2, 5.5);
-    for (const sd of [-1, 1]) { b.box(0.6, 12, 0.6, '#5b6168', hx + R + 12, 0, hz + sd * 4, { mat: 'metal' }); }
-    for (const [x, z] of [[hx - 4, hz - 18], [hx - 4, hz + 18], [hx + 18, hz - 24], [hx + 18, hz + 24]]) lightTower(b, x, z, 26);
-    extent = { cx: hx + 8, cz: hz, hw: 36, hd: 34 };
-    surroundingsAt(b, hx + 8, hz, 34, 34, rng);
+    const upOff = off + lower.outer + 1.6;
+    const upperPath = grandstand(upOff, 15);
+    const upper = seatingBand(b, upperPath, { closed: false, rows: 11, rise: 0.62, base: lower.top + 1.6, seat: seatCol, alt: altCol, seatsOut: seats });
+    canopy(b, upperPath, upper.outer * 0.6, upper.outer + 0.3, upper.top + 2.6, '#e9ecef', false);
+    // Outfield bleachers hugging the wall from each foul corner to the batter's eye.
+    const legEnd = Math.atan2(off, reach) / D2R + 45; // angle where the grandstand stops
+    const arcPath = (a0, a1) => {
+      const raw = []; const k = Math.max(2, Math.ceil(Math.abs(a1 - a0) / 3));
+      for (let i = 0; i <= k; i++) { const a = (a0 + (a1 - a0) * (i / k)) * D2R; raw.push({ x: hx + Math.cos(a) * wallR, z: hz + Math.sin(a) * wallR, nx: Math.cos(a), nz: Math.sin(a) }); }
+      return resample(raw, 1.1, false);
+    };
+    let bleach = null;
+    for (const [a0, a1] of [[-legEnd, -9], [9, legEnd]]) bleach = seatingBand(b, arcPath(a0, a1), { closed: false, rows: 9, seat: altCol, alt: seatCol, seatsOut: seats });
+    // Batter's eye in dead center, with the big video board standing behind it.
+    for (let i = -3; i <= 3; i++) {
+      const a = i * 2.6 * D2R; const r = wallR + 1.5;
+      b.add(new THREE.BoxGeometry(1, 1, 1), '#1f3b2a', [hx + Math.cos(a) * r, 2.2, hz + Math.sin(a) * r], [0, -a, 0], [3, 4.4, 1.3], null, 'fabric');
+    }
+    const sbX = hx + wallR + bleach.outer + 1;
+    setScore = videoBoard(group, sbX, 12, hz, -Math.PI / 2, 5.5);
+    for (const sd of [-1, 1]) b.box(0.6, 12, 0.6, '#5b6168', sbX + 0.6, 0, hz + sd * 4, { mat: 'metal' });
+    // Light towers behind the stands.
+    const towers = [];
+    for (const sd of [-1, 1]) {
+      const a = sd * 45 * D2R; const o = off + lower.outer + 1.2;
+      towers.push([hx + Math.cos(a) * (reach - 2) - Math.sin(a) * sd * o, hz + Math.sin(a) * (reach - 2) + Math.cos(a) * sd * o]);
+      const b2 = sd * (legEnd - 14) * D2R; const r2 = wallR + bleach.outer + 1.2;
+      towers.push([hx + Math.cos(b2) * r2, hz + Math.sin(b2) * r2]);
+    }
+    for (const [x, z] of towers) lightTower(b, x, z, 24, hx + 8, hz);
+    // Footprint: behind home out to the upper deck, out past the scoreboard.
+    const minX = hx - (upOff + upper.outer + 1); const maxX = sbX + 3;
+    const hd = Math.max(Math.sin(45 * D2R) * 15 + Math.cos(45 * D2R) * (upOff + upper.outer), wallR + bleach.outer) + 2;
+    extent = { cx: (minX + maxX) / 2, cz: hz, hw: (maxX - minX) / 2, hd };
+    surroundingsAt(b, extent.cx, hz, extent.hw, extent.hd, rng);
   } else {
     // Rectangular bowl around the field (soccer / football) or an indoor arena (basketball).
     const { L, W } = FIELD_SIZE[sport];
@@ -296,13 +334,14 @@ export function buildArena(sport, colors = ['#e63946', '#ffffff'], label = 'RIVA
   };
 }
 
-function lightTower(b, x, z, h) {
+function lightTower(b, x, z, h, fx = 0, fz = 0) {
+  const yaw = Math.atan2(fx - x, fz - z); // face the field
   b.cyl(0.35, 0.5, h, '#9aa0a6', x, 0, z, { mat: 'metal' });
-  b.box(4.2, 2.6, 0.5, '#5b6168', x, h, z, { mat: 'metal', rot: [0, Math.atan2(-x, -z), 0] });
-  const c = Math.cos(Math.atan2(-x, -z)); const s = Math.sin(Math.atan2(-x, -z));
+  b.box(4.2, 2.6, 0.5, '#5b6168', x, h, z, { mat: 'metal', rot: [0, yaw, 0] });
+  const c = Math.cos(yaw); const s = Math.sin(yaw);
   for (let r = 0; r < 3; r++) for (let k = 0; k < 5; k++) {
     const dx = -1.6 + k * 0.8;
-    b.box(0.6, 0.6, 0.15, '#fffbe6', x + dx * c + s * 0.3, h + 0.25 + r * 0.8, z - dx * s + c * 0.3, { mat: 'glow', rot: [0, Math.atan2(-x, -z), 0] });
+    b.box(0.6, 0.6, 0.15, '#fffbe6', x + dx * c + s * 0.3, h + 0.25 + r * 0.8, z - dx * s + c * 0.3, { mat: 'glow', rot: [0, yaw, 0] });
   }
 }
 

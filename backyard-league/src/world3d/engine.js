@@ -377,6 +377,11 @@ export class Engine {
     this.sun.position.set(focus.x + sd.x * 70, sd.y * 70, focus.z + sd.z * 70);
     this.sun.target.position.set(focus.x, 0, focus.z);
     this.clouds.position.set(this.camera.position.x, 0, this.camera.position.z);
+    // Pull the near plane out with distance so thin ground layers (paint, dirt, grass)
+    // keep enough depth precision not to flicker in far aerial shots.
+    const lookAt = this.camMode === 'cine' && this.cine ? this.cine.look : this.cam.target;
+    const near = Math.min(6, Math.max(0.1, this.camera.position.distanceTo(lookAt) * 0.03));
+    if (Math.abs(near - this.camera.near) > 0.01) { this.camera.near = near; this.camera.updateProjectionMatrix(); }
   }
 
   // ---------------------------------------------------- building views --
