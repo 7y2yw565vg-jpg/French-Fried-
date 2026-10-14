@@ -1,7 +1,7 @@
 "AppBuild"
 {
 	"AppID" "0000000" // TODO: your Steam App ID
-	"Desc" "Backyard League build"
+	"Desc" "Recess Rivals build"
 	"ContentRoot" "../release/"
 	"BuildOutput" "./output/"
 	"Depots"

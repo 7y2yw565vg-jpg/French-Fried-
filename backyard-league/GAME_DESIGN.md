@@ -1,4 +1,4 @@
-# BACKYARD LEAGUE — Game Design Document (v0.2)
+# RECESS RIVALS (working title) — Game Design Document (v0.2)
 
 > **A playable build exists!** See `README.md` in this folder for what's implemented, how to run it, and what's next.
 

@@ -13,6 +13,7 @@ import { jobUnlocked, jobReady } from '../game/economy.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
 import { portrait } from './talk.js';
+import { touchPref, setTouchPref } from './input.js';
 import { setVolume, getVolume, sfx } from './audio.js';
 
 const TABS = [['team', '🏟️ Team'], ['kids', '📒 Kids'], ['field', '🔧 Field & Staff'], ['league', '🏆 League'], ['school', '🏫 School'], ['money', '💰 Money & Stuff'], ['settings', '⚙️ Settings']];
@@ -363,13 +364,21 @@ function settingsTab(game, root, redraw, close) {
         btn('💾 Save now', () => game.save(), 'green'),
         btn('⬇️ Export save file', () => {
           const blob = new Blob([serialize(s)], { type: 'application/json' });
-          const a = h('a', { href: URL.createObjectURL(blob), download: `backyard-league-${s.team.name.replace(/\W+/g, '-')}.json` });
+          const a = h('a', { href: URL.createObjectURL(blob), download: `recess-rivals-${s.team.name.replace(/\W+/g, '-')}.json` });
           document.body.appendChild(a); a.click(); a.remove();
         }, 'white'),
         btn('🚪 Save & quit to title', () => { saveToStorage(s); close(); game.onQuit(); }, 'red'))),
     h('div', { class: 'box' }, h('h3', {}, 'Controls'),
-      h('div', {}, 'WASD / Arrows: walk (Shift = run)'), h('div', {}, 'E / Space: talk & interact'), h('div', {}, 'M: town map'), h('div', {}, 'Tab: phone'),
-      h('div', {}, 'Drag mouse: look around, mouse wheel: zoom, Q/R: rotate camera'), h('div', {}, 'Esc: close windows'))));
+      h('b', {}, '⌨️ Keyboard & mouse'),
+      h('div', {}, 'WASD / Arrows: walk (Shift = run) · E / Space: talk & interact · M: map · Tab: phone · Esc: close'),
+      h('div', {}, 'Drag: look around · Wheel: zoom · Q/R: rotate camera'),
+      h('b', { style: { display: 'block', marginTop: '8px' } }, '🎮 Controller'),
+      h('div', {}, 'Left stick: walk (RT to run) · Right stick: camera · A: talk / select · B: back · X: clutch · Y: map · Start: phone · LB/RB: turn camera, switch tabs, throw papers'),
+      h('div', {}, 'In menus the d-pad or left stick moves the highlight and A presses it.'),
+      h('b', { style: { display: 'block', marginTop: '8px' } }, '👆 Touch'),
+      h('div', {}, 'Drag the left side to walk (push to the edge to run) · Tap ✋ to talk · Drag the right side to look · Pinch to zoom'),
+      h('div', { class: 'field-row', style: { marginTop: '6px' } }, h('label', {}, 'On-screen touch controls'),
+        h('div', { class: 'chips' }, ...[['auto', 'Auto'], ['on', 'Always on'], ['off', 'Off']].map(([id, l]) => h('div', { class: `chip ${touchPref() === id ? 'sel' : ''}`, onclick: () => { setTouchPref(id); redraw(); } }, l)))))));
 }
 
 export { kidName };

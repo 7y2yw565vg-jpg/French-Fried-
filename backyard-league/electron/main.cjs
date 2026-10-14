@@ -1,4 +1,4 @@
-// Electron shell for the desktop / Steam build of Backyard League.
+// Electron shell for the desktop / Steam build of Recess Rivals.
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -24,7 +24,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 640,
     backgroundColor: '#8fd3ff',
-    title: 'Backyard League',
+    title: 'Recess Rivals',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

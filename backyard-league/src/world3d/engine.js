@@ -161,17 +161,36 @@ export class Engine {
         e.preventDefault();
         this.onInteract(this.focus);
       }
-      if (e.code === 'KeyQ') this.cam.yaw += 0.3;
-      if (e.code === 'KeyR' && !e.ctrlKey && !e.metaKey) this.cam.yaw -= 0.3;
+      if (e.code === 'KeyQ' || e.code === 'PadLB') this.cam.yaw += 0.3;
+      if ((e.code === 'KeyR' && !e.ctrlKey && !e.metaKey) || e.code === 'PadRB') this.cam.yaw -= 0.3;
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
     window.addEventListener('blur', () => this.keys.clear());
     const el = this.renderer.domElement;
-    let drag = null;
-    el.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, yaw: this.cam.yaw, pitch: this.cam.pitch }; });
-    window.addEventListener('pointerup', () => { drag = null; });
+    // One pointer drags the camera around; two fingers pinch to zoom.
+    const pts = new Map();
+    let drag = null; let pinch = null;
+    el.addEventListener('pointerdown', (e) => {
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 1) drag = { id: e.pointerId, x: e.clientX, y: e.clientY, yaw: this.cam.yaw, pitch: this.cam.pitch };
+      else if (pts.size === 2) {
+        drag = null;
+        const [a, b] = [...pts.values()];
+        pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: this.cam.dist };
+      }
+    });
+    const up = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (drag && drag.id === e.pointerId) drag = null; };
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
     window.addEventListener('pointermove', (e) => {
-      if (!drag) return;
+      if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && pts.size === 2) {
+        const [a, b] = [...pts.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        this.cam.dist = Math.max(4.5, Math.min(26, pinch.dist * (pinch.d / Math.max(20, d))));
+        return;
+      }
+      if (!drag || drag.id !== e.pointerId) return;
       this.cam.yaw = drag.yaw - (e.clientX - drag.x) * 0.006;
       this.cam.pitch = Math.max(0.3, Math.min(1.35, drag.pitch + (e.clientY - drag.y) * 0.004));
     });
@@ -483,6 +502,7 @@ export class Engine {
     const dt = Math.min(0.05, rawDt);
     wind.value += dt;
     if (this.world) {
+      this._updateCamStick(dt);
       this._updatePlayer(dt);
       this._updateNPCs(dt);
       for (const f of this.extraUpdaters) f(dt);
@@ -520,15 +540,25 @@ export class Engine {
     else p.checked = true;
   }
 
+  /** Right stick (or similar): turn and tilt the camera at a steady rate. */
+  _updateCamStick(dt) {
+    const c = this.camStick;
+    if (!c || this.camMode !== 'follow') return;
+    if (Math.abs(c.x) > 0.15) this.cam.yaw -= c.x * dt * 2.6;
+    if (Math.abs(c.y) > 0.15) this.cam.pitch = Math.max(0.3, Math.min(1.35, this.cam.pitch + c.y * dt * 1.4));
+  }
+
   _updatePlayer(dt) {
     const p = this.playerState;
     if (!this.player) return;
-    let mx = 0; let mz = 0;
+    let mx = 0; let mz = 0; let push = 1;
+    const a = this.analog; // touch joystick / gamepad stick: {x, y} in -1..1, y down = backward
     if (!this.paused && this.camMode === 'follow' && !p.sitting) {
       if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) mz -= 1;
       if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) mz += 1;
       if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) mx -= 1;
       if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) mx += 1;
+      if (!mx && !mz && a && Math.hypot(a.x, a.y) > 0.18) { mx = a.x; mz = a.y; push = Math.min(1, Math.hypot(a.x, a.y)); }
     }
     if (mx || mz) {
       const len = Math.hypot(mx, mz);
@@ -537,8 +567,8 @@ export class Engine {
       const fx = -Math.sin(yaw); const fz = -Math.cos(yaw);
       const rx = Math.cos(yaw); const rz = -Math.sin(yaw);
       const dx = rx * mx + fx * -mz; const dz = rz * mx + fz * -mz;
-      const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
-      const sp = (run ? 7.0 : 4.2) * this.speedMult;
+      const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || (a && a.run) || (push > 0.92 && a && a.autoRun);
+      const sp = (run ? 7.0 : 4.2 * Math.max(0.45, push)) * this.speedMult;
       const [nx, nz] = this._collide(p.x + dx * sp * dt, p.z + dz * sp * dt);
       p.x = nx; p.z = nz;
       const target = Math.atan2(dx, dz);

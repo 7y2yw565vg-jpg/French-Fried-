@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the fixed kid roster for Backyard League.
+"""Generate the fixed kid roster for Recess Rivals.
 
 The seed is constant, so every run of the game ships the exact same kids with the
 exact same stats, homes, and routines. Re-running this script reproduces the

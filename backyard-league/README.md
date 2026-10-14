@@ -1,4 +1,4 @@
-# ⚽ Backyard League
+# ⚽ Recess Rivals (working title)
 
 A 3D cartoon life sim and sports team management game. You're a 3rd grader starting a sports team: you recruit kids from around town, earn money for shirts and the league fee, keep your grades up, and take a backyard team all the way to the championship.
 
@@ -17,9 +17,13 @@ npm run build          # -> dist/index.html (one self-contained file, works offl
 open dist/index.html   # or: npm run dev (serves it on localhost:8090)
 npm run electron       # desktop window (the Steam build)
 npm test               # simulation unit tests
+node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs for touch + controller)
 ```
 
-**Controls:** WASD or arrows to walk (Shift to run). **E** to talk and interact. **M** for the town map. **Tab** for your phone. Drag the mouse or use Q/R to turn the camera, and the mouse wheel to zoom. **Esc** closes windows.
+**Controls** (it plays with any of these, and switches as soon as you use one):
+- **Keyboard & mouse:** WASD or arrows to walk (Shift to run). **E** to talk and interact. **M** for the town map. **Tab** for your phone. Drag the mouse or use Q/R to turn the camera, and the mouse wheel to zoom. **Esc** closes windows.
+- **Touch (phones & tablets):** drag anywhere on the left side for a thumbstick (push it to the edge to run), tap the ✋ button to talk or interact, drag the right side to look around, pinch to zoom. The paper route gets big throw buttons. Settings → Controls can force touch controls on or off.
+- **Controller:** left stick to walk (RT to run), right stick for the camera, **A** talk / select, **B** back, **X** clutch moments, **Y** map, **Start** phone, **LB/RB** turn the camera, switch phone tabs and throw papers. Every menu works with the d-pad: it moves a highlight and A presses it.
 
 ## What's in this build
 

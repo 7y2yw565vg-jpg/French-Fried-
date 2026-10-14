@@ -155,7 +155,7 @@ export function startPaperRoute(game) {
   const info = h('div', { class: 'row' });
   const draw = () => info.replaceChildren(h('span', { class: 'pill good' }, `Delivered ${hits}/${houses.length}`), h('span', { class: 'pill bad' }, `Windows ${windows}`), h('span', { class: 'pill' }, `Thrown ${thrown}`), h('span', { class: 'pill' }, money(earned)));
   draw();
-  clear($('#panel')).appendChild(h('div', { class: 'card' }, h('h3', {}, '📰 Paper Route'), h('p', {}, h('span', { class: 'key' }, 'A'), ' throw left   ', h('span', { class: 'key' }, 'D'), ' throw right. Aim for the porches, NOT the windows!'), info));
+  clear($('#panel')).appendChild(h('div', { class: 'card' }, h('h3', {}, '📰 Paper Route'), h('p', {}, h('span', { class: 'key' }, 'A'), ' / LB / ◀ throw left   ', h('span', { class: 'key' }, 'D'), ' / RB / ▶ throw right. Aim for the porches, NOT the windows!'), info));
   const throwPaper = (side) => {
     thrown++;
     const target = houses.filter((hh) => Math.sign(hh.porch.z) === side && !done.has(hh)).sort((a, b) => Math.abs(a.porch.x - x) - Math.abs(b.porch.x - x))[0];
@@ -175,8 +175,8 @@ export function startPaperRoute(game) {
     sfx('swoosh');
   };
   const key = (ev) => {
-    if (ev.code === 'KeyA' || ev.code === 'ArrowLeft') { ev.preventDefault(); throwPaper(-1); }
-    if (ev.code === 'KeyD' || ev.code === 'ArrowRight') { ev.preventDefault(); throwPaper(1); }
+    if (ev.code === 'KeyA' || ev.code === 'ArrowLeft' || ev.code === 'PadLB') { ev.preventDefault(); throwPaper(-1); }
+    if (ev.code === 'KeyD' || ev.code === 'ArrowRight' || ev.code === 'PadRB') { ev.preventDefault(); throwPaper(1); }
   };
   window.addEventListener('keydown', key);
   let minAcc = 0;

@@ -9,6 +9,7 @@ import { weatherFor } from '../game/economy.js';
 import { playerGameThisWeek } from '../game/league.js';
 import { SPORTS } from '../data/world.js';
 import { openMap } from './mapview.js';
+import { inputMode } from './input.js';
 import { openPhone } from './phone.js';
 
 export class Hud {
@@ -97,7 +98,8 @@ export class Hud {
   prompt(f) {
     const el = this.promptEl;
     if (!f || this.game.mode !== 'free') { el.classList.remove('show'); return; }
-    el.replaceChildren(h('span', { class: 'key' }, 'E'), h('span', {}, f.label));
+    const m = inputMode();
+    el.replaceChildren(h('span', { class: 'key' }, m === 'pad' ? 'A' : m === 'touch' ? '👆' : 'E'), h('span', {}, f.label));
     el.classList.add('show');
   }
 }

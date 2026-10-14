@@ -45,11 +45,16 @@ export function showTitle(engine, onNew, onContinue) {
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files[0];
     if (!f) return;
-    try { onContinue(deserialize(await f.text())); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Backyard League save. (${e.message})` }); }
+    try { onContinue(deserialize(await f.text())); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); }
   });
   ov.appendChild(h('div', { class: 'screen' },
     h('div', { class: 'title-wrap' },
-      h('div', { class: 'logo' }, 'Backyard', h('small', {}, 'LEAGUE')),
+      h('div', { class: 'logo-wrap' },
+        h('div', { class: 'logo' }, 'Recess', h('small', {}, 'RIVALS')),
+        // A hand-lettered "working title" sign hanging from the logo on two strings.
+        h('div', { class: 'wt-banner', 'aria-label': 'working title' },
+          h('i', { class: 'wt-string l' }), h('i', { class: 'wt-string r' }),
+          h('div', { class: 'wt-card' }, 'working title'))),
       h('div', { class: 'tagline' }, 'Recruit kids. Run a lemonade stand. Pass notes. Win the league.'),
       h('div', { class: 'title-buttons' },
         saved ? btn(`Continue: ${saved.team.name}`, () => onContinue(saved), 'big green') : null,
@@ -57,7 +62,10 @@ export function showTitle(engine, onNew, onContinue) {
         btn('Load save file', () => fileInput.click(), 'white'),
         fileInput,
       ),
-      h('div', { class: 'credits' }, 'WASD / arrows to move - Shift to run - E to talk & interact - M map - Tab phone - drag to look around'),
+      h('div', { class: 'credits' },
+        h('span', { class: 'kb' }, 'WASD / arrows to move - Shift to run - E to talk & interact - M map - Tab phone - drag to look around'),
+        h('span', { class: 'touch' }, 'Drag the left side to move (push far to run) - tap ✋ to talk - drag the right side to look, pinch to zoom'),
+        h('span', { class: 'pad' }, 'Left stick move - RT run - A talk / select - B back - Y map - Start phone - right stick camera')),
     )));
 }
 

@@ -6,16 +6,18 @@ import { Game } from './ui/game.js';
 import { newGame, saveToStorage } from './game/state.js';
 import { ensureSeason } from './game/league.js';
 import { setVolume } from './ui/audio.js';
+import { setupInput } from './ui/input.js';
 
 let engine;
 try {
   engine = new Engine($('#view3d'));
 } catch (err) {
-  document.body.innerHTML = '<div class="loading">Backyard League needs WebGL (3D graphics). Try another browser or update your graphics drivers.</div>';
+  document.body.innerHTML = '<div class="loading">Recess Rivals needs WebGL (3D graphics). Try another browser or update your graphics drivers.</div>';
   throw err;
 }
 
 let game = null;
+setupInput(engine, () => game);
 window.__bl = { closeAllModals, engine }; // handy for debugging in the console
 
 function loadSettings() {

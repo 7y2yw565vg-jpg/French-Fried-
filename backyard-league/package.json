@@ -1,11 +1,11 @@
 {
   "name": "backyard-league",
-  "productName": "Backyard League",
+  "productName": "Recess Rivals",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "Build a backyard sports dynasty: recruit kids, earn money, survive school, win the league.",
-  "author": "Backyard League Team",
+  "author": "Recess Rivals Team",
   "license": "UNLICENSED",
   "main": "electron/main.cjs",
   "scripts": {
@@ -23,6 +23,7 @@
     "three": "0.170.0"
   },
   "devDependencies": {
+    "@fontsource/caveat": "^5.3.0",
     "@fontsource/lilita-one": "^5.2.5",
     "@fontsource/nunito": "^5.2.5",
     "electron": "33.4.11",
@@ -35,7 +36,7 @@
   },
   "build": {
     "appId": "com.backyardleague.game",
-    "productName": "Backyard League",
+    "productName": "Recess Rivals",
     "directories": {
       "output": "release"
     },
