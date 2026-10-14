@@ -393,7 +393,7 @@ Each kid weights these differently by personality: Jocks care about results, Soc
 
 ## 12. Games
 
-- **League schedule:** each sport has 4 rival Jr League teams (5 with yours). 8 regular season games (double round-robin with byes) and a 4-team playoff. Saturday game days. Rival teams sign free agents before the season starts, so they compete with you for the same kids.
+- **League schedule:** every league has at least 8 teams, counting yours. 10 regular season games (a round robin with no byes) and a 4-team playoff. Saturday game days. Rival teams sign free agents before the season starts, so they compete with you for the same kids.
 - **If you're on your own roster** (default in the Jr League): you play the game in an **arcade-style** controlled mode, as your character, with AI teammates. You can call simple plays.
 - **If you're not playing** (coach-only, or later as owner): the game is **simulated**. You can:
   - **Spectate in 3D** (watch the sim play out with commentary), or

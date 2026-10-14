@@ -327,9 +327,11 @@ export function buildCharacter(look, opts = {}) {
   addHair(hb, look.hairStyle, hair, HAIR_ACCENT[look.hairColor], R, hc, rng, fav);
   // headwear
   if (acc.has('backwards cap')) {
-    hb.add(hairCap(Math.PI * 0.46, 1, 0), fav, [0, hc + R * 0.08, -R * 0.02], [-0.22, 0, 0], [R * 1.1, R * 1.05, R * 1.1], null, 'cloth');
-    hb.rbox(R * 0.95, 0.03, R * 0.75, shade(fav, 0.75), 0, hc + R * 0.36, -R * 1.12, { center: true, rot: [-0.3, 0, 0], mat: 'cloth' });
-    hb.sphere(R * 0.07, shade(fav, 0.8), 0, hc + R * 1.12, 0, [1, 0.5, 1], { mat: 'cloth' });
+    // Six-panel crown sitting high on the head, brim flipped to the back, hair poking out front.
+    const crown = (x, y, z) => (Math.abs(Math.sin(Math.atan2(z, x) * 3)) < 0.05 ? shade(fav, 0.8) : y < 0.36 ? shade(fav, 0.88) : fav);
+    hb.add(hairCap(Math.PI * 0.4, 1, 0), fav, [0, hc + R * 0.1, -R * 0.04], [-0.16, 0, 0], [R * 1.08, R * 1.0, R * 1.08], crown, 'cloth');
+    hb.rbox(R * 0.88, 0.028, R * 0.66, shade(fav, 0.72), 0, hc + R * 0.42, -R * 1.14, { center: true, rot: [-0.1, 0, 0], mat: 'cloth' });
+    hb.sphere(R * 0.08, shade(fav, 0.8), 0, hc + R * 1.1, -R * 0.2, [1, 0.5, 1], { mat: 'cloth' });
   }
   if (acc.has('beanie')) {
     hb.add(hairCap(Math.PI * 0.47, 1, 0), fav, [0, hc + R * 0.22, -R * 0.02], [-0.28, 0, 0], [R * 1.12, R * 1.12, R * 1.12], (x, y) => (Math.sin(Math.atan2(y, x) * 16) > 0 ? fav : shade(fav, 0.88)), 'cloth');

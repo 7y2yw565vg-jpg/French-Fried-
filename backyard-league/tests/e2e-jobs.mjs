@@ -16,6 +16,8 @@ page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}\n${e.stack}`));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
 const shot = async (name, wait = 600) => { await page.waitForTimeout(wait); await page.screenshot({ path: path.join(out, `${name}.png`) }); console.log('shot', name); };
 const g = (fn, arg) => page.evaluate(fn, arg);
+// Wait for N rendered frames (software GL in CI can take ~0.5s per frame).
+const frames = (n = 3) => page.evaluate((k) => new Promise((r) => { let i = 0; const f = () => (++i >= k ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
 const closeModals = () => g(() => { window.__bl.closeAllModals(); });
 
 await page.goto(pathToFileURL(path.join(root, 'dist/index.html')).href);
@@ -44,11 +46,10 @@ console.log('invited', invited);
 await shot('j01-tryout', 1000);
 await page.click('text=Sprints');
 await shot('j02-sprint-race', 2500);
-await page.waitForTimeout(6000);
-await shot('j03-sprint-results', 500);
-await page.click('text=Cone Weave').catch(() => {});
-await page.waitForTimeout(3000);
-await page.click('text=Done with drills').catch((e) => console.log('done btn', e.message));
+// Drills animate per frame, so wait for the buttons to re-enable rather than a fixed time.
+await page.locator('button:has-text("Cone Weave")').click({ timeout: 180000 }).catch(() => {});
+await shot('j03-cone-weave', 1500);
+await page.locator('button:has-text("Done with drills")').click({ timeout: 180000 }).catch((e) => console.log('done btn', e.message));
 await shot('j04-picks', 800);
 for (let i = 0; i < 3; i++) await page.locator('text=✍️ Sign').first().click().catch(() => {});
 await page.click('text=Finish tryout');
@@ -63,7 +64,7 @@ await g(() => {
   const spot = game.desc.interact.find((i) => i.kind === 'lemonade');
   game.engine.teleport(spot.x, spot.z, 0);
 });
-await page.waitForTimeout(400);
+await frames(3);
 await g(() => { const game = window.__game; const spot = game.desc.interact.find((i) => i.kind === 'lemonade'); game.interact({ type: 'spot', kind: 'lemonade', label: '', data: {}, spot }); });
 await shot('j06-lemonade-setup', 500);
 await page.click('text=Open the stand!');
@@ -103,6 +104,8 @@ await g(() => {
   game.engine.teleport(lawn.x, lawn.z, 0);
 });
 await page.waitForTimeout(500);
+await closeModals();
+await frames(3);
 await g(() => { const game = window.__game; const spot = game.desc.interact.find((i) => i.kind === 'mow'); game.interact({ type: 'spot', kind: 'mow', label: '', data: {}, spot }); });
 await page.keyboard.down('KeyD');
 await page.waitForTimeout(1500);

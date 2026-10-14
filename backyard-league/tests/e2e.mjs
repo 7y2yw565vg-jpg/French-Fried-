@@ -18,6 +18,8 @@ page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}\n${e.stack}`));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
 const shot = async (name, wait = 600) => { await page.waitForTimeout(wait); await page.screenshot({ path: path.join(out, `${name}.png`) }); console.log('shot', name); };
 const g = (fn, arg) => page.evaluate(fn, arg);
+// Wait for N rendered frames (software GL in CI can take ~0.5s per frame).
+const frames = (n = 3) => page.evaluate((k) => new Promise((r) => { let i = 0; const f = () => (++i >= k ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
 
 await page.goto(pathToFileURL(path.join(root, 'dist/index.html')).href);
 await shot('01-title', 1500);
@@ -31,7 +33,7 @@ await shot('04-bedroom', 800);
 
 // Ask parents for money.
 await g(() => { const s = window.__game.state; window.__game.engine.teleport(-5.5, -3.0, Math.PI); });
-await page.waitForTimeout(400);
+await frames(3);
 await page.keyboard.press('KeyE');
 await shot('05-parents', 600);
 await page.click('text=Ask for money');

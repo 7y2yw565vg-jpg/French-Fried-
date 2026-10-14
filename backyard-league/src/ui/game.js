@@ -135,6 +135,17 @@ export class Game {
     this.refreshPresence(true);
     this.hud.render();
     this.checkPeriodArrival();
+    this.showArrival(loc);
+  }
+
+  /** Cut-to-black and fade back in, with a broadcast-style location banner. */
+  showArrival(loc) {
+    const curtain = document.getElementById('curtain');
+    const banner = document.getElementById('banner');
+    if (!curtain || !banner) return;
+    curtain.classList.remove('fade'); void curtain.offsetWidth; curtain.classList.add('fade');
+    banner.replaceChildren(h('div', { class: 'banner-kicker' }, `${dayInfo(this.state.time.day).dateLabel} · ${formatTime(this.state.time.minute)}`), h('div', { class: 'banner-title' }, this.locName(loc)));
+    banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
   }
 
   locName(loc = this.state.loc) {

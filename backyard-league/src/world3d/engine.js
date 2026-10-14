@@ -93,7 +93,7 @@ export class Engine {
     this.visT = 0;
     this.perf = { frames: 0, time: 0, checked: false };
     this._bindInput();
-    this.setQuality(localStorageGet('bl-quality') || 'high', false);
+    this.setQuality(localStorageGet('bl-quality') || defaultQuality(this.renderer), false);
     this.resize();
     window.addEventListener('resize', () => this.resize());
     this._loop = this._loop.bind(this);
@@ -202,6 +202,7 @@ export class Engine {
     if (this.player) { this.scene.add(this.player.root); this._placePlayer(); }
     this._updateAreas(1, true);
     this._snapCamera();
+    this._updateFocus();
   }
 
   setPlayer(look) {
@@ -504,11 +505,16 @@ export class Engine {
   _watchPerf(dt) {
     const p = this.perf;
     if (p.checked || !this.world || localStorageGet('bl-quality-locked')) return;
-    p.frames++; p.time += dt;
-    if (p.frames < 120) return;
-    const avg = p.time / p.frames;
+    p.frames++;
+    if (p.frames <= 5) return; // skip shader-compile hitches
+    p.time += dt;
+    const n = p.frames - 5;
+    // Decide quickly on very slow machines; otherwise average over ~2s.
+    if (n < 120 && !(n >= 4 && p.time / n > 0.12)) return;
+    const avg = p.time / n;
     p.frames = 0; p.time = 0;
-    if (avg > 0.034 && this.quality === 'high') this.setQuality('medium', false);
+    if (avg > 0.12 && this.quality !== 'low') this.setQuality('low', false);
+    else if (avg > 0.034 && this.quality === 'high') this.setQuality('medium', false);
     else if (avg > 0.045 && this.quality === 'medium') this.setQuality('low', false);
     else p.checked = true;
   }
@@ -667,3 +673,15 @@ export function disposeTree(root) {
 }
 
 export { THREE, UP };
+
+/** Starting quality for this GPU: software rasterizers and integrated chips start lower. */
+function defaultQuality(renderer) {
+  try {
+    const gl = renderer.getContext();
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)).toLowerCase();
+    if (/swiftshader|llvmpipe|software|basic render/.test(name)) return 'low';
+    if (/intel|mali|adreno|powervr/.test(name)) return 'medium';
+  } catch { /* ignore */ }
+  return 'high';
+}

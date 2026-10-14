@@ -77,8 +77,8 @@ export function showCreator(engine, onDone) {
     engine.player.root.visible = true;
   };
   refresh();
-  engine.cinematic({ x: 0, z: 0 }, 3.6, { height: 1.7, spin: 0.25 });
-  engine.cine.look.y = 0.75;
+  engine.cinematic({ x: 0, z: 0 }, 4.4, { height: 1.45, spin: 0.25 });
+  engine.cine.look.y = 0.68;
 
   const ov = $('#overlay');
   clear(ov);

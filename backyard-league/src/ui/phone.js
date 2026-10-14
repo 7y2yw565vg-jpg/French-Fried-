@@ -325,12 +325,20 @@ function moneyTab(game, root) {
 function settingsTab(game, root, redraw, close) {
   const s = game.state;
   const speed = h('div', { class: 'chips' }, ...[['slow', 'Relaxed'], ['normal', 'Normal'], ['fast', 'Speedy']].map(([id, l]) => h('div', { class: `chip ${game.settings.speed === id ? 'sel' : ''}`, onclick: () => { game.settings.speed = id; try { localStorage.setItem('bl-settings', JSON.stringify(game.settings)); } catch { /* optional */ } redraw(); } }, l)));
+  const eng = game.engine;
+  const gfx = h('div', { class: 'chips' }, ...[['low', 'Performance'], ['medium', 'Balanced'], ['high', 'Ultra']].map(([id, l]) => h('div', { class: `chip ${eng.quality === id ? 'sel' : ''}`, onclick: () => {
+    eng.setQuality(id, true);
+    try { localStorage.setItem('bl-quality-locked', '1'); } catch { /* optional */ }
+    redraw();
+  } }, l)));
   const vol = h('input', { type: 'range', min: 0, max: 1, step: 0.05, value: getVolume() });
   vol.addEventListener('input', () => { setVolume(+vol.value); sfx('pop'); });
   root.append(h('div', { class: 'grid2' },
     h('div', { class: 'box' }, h('h3', {}, 'Game'),
       h('div', { class: 'field-row' }, h('label', {}, 'Clock speed'), speed),
       h('div', { class: 'field-row' }, h('label', {}, 'Volume'), vol),
+      h('div', { class: 'field-row' }, h('label', {}, 'Graphics'), gfx,
+        h('div', { class: 'muted', style: { marginTop: '6px' } }, 'Ultra adds ambient occlusion, bloom and 4K shadows. The game picks a level for your PC automatically until you choose one.')),
       h('div', { class: 'btn-row' },
         btn('💾 Save now', () => game.save(), 'green'),
         btn('⬇️ Export save file', () => {

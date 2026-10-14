@@ -4,6 +4,10 @@ A 3D cartoon life sim and sports team management game. You're a 3rd grader start
 
 The full design is in [`GAME_DESIGN.md`](GAME_DESIGN.md). This folder holds a **playable build** of it.
 
+## Play it
+
+A hosted build is at **https://claude.ai/artifact/91GKDai5uH5ttdYFT7dinr** (private until shared from the page's Share menu). It is the same single file as `dist/index.html`. Saves stay in your browser.
+
 ## Run it
 
 ```bash
@@ -25,7 +29,7 @@ npm test               # simulation unit tests
 - **Kids are where their routine says they are.** During class they sit at their desks, at recess they're at their favorite playground spot, B lunch is in the cafeteria, specials mix kids from different homerooms, after school they go to the mall, library, museum, grocery store or their own front yard, and weekends have their own spots. Private-school and homeschooled kids can only be found outside school. The map shows which kids you know should be at each place right now.
 
 **Places** (pick a destination on the map, then explore it in 3D)
-- **Your house:** a cutaway dollhouse with Mom & Dad (ask for money, do chores), your bed, your computer (team HQ, homework), the garage, a basement trophy shelf, and the backyard field.
+- **Your house:** seen from outside, it's a roofed house. Step inside and the roof lifts off and the walls drop, Sims-style. Inside are Mom & Dad (ask for money, do chores), your bed, your computer (team HQ, homework), the garage, a basement trophy shelf, and the backyard field.
 - **6 neighborhoods**, each with its own style: houses for every kid's address, a cul-de-sac, a driveway hoop, a creek, lemonade stand spots, paper routes and mowing jobs.
 - **School:** 12 homerooms, specials rooms, cafeteria, gym, nurse, principal's office, detention, and a playground with swings, tetherball, four square, a kickball diamond and more.
 - **Mall:** sporting goods, game shop, shoe store, dollar store, pet store, arcade with a claw machine, food court and fountain.
@@ -57,12 +61,14 @@ npm test               # simulation unit tests
 - **Team attraction** combines roster, results, history, trophies *on display*, facilities, how much kids like you, fan buzz and coaching, minus any scandal penalty.
 
 **The league**
-- Each sport has 4 rival Jr League teams. **They sign free agents before each season**, competing with you for the same kids. Some kids are poachable, and some are loyal to their team.
+- Every league has **8 teams**, counting yours. The 10-week season is a round robin with no byes. **They sign free agents before each season**, competing with you for the same kids. Some kids are poachable, and some are loyal to their team.
 - Preseason registration, then 8 Saturday games, then semifinals and a final. The game simulation is event-based for all four sports.
 - **Game day in 3D:** both teams take the field in uniform with fans watching. Play-by-play commentary gets better as you upgrade your announcer, and the scoreboard updates live. **Clutch moments put you in control** with a timing minigame that decides the play.
 - Standings, schedule, a news feed, season history, **trophies you place on your shelf**, and a game ball for your first win.
 - **The ringer scandal:** a shady kid offers to "fix" an older kid's paperwork. Every game they play risks getting caught, which brings forfeited wins, playing one kid short for the rest of the season, a **3-year playoff ban**, a fine and grounding. A second offense gets your team expelled.
 - **Growing up:** every school year everyone moves up a grade. Stats follow each kid's growth curve (Phenom, Late Bloomer, Early Peaker, Dud, Morale Machine, and so on), kids get taller, and at 6th grade you move up to the Middle League.
+
+**Presentation:** buildings show their full exterior and roof until you walk in. At school only the room you're in is drawn, against a dark backdrop. Doors swing open as you approach. Arriving at a location fades in with a broadcast-style banner. There are three graphics levels (Phone → Settings → Graphics), auto-picked for your GPU.
 
 **Steam-ready:** an Electron shell with the steamworks.js bridge, 21 achievements (also in `steam/achievements.csv`), `steam/app_build.vdf`, autosave and save export/import.
 
@@ -73,7 +79,7 @@ npm test               # simulation unit tests
 - Running more than one sport's team at once.
 - **Fully playable arcade sports.** Right now games are simulated and you control the clutch moments.
 - Unique hand-written dialogue per kid, music, and voice acting. Dialogue is currently written per personality.
-- Production art. All characters and props are built procedurally in code with toon shading. A commercial release would replace them with modeled and animated assets, using the same data.
+- Production art. Characters (painted faces, sculpted bodies, 20+ hair styles), buildings and props are all built procedurally in code. They use PBR materials with procedural textures, an HDR sky and environment lighting, soft shadows, ambient occlusion, bloom and color grading. A commercial release would swap in artist-modeled assets on top of the same data.
 - Teen appearances change in height and proportions only. There are no new outfits yet.
 
 ## Engine note
