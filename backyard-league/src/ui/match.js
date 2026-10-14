@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { $, h, clear, btn, modal, toast, money } from './dom.js';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { FIELDS, SPORTS, POSITIONS, RIVAL_COLORS } from '../data/world.js';
-import { simGame, recordResult, forfeitResult, playerForfeitReason, simOtherGames, teamColors, matchSide } from '../game/league.js';
+import { simGame, recordResult, forfeitResult, playerForfeitReason, simOtherGames, teamColors, matchSide, kitBottoms } from '../game/league.js';
 import { getKid, kidGrade, heightOf, playerGrade } from '../game/state.js';
 import { dayInfo } from '../game/time.js';
 import { upgradeCap } from '../game/team.js';
@@ -109,10 +109,10 @@ export function playMatch(game, g, opp, week) {
   e.player.root.visible = false;
   const f = game.desc.fieldInfo;
   const sport = s.team.sport;
-  const homeColors = teamColors(s, g.home);
+  const homeColors = [...teamColors(s, g.home).slice(0, 2), kitBottoms(s, g.home)];
   const awayColors = teamColors(s, g.away);
   // Clashing kits? The away team wears whites.
-  const awayKit = colorDist(homeColors[0], awayColors[0]) < 140 ? ['#f4f4f0', awayColors[0]] : awayColors;
+  const awayKit = [...(colorDist(homeColors[0], awayColors[0]) < 140 ? ['#f4f4f0', awayColors[0]] : awayColors.slice(0, 2)), kitBottoms(s, g.away)];
   const sides = { home: matchSide(s, g.home, { home: true }), away: matchSide(s, g.away) };
   const ids = { home: [], away: [] };
   const spawn = (side, phase = 'field') => {

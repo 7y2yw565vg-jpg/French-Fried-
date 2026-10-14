@@ -4,7 +4,7 @@ import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
 import { registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand } from '../game/team.js';
-import { standings, weekGames } from '../game/league.js';
+import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
 import { friendshipLabel, parseHook } from '../game/social.js';
@@ -50,6 +50,7 @@ function teamTab(game, root, redraw) {
   const att = attraction(s);
   const head = h('div', { class: 'box' },
     h('div', { class: 'row' }, h('h3', { style: { flex: 1 } }, `${sp.icon} ${s.team.name}`), h('span', { class: 'pill info' }, band.name), h('span', { class: 'pill' }, `Record ${s.team.wins}-${s.team.losses}`), h('span', { class: 'pill' }, `🏆 ${s.team.championships}`)),
+    h('div', { class: 'row' }, 'Uniform bottoms:', h('div', { class: 'chips' }, ...['shorts', 'pants'].map((v) => h('div', { class: `chip ${kitBottoms(s, s.team.name) === v ? 'sel' : ''}`, onclick: () => { s.team.kitBottoms = v; redraw(); } }, v === 'pants' ? '👖 Pants' : '🩳 Shorts')))),
     h('div', { class: 'row' }, 'Team attraction:', h('div', { class: 'bar', style: { width: '160px' } }, h('i', { style: { width: `${att}%` } })), h('b', {}, att), h('span', { class: 'muted' }, '(roster, results, history, trophies on display, facilities, how much kids like you)')));
   root.appendChild(head);
 

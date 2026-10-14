@@ -10,7 +10,7 @@ import { whereIsKid, schoolLocFor, sectionOf } from '../game/routines.js';
 import { seatChart, markTardy, markAbsent, applyPunishment, playerClass, teacherInfo } from '../game/school.js';
 import { practiceToday } from '../game/team.js';
 import { pickupsFor, collectPickup, jobReady, mowJobs } from '../game/economy.js';
-import { playerGameThisWeek, ensureSeason } from '../game/league.js';
+import { playerGameThisWeek, ensureSeason, kitBottoms } from '../game/league.js';
 import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue } from '../world3d/scenes.js';
 import { lookFromKid, adultLook } from '../world3d/kidModel.js';
 import { Builder } from '../world3d/toon.js';
@@ -228,7 +228,7 @@ export class Game {
     } else if (w.zone === 'backyard' && d.fieldInfo) {
       const f = d.fieldInfo;
       place({ x: f.cx, z: f.cz, w: f.L * 0.7, d: f.W * 0.6 });
-      spec.uniform = s.team.colors;
+      spec.uniform = [...s.team.colors.slice(0, 2), kitBottoms(s, s.team.name)];
       spec.run = true;
     } else if (z) {
       place(z, 0.9);

@@ -3,15 +3,16 @@ import * as THREE from 'three';
 import { h, btn, clear, $, modal } from './dom.js';
 import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world3d/toon.js';
 import { buildHome } from '../world3d/scenes.js';
-import { buildCharacter, lookFromKid } from '../world3d/kidModel.js';
+import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS } from '../world3d/kidModel.js';
+import { HAIR_STYLES } from '../world3d/hair.js';
 import { SPORTS, PERKS, NEIGHBORHOODS } from '../data/world.js';
 import { KIDS } from '../data/kids.js';
 import { loadFromStorage, deserialize } from '../game/state.js';
 import { sfx } from './audio.js';
 
-const HAIR_STYLES = ['spiky', 'buzz cut', 'bowl cut', 'messy mop', 'curly afro', 'braids', 'pigtails', 'ponytail', 'high puff', 'space buns', 'bob', 'long straight', 'long wavy', 'mohawk', 'cowlick', 'side part', 'twists', 'locs', 'fade', 'hijab', 'patka', 'shaggy', 'french braid'];
 const BUILDS = ['average', 'skinny', 'lanky', 'stocky', 'sturdy', 'round', 'wiry'];
-const ACCESSORIES = ['none', 'backwards cap', 'glasses', 'sport goggles', 'beanie', 'bucket hat', 'headphones', 'sweatband', 'freckles', 'braces', 'superhero cape', 'giant backpack', 'light-up sneakers', 'missing front tooth', 'dinosaur hoodie', 'friendship bracelets'];
+const HATS = ['none', 'baseball cap', 'backwards cap', 'beanie', 'bucket hat'];
+const ACCESSORIES = ['none', 'glasses', 'sport goggles', 'headphones', 'sweatband', 'freckles', 'braces', 'superhero cape', 'giant backpack', 'light-up sneakers', 'missing front tooth', 'dinosaur hoodie', 'friendship bracelets'];
 const TEAM_COLORS = ['#e63946', '#f4842a', '#f9d342', '#2fa35b', '#1fb5a8', '#3a86ff', '#24427a', '#8a5cd6', '#f27eb5', '#2b2b2f', '#ffffff', '#8b5a2b'];
 const ADJ = ['Backyard', 'Sprinkler', 'Cul-de-Sac', 'Lawn Gnome', 'Juice Box', 'Mud Puddle', 'Sidewalk', 'Garage', 'Treehouse', 'Pizza Night', 'Recess', 'Lemonade', 'Pillow Fort', 'Snack Time'];
 const NOUN = ['Bandits', 'Sharks', 'Comets', 'Legends', 'Jaguars', 'Mudcats', 'Gorillas', 'Tornadoes', 'Panthers', 'Rockets', 'Raccoons', 'Thunder', 'Dragons', 'Hornets'];
@@ -61,7 +62,9 @@ export function showTitle(engine, onNew, onContinue) {
 }
 
 export function showCreator(engine, onDone) {
-  const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: ['backwards cap'], shirt: 'red' };
+  const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: ['backwards cap'], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim' };
+  let hatPick = 'backwards cap'; let sigPick = 'none';
+  const syncAcc = () => { look.accessories = [hatPick, sigPick].filter((v) => v !== 'none'); };
   const cfg = { name: '', perk: 'smooth', hood: 'maple', sport: 'soccer', teamName: randomTeamName(), colors: ['#e63946', '#ffffff'] };
 
   // preview world: a little grass platform
@@ -147,8 +150,12 @@ export function showCreator(engine, onDone) {
         h('div', { class: 'field-row' }, h('label', {}, 'Hair color'), swatchRow(Object.fromEntries(Object.entries(HAIR).filter(([k]) => !k.startsWith('dyed'))), 'hairColor')),
         h('div', { class: 'field-row' }, h('label', {}, 'Eyes'), swatchRow(EYES, 'eyeColor')),
         h('div', { class: 'field-row' }, h('label', {}, 'Build'), chipRow(BUILDS, () => look.build, (v) => { look.build = v; })),
-        h('div', { class: 'field-row' }, h('label', {}, 'Favorite shirt'), swatchRow(OUTFIT, 'shirt')),
-        h('div', { class: 'field-row' }, h('label', {}, 'Signature look'), chipRow(ACCESSORIES, () => look.accessories[0] || 'none', (v) => { look.accessories = v === 'none' ? [] : [v]; })),
+        h('div', { class: 'field-row' }, h('label', {}, 'Top'), chipRow(TOPS, () => look.top, (v) => { look.top = v; })),
+        h('div', { class: 'field-row' }, h('label', {}, 'Shirt color'), swatchRow(OUTFIT, 'shirt')),
+        h('div', { class: 'field-row' }, h('label', {}, 'Bottoms'), chipRow(BOTTOMS, () => look.bottom, (v) => { look.bottom = v; })),
+        h('div', { class: 'field-row' }, h('label', {}, 'Pants color'), swatchRow(PANTS_COLORS, 'pants')),
+        h('div', { class: 'field-row' }, h('label', {}, 'Hat'), chipRow(HATS, () => hatPick, (v) => { hatPick = v; syncAcc(); })),
+        h('div', { class: 'field-row' }, h('label', {}, 'Signature look'), chipRow(ACCESSORIES, () => sigPick, (v) => { sigPick = v; syncAcc(); })),
         h('div', { class: 'field-row' }, h('label', {}, 'Your thing'), perkCards),
         h('div', { class: 'field-row' }, h('label', {}, 'Home neighborhood'), chipRow(NEIGHBORHOODS.filter((n) => n.id !== 'riverside').map((n) => n.name), () => NEIGHBORHOODS.find((n) => n.id === cfg.hood).name, (v) => { cfg.hood = NEIGHBORHOODS.find((n) => n.name === v).id; })),
         h('hr'),

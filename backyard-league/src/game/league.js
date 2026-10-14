@@ -26,6 +26,13 @@ export function rivalsFor(sport, bandId) {
   return [...KIDS_META.rival_teams.filter((t) => t.name.includes('6-8')).map((t) => t.name), ...MIDDLE_EXTRA];
 }
 
+/** Uniform bottoms: 'pants' or 'shorts' (your team can choose; rivals follow the sport). */
+export function kitBottoms(state, name) {
+  const pref = name === state.team.name ? state.team.kitBottoms : null;
+  if (pref === 'pants' || pref === 'shorts') return pref;
+  return ['baseball', 'football'].includes(state.team.sport) ? 'pants' : 'shorts';
+}
+
 export function teamColors(state, name) {
   if (name === state.team.name) return state.team.colors;
   return RIVAL_COLORS[name] || ['#888888', '#ffffff'];

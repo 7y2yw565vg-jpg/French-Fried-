@@ -16,6 +16,7 @@ try {
 }
 
 let game = null;
+window.__bl = { closeAllModals, engine }; // handy for debugging in the console
 
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem('bl-settings')) || {}; } catch { return {}; }
@@ -39,7 +40,6 @@ function start(state) {
   if (settings.volume != null) setVolume(settings.volume);
   game = new Game(engine, state, { settings, onQuit: title });
   window.__game = game; // handy for debugging in the console
-  window.__bl = { closeAllModals };
   game.start();
 }
 
