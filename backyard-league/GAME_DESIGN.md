@@ -90,22 +90,21 @@ Basketball is the easy start, Baseball the hard one. Each sport's achievements a
 ## 5. School
 
 ### The school day
+Every grade has four core teachers: **Math, Language Arts, Science and History**, each with their own classroom. A grade is split into two sections that rotate through the rooms, so your classmates travel with you (classes are at least 90% full).
+
 | Time | Block | Notes |
 |---|---|---|
 | 7:45 | Arrival / before-school | Bus loop, breakfast club, playground. Free recruiting time |
-| 8:00 | Homeroom | Attendance. Late = tardy mark |
-| 8:15 | Period 1: Math | |
-| 9:05 | **Hallway (5 min)** | Free roam. Lockers, bathrooms, water fountain, other classrooms |
-| 9:10 | Period 2: Reading / ELA | |
-| 10:00 | **Recess (20 min)** | Big social hub |
-| 10:20 | Period 3: Science / Social Studies (alternating) | |
-| 11:00–12:30 | **Lunch A/B/C** (your lunch is assigned) | Kids in other lunches can only be met by sneaking or other routes |
-| | Period 4: Specials (Art / Music / PE / Library / Computer Lab / Spanish) | Mixes kids from *other homerooms*, a key recruiting window |
-| 1:30 | Period 5: Spelling / Writing | |
-| 2:20 | **Hallway** | |
-| 2:25 | Period 6: Free choice / Project Time | |
-| 3:10 | Dismissal | |
+| 8:00 | Period 1 | Section A: Math, Section B: Language Arts |
+| 9:10 | **Passing period (5 min)** | Class lets out into the hallway with a countdown to your next room |
+| 9:15 | Period 2 | Section A: Language Arts, Section B: Math |
+| 10:25 | **Recess (25 min)** | Big social hub |
+| 10:55 | Period 3 | Section A: Science, Section B: History |
+| 12:05 | **Lunch** | Cafeteria |
+| 12:45 | Period 4 | Section A: History, Section B: Science |
+| 2:00 | Dismissal | |
 
+- **Passing periods aren't scheduled events, they're a race.** When the bell rings you're standing in the hallway outside your old room with a countdown (about a minute of real time). Talk to kids by the lockers, then get to the next room before it hits zero or you're tardy. Walking into the right room ends the passing period and you take your seat.
 - **Hallways are real-time free roam.** You can be late on purpose to finish a conversation. Each teacher has a tardy tolerance (Mrs. Bramblebee forgives 2, Mr. Fussbudget forgives 0).
 - 3 tardies = note home (parents' **Trust** −). 5 = detention (lose an after-school block).
 
@@ -304,7 +303,7 @@ Each kid has a **growth curve** (fixed per kid):
 | Job | Unlock | Required equipment | Loop | Upgrades |
 |---|---|---|---|---|
 | **Lemonade Stand** | Start | Folding table (garage, free), pitcher $4, cups $2, sign (craft free) + ingredients per batch ($3: lemons, sugar) | Pick location & price, set the recipe (sweet/sour sliders), weather affects demand, minigame pour | Cooler, umbrella, cookies, pink lemonade, "Fancy Glass Bottles," location permits (outside the ballpark = 💰) |
-| **Paper Route** | Earn $50 total + Parent Trust 55 | Bike basket $15, newspaper bag $10 (bike = birthday gift or $40 used) | Morning route on a bike with a throwing minigame. Hit porches, not windows, dogs chase you | Faster bike, bigger bag, second route, Sunday edition (2× pay), hire a kid to run a route |
+| **Paper Route** | Earn $50 total + Parent Trust 55 | A bike ($45, also speeds up travel) + newspaper bag $10. Every house on your street (10+) subscribes | Morning route on a bike with a throwing minigame. Hit porches, not windows, dogs chase you | Faster bike, bigger bag, second route, Sunday edition (2× pay), hire a kid to run a route |
 | **Lawn Mowing** | Earn $150 total + 4th grade | Push mower $60 (or rent Dad's for 30% cut), gas can $8, rake $6 | Lawn-mowing pattern minigame. Stripes = tips. Miss a spot and the customer complains | Self-propelled mower, edger, leaf blower, riding mower (HS), hire kid crews → **landscaping company** |
 | *Later:* Dog Walking, Car Wash, Snow Shoveling (winter), Garage Sale Flipping, Tutoring (if your grades are A), Concession Catering, Sports Camp for little kids | | | | |
 
@@ -341,6 +340,18 @@ Jobs scale into **businesses** run by hired kids, which feed the team's budget a
 | Uniforms | Plain colored T-shirts | Iron-on numbers | Real jerseys | Home/away kits + socks | Pro kits + custom cleats |
 
 Each sport has its own equivalent tree (baseball: cardboard bases → rubber bases → dugouts → pitching machine. Basketball: driveway hoop → adjustable hoop → glass backboard → indoor gym. Football: cones & flags → goalposts made of brooms → real goalposts → press box).
+
+### Team gear (skill equipment)
+Gear makes every kid on your roster better on game day. Each category has 3 tiers bought with team money, named for your sport:
+
+| Gear | Soccer | Baseball | Basketball | Football | Boosts |
+|---|---|---|---|---|---|
+| Footwear | Molded → bladed → pro cleats | Rubber → metal → pro spikes | High-tops → jump shoes → signature shoes | Molded → grip → pro cleats | Speed, Agility (Leaping for hoops) |
+| Balls & Bats | Size-4 → match → pro balls | Aluminum → composite → pro bats | Rubber → composite → pro balls | Rubber → leather → pro footballs | Ball Control/Accuracy, Hand-Eye/Strength, Arm/Accuracy |
+| Gloves & Grip | Keeper gloves | Fielding gloves | Grip spray → shooting sleeves | Receiver gloves | Hands |
+| Conditioning | Jump ropes → agility ladders | Weighted bats + bands | Ladders + bands | Tackling dummies + sleds | Stamina, Hustle/Strength |
+
+Uniforms come with shorts or pants (baseball and football default to pants with a team-color stripe).
 
 ### Training facilities (affect growth)
 Equipment shed → Mini gym in the garage → Training barn → Training center → Performance lab. Each tier boosts growth and unlocks new practice types (film study improves IQ, weight room improves STR, etc.).

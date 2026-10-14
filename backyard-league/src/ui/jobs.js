@@ -5,7 +5,7 @@ import { KIDS } from '../data/kids.js';
 import { weatherFor, lemonadeTaste, lemonadeBuyChance, lemonadeTraffic, sellCup, earn, PAPER_PAY, WINDOW_COST, finishMowing } from '../game/economy.js';
 import { itemCount, addLog } from '../game/state.js';
 import { dayInfo, formatTime } from '../game/time.js';
-import { Builder } from '../world3d/toon.js';
+import { Builder, signMesh } from '../world3d/toon.js';
 import { lemonadeStand } from '../world3d/props.js';
 import { adultLook, lookFromKid } from '../world3d/kidModel.js';
 import { sfx } from './audio.js';
@@ -44,14 +44,21 @@ function runStand(game, price, taste, weather) {
   const s = game.state;
   const e = game.engine;
   const spot = game.desc.interact.find((i) => i.kind === 'lemonade');
+  // The stand faces the road: customers walk the sidewalk and step up to the counter.
+  const face = (spot.data && spot.data.face) || 1;
   const b = new Builder();
   lemonadeStand(b, 0, 0, 0);
-  const stand = b.mesh({ outline: 0.02 });
-  stand.position.set(spot.x, 0, spot.z + 0.2);
+  const stand = new THREE.Group();
+  stand.add(b.mesh());
+  const sign = signMesh(`LEMONADE ${money(price)}`, 1.3, { bg: '#fff3a8', color: '#c1121f', border: '#c9a227' });
+  sign.position.set(0, 0.62, 0.39);
+  stand.add(sign);
+  stand.rotation.y = face < 0 ? Math.PI : 0;
+  stand.position.set(spot.x, 0, spot.z);
   game.desc.group.add(stand);
-  e.teleport(spot.x, spot.z - 0.9, 0);
+  e.teleport(spot.x, spot.z - face * 0.95, face < 0 ? Math.PI : 0);
   game.mode = 'stand';
-  e.cinematic({ x: spot.x, z: spot.z }, 9, { height: 5, spin: 0.01, angle: 0.4 });
+  e.cinematic({ x: spot.x, z: spot.z }, 9, { height: 5, spin: 0.01, angle: face < 0 ? Math.PI - 0.5 : 0.4 });
   e.cine.look.y = 1;
   const kind = s.loc === 'home' ? 'home' : 'hood';
   const perMin = lemonadeTraffic(kind, weather) / 60;
@@ -61,7 +68,7 @@ function runStand(game, price, taste, weather) {
   const draw = () => stat.replaceChildren(h('span', { class: 'pill' }, `⏰ ${formatTime(s.time.minute)}`), h('span', { class: 'pill' }, `🍋 ${itemCount(s, 'lemonade')} cups of mix`), h('span', { class: 'pill' }, `🥤 ${itemCount(s, 'cups')} cups`), h('span', { class: 'pill good' }, `Sold ${sold}`), h('span', { class: 'pill good' }, `Made ${money(made)}`));
   panel.appendChild(h('div', { class: 'card' }, h('h3', {}, `🍋 Lemonade, ${money(price)} a cup!`), stat, h('div', { class: 'btn-row', style: { marginTop: '8px' } }, btn('Close the stand', () => close(), 'small red'))));
   draw();
-  const sideZ = spot.z + (s.loc === 'home' ? -1.4 : 1.6);
+  const sideZ = spot.data && spot.data.walkZ != null ? spot.data.walkZ : spot.z + face * 1.6;
   const spawnWalker = () => {
     const id = `WALK-${walkers++}`;
     const fromLeft = Math.random() < 0.5;
@@ -70,7 +77,7 @@ function runStand(game, price, taste, weather) {
     e.addNPC({ id, look: kidLook, x: x0, z: sideZ, rot: fromLeft ? Math.PI / 2 : -Math.PI / 2, mode: 'stand' });
     const buys = Math.random() < lemonadeBuyChance(price, taste, weather);
     if (buys) {
-      e.walkNPC(id, spot.x, spot.z + 1.2, 3).then(() => {
+      e.walkNPC(id, spot.x + (Math.random() - 0.5) * 0.6, spot.z + face * 1.15, 3).then(() => {
         if (!open) return;
         if (itemCount(s, 'lemonade') < 1 || itemCount(s, 'cups') < 1) { e.walkNPC(id, spot.x + (fromLeft ? 16 : -16), sideZ, 3).then(() => e.removeNPC(id)); return; }
         made += sellCup(s, price);
@@ -112,25 +119,41 @@ function runStand(game, price, taste, weather) {
 export function startPaperRoute(game) {
   const s = game.state;
   const e = game.engine;
-  const houses = (game.desc.houses || []).filter((x) => !x.you && x.porch);
-  if (!houses.length) return;
+  // Every house on your street subscribes (at least 10 of them).
+  const houses = (game.desc.houses || []).filter((x) => !x.you && x.porch).sort((a, b) => a.porch.x - b.porch.x);
+  if (houses.length < 10) { toast('Not enough houses on this street for a route.', 'bad'); return; }
   s.jobs.paperDay = s.time.day;
   game.mode = 'paper';
+  // A proper bike: wheels, frame, seat, handlebars, front basket full of papers.
   const bike = new Builder();
-  for (const dz of [-0.45, 0.45]) bike.add(new THREE.TorusGeometry(0.3, 0.05, 6, 16), '#222', [0, 0.3, dz], [0, Math.PI / 2, 0], [1, 1, 1]);
-  bike.box(0.06, 0.06, 0.9, '#e63946', 0, 0.55, 0, { center: true });
-  bike.box(0.3, 0.2, 0.3, '#c9a227', 0, 0.7, 0.45, { center: true });
-  const bikeMesh = bike.mesh({ outline: 0.01 });
+  for (const dz of [-0.48, 0.48]) {
+    bike.add(new THREE.TorusGeometry(0.3, 0.045, 8, 22), '#1d1d1f', [0, 0.32, dz], [0, Math.PI / 2, 0], [1, 1, 1], null, 'rubber');
+    bike.add(new THREE.TorusGeometry(0.26, 0.012, 6, 22), '#c9ced4', [0, 0.32, dz], [0, Math.PI / 2, 0], [1, 1, 1], null, 'metal');
+  }
+  bike.box(0.05, 0.05, 0.85, '#e63946', 0, 0.62, 0, { center: true, mat: 'metal', rot: [0.12, 0, 0] });
+  bike.box(0.05, 0.4, 0.05, '#e63946', 0, 0.35, -0.12, { mat: 'metal', rot: [-0.35, 0, 0] });
+  bike.box(0.05, 0.42, 0.05, '#e63946', 0, 0.35, 0.42, { mat: 'metal', rot: [0.3, 0, 0] });
+  bike.rbox(0.16, 0.05, 0.24, '#2b2b2f', 0, 0.82, -0.22, { mat: 'rubber' });
+  bike.box(0.5, 0.04, 0.04, '#c9ced4', 0, 0.98, 0.42, { center: true, mat: 'metal' });
+  bike.rbox(0.34, 0.2, 0.26, '#c9a227', 0, 0.78, 0.62, { mat: 'wood' });
+  for (let k = 0; k < 3; k++) bike.box(0.08, 0.06, 0.22, '#f4f1de', -0.09 + k * 0.09, 0.95, 0.62, { center: true, rot: [Math.PI / 2, 0, 0.2] });
+  const bikeMesh = bike.mesh();
   e.player.root.add(bikeMesh);
   e.playerState.override = 'sit';
-  let x = -60; const z = 0.9;
+  // Rolled-paper markers on every subscriber's mailbox.
+  const flags = new Builder();
+  for (const hh of houses) flags.box(0.18, 0.18, 0.4, '#ffd23f', hh.x + 3.6, 1.25, hh.z + hh.face * 10.6, { mat: 'plastic', center: true });
+  const flagMesh = flags.mesh();
+  game.desc.group.add(flagMesh);
+  const endX = houses[houses.length - 1].porch.x + 10;
+  let x = Math.min(-60, houses[0].porch.x - 8); const z = 0.9;
   e.teleport(x, z, Math.PI / 2);
   e.cinematic({ x, z }, 12, { height: 7, spin: 0, angle: -1.2 });
   const done = new Set();
   let hits = 0; let windows = 0; let thrown = 0; let earned = 0;
   const papers = [];
   const info = h('div', { class: 'row' });
-  const draw = () => info.replaceChildren(h('span', { class: 'pill good' }, `Delivered ${hits}`), h('span', { class: 'pill bad' }, `Windows ${windows}`), h('span', { class: 'pill' }, `Thrown ${thrown}`), h('span', { class: 'pill' }, money(earned)));
+  const draw = () => info.replaceChildren(h('span', { class: 'pill good' }, `Delivered ${hits}/${houses.length}`), h('span', { class: 'pill bad' }, `Windows ${windows}`), h('span', { class: 'pill' }, `Thrown ${thrown}`), h('span', { class: 'pill' }, money(earned)));
   draw();
   clear($('#panel')).appendChild(h('div', { class: 'card' }, h('h3', {}, '📰 Paper Route'), h('p', {}, h('span', { class: 'key' }, 'A'), ' throw left   ', h('span', { class: 'key' }, 'D'), ' throw right. Aim for the porches, NOT the windows!'), info));
   const throwPaper = (side) => {
@@ -177,7 +200,7 @@ export function startPaperRoute(game) {
     }
     minAcc += dt;
     if (minAcc > 0.6) { minAcc = 0; game.advance(1); }
-    if (x > 62) end();
+    if (x > endX) end();
   };
   e.extraUpdaters.add(updater);
   let ended = false;
@@ -190,14 +213,15 @@ export function startPaperRoute(game) {
     window.removeEventListener('keydown', key);
     for (const p of papers) p.mesh.removeFromParent();
     bikeMesh.removeFromParent();
+    flagMesh.removeFromParent();
     e.playerState.override = null;
     e.player.root.position.y = 0;
     game.mode = 'free';
     e.follow();
-    e.teleport(60, 4.6, -Math.PI / 2);
+    e.teleport(endX, 4.6, -Math.PI / 2);
     clear($('#panel'));
     addLog(s, `Paper route: ${hits} delivered, ${windows} windows broken.`);
-    modal({ title: '📰 Route complete!', body: `Delivered ${hits} papers. ${windows ? `Broke ${windows} window${windows > 1 ? 's' : ''} (oops). ` : ''}You made ${money(earned)}.` });
+    modal({ title: '📰 Route complete!', body: `Delivered ${hits} of ${houses.length} papers. ${windows ? `Broke ${windows} window${windows > 1 ? 's' : ''} (oops). ` : ''}You made ${money(earned)}.` });
   };
 }
 

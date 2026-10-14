@@ -78,7 +78,7 @@ await closeModals();
 // --- paper route (next weekday morning in your own neighborhood)
 await g(() => {
   const game = window.__game; const s = game.state;
-  s.jobs.earned = 200; s.parents.trust = 70; s.inv.items.bike_basket = 1; s.inv.items.paper_bag = 1;
+  s.jobs.earned = 200; s.parents.trust = 70; s.inv.items.bike = 1; s.inv.items.paper_bag = 1;
   game.goToBed(); game.goToBed();
   game.enter(s.player.hood);
 });

@@ -87,7 +87,7 @@ export function buildHome(opts) {
   P.tree(b, -15, -16, 1.15, 1); P.tree(b, 15, -17, 1.0, 0);
   for (const bx of [-8.5, -6.5, -1.6, 0.8]) P.bush(b, bx, -14.9, 0.8);
   P.flowers(b, -11.5, -15.2, 3, 1.2, rng);
-  act(sc, 'lemonade', -5, -19.8, 'Set up lemonade stand here');
+  act(sc, 'lemonade', -5, -19.6, 'Set up lemonade stand here', { face: -1, walkZ: -21.4 });
   act(sc, 'exit', 0, -22, 'Leave (Town Map)', {}, 2.4);
   zone(sc, 'front yard', -4, -18, 10, 4);
 
@@ -337,7 +337,7 @@ export function buildNeighborhood(hoodId, residents, opts = {}) {
   }
   for (let i = -6; i <= 7; i++) P.streetLamp(b, i * 12 + 4, i % 2 ? 5.9 : -5.9);
   zone(sc, 'street', 0, 0, 90, 8);
-  act(sc, 'lemonade', -8, 5.4, 'Set up lemonade stand here');
+  act(sc, 'lemonade', -8, 6.7, 'Set up lemonade stand here', { face: -1, walkZ: 4.75 });
   act(sc, 'exit', -70, 0, 'Leave (Town Map)', {}, 2.6);
   if (opts.paperRoute) act(sc, 'paper', -60, -4.8, 'Start paper route');
   if (opts.mowJob) {

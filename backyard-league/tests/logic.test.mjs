@@ -206,3 +206,29 @@ test('school: four subjects with their own teachers, and classrooms at least 90%
   assert.equal(playerClass(s, 1).subject !== playerClass(s, 2).subject, true);
   assert.ok(classmates(s).length >= 20);
 });
+
+test('team gear boosts your roster in games, and only your roster', async () => {
+  const { buyGear } = await import('../src/game/team.js');
+  const s = newGame({ name: 'Gear', seed: 11, sport: 'soccer' });
+  const kid = KIDS.find((k) => !s.team.roster.includes(k.id));
+  s.team.roster.push(kid.id);
+  const other = KIDS.find((k) => k.id !== kid.id);
+  const before = statsOf(s, kid.id).SPD;
+  const otherBefore = statsOf(s, other.id).SPD;
+  s.money = 100;
+  const r = buyGear(s, 'footwear');
+  assert.ok(r.ok);
+  assert.equal(s.money, 65);
+  assert.ok(statsOf(s, kid.id).SPD > before || before >= 99);
+  assert.equal(statsOf(s, other.id).SPD, otherBefore);
+  assert.equal(statsOf(s, kid.id, { raw: true }).SPD, before);
+});
+
+test('paper route needs a bike', async () => {
+  const { jobReady } = await import('../src/game/economy.js');
+  const s = newGame({ name: 'Bike', seed: 3 });
+  s.jobs.earned = 100; s.parents.trust = 70; s.inv.items.paper_bag = 1;
+  assert.equal(jobReady(s, 'paper'), false);
+  s.inv.items.bike = 1;
+  assert.equal(jobReady(s, 'paper'), true);
+});

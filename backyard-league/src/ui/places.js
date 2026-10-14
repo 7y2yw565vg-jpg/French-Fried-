@@ -227,7 +227,7 @@ const HANDLERS = {
         s.jobs.activeMow && s.jobs.activeMow.id === j.id ? h('span', { class: 'pill good' }, 'Accepted') : btn('Take it', () => { s.jobs.activeMow = j; toast(`Job accepted! Go to ${j.hood} (marked on the lawn).`, 'good'); m.close(); }, 'small green')));
     }
     if (!jobUnlocked(s, 'paper')) lines.appendChild(h('p', { class: 'muted' }, `📰 PAPER ROUTE: needs $${JOBS.paper.unlock.earned} earned and Mom & Dad's trust (55+).`));
-    else lines.appendChild(h('p', {}, `📰 PAPER ROUTE: ${jobReady(s, 'paper') ? 'You\'re all set! Start it from your neighborhood street before school.' : 'You need a bike basket ($15) and a newspaper bag ($10) from Sporting Goods.'}`));
+    else lines.appendChild(h('p', {}, `📰 PAPER ROUTE: ${jobReady(s, 'paper') ? 'You\'re all set! Start it from your neighborhood street before school.' : 'You need a bike ($45) and a newspaper bag ($10) from Sporting Goods.'}`));
     const m = modal({ title: 'Community Bulletin Board', body: lines, wide: true });
   },
 

@@ -23,7 +23,8 @@ export function travelMinutes(state, from, to) {
   if (from === to) return 0;
   if ((from === 'home' && to === state.player.hood) || (to === 'home' && from === state.player.hood)) return 2;
   const a = mapPos(state, from); const b = mapPos(state, to);
-  return 3 + Math.round(Math.hypot(a.x - b.x, a.y - b.y) * 0.35);
+  const walk = 3 + Math.round(Math.hypot(a.x - b.x, a.y - b.y) * 0.35);
+  return state.inv.items.bike ? Math.max(2, Math.round(walk * 0.6)) : walk; // bikes are faster
 }
 
 export function canGo(game, dest) {

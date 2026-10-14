@@ -1,5 +1,5 @@
 // Your team: registration, roster, eligibility, lineup, tryouts, practice, facilities.
-import { DRILLS, FIELDS, ITEMS, SPORTS, UPGRADES, STAT_CODES } from '../data/world.js';
+import { DRILLS, FIELDS, ITEMS, SPORTS, UPGRADES, STAT_CODES, GEAR } from '../data/world.js';
 import { KID_BY_ID, shortName } from '../data/kids.js';
 import { addItem, addLog, getKid, hasItem, heightOf, kidGrade, playerGrade, statsOf, yearOf } from './state.js';
 import { bestPosition, heightScore, letter, letterRange, positionRating } from './stats.js';
@@ -337,3 +337,28 @@ export function rosterSummary(state) {
 }
 
 export { STAT_CODES, ITEMS, yearOf };
+
+// ------------------------------------------------------------- gear -----
+export function gearName(state, cat, tier = (state.team.gear || {})[cat] || 0) {
+  return GEAR[cat].names[state.team.sport][tier];
+}
+
+/** Text like "+4 Speed, +3 Agility" for a gear tier. */
+export function gearBoostText(state, cat, tier) {
+  const b = GEAR[cat].boosts[state.team.sport] || {};
+  return Object.entries(b).filter(([, arr]) => arr[tier]).map(([code, arr]) => `+${arr[tier]} ${STAT_LABEL[code] || code}`).join(', ');
+}
+const STAT_LABEL = { SPD: 'Speed', AGI: 'Agility', STR: 'Strength', STA: 'Stamina', LEP: 'Leaping', HND: 'Hands', ARM: 'Arm', ACC: 'Accuracy', BCL: 'Ball Control', EYE: 'Hand-Eye', HUS: 'Hustle' };
+
+export function buyGear(state, cat) {
+  state.team.gear = state.team.gear || {};
+  const cur = state.team.gear[cat] || 0;
+  const next = cur + 1;
+  const g = GEAR[cat];
+  if (next >= g.costs.length) return { ok: false, reason: 'Already the best there is!' };
+  const cost = g.costs[next];
+  if (state.money < cost) return { ok: false, reason: `You need $${cost}.` };
+  state.money -= cost;
+  state.team.gear[cat] = next;
+  return { ok: true, name: gearName(state, cat, next), boost: gearBoostText(state, cat, next) };
+}

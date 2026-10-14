@@ -1,9 +1,9 @@
 // The phone: team management, kid notebook, field & staff, league, school, money, settings.
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
-import { SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber } from '../data/world.js';
+import { SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
-import { registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand } from '../game/team.js';
+import { registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
 import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
@@ -243,6 +243,21 @@ function fieldTab(game, root, redraw) {
       }, 'small green', next > cap || s.money < u.costs[next] ? { disabled: true } : {}) : null));
   }
 
+  const gear = h('div', { class: 'box' }, h('h3', {}, '🎒 Team Gear'), h('p', { class: 'muted' }, 'Equipment for the whole roster. Boosts count in every game for every kid on your roster.'));
+  for (const [cat, g] of Object.entries(GEAR)) {
+    const tier = (s.team.gear || {})[cat] || 0;
+    const max = g.costs.length - 1;
+    const next = tier + 1;
+    gear.appendChild(h('div', { class: 'row', style: { margin: '6px 0', borderBottom: '1px dashed #d9c7a8', paddingBottom: '6px' } },
+      h('div', { style: { flex: 1 } }, h('b', {}, `${g.icon} ${g.label}`), h('div', {}, `${'★'.repeat(tier)}${'☆'.repeat(max - tier)} ${gearName(s, cat, tier)}`, tier ? h('span', { class: 'pill good' }, gearBoostText(s, cat, tier)) : null),
+        next <= max ? h('div', { class: 'muted' }, `Next: ${gearName(s, cat, next)} (${gearBoostText(s, cat, next)})`) : h('div', { class: 'muted' }, 'Top of the line!')),
+      next <= max ? btn(money(g.costs[next]), () => {
+        const r = buyGear(s, cat);
+        sfx(r.ok ? 'good' : 'bad');
+        toast(r.ok ? `New gear: ${r.name}! (${r.boost})` : r.reason, r.ok ? 'good' : 'bad');
+        redraw();
+      }, 'small green', s.money < g.costs[next] ? { disabled: true } : {}) : null));
+  }
   const staff = h('div', { class: 'box' }, h('h3', {}, '👔 Staff'), h('p', { class: 'muted' }, 'Hire kids who like you (talk to them: "Job offer"). Grown-ups like Coach Dave (mall) and Mrs. Pham (library) cost more but are better.'));
   for (const [role, r] of Object.entries(STAFF_ROLES)) {
     const who = s.team.staff[role];
@@ -250,7 +265,7 @@ function fieldTab(game, root, redraw) {
     staff.appendChild(h('div', { class: 'row', style: { margin: '6px 0' } }, h('div', { style: { flex: 1 } }, h('b', {}, r.name), ': ', name, h('div', { class: 'muted' }, r.effect)),
       who ? btn('Let go', () => { delete s.team.staff[role]; toast(`${name} is no longer your ${r.name.toLowerCase()}.`); redraw(); }, 'small red') : null));
   }
-  root.append(h('div', { class: 'grid2' }, h('div', {}, fields, h('div', { style: { height: '10px' } }), staff), ups));
+  root.append(h('div', { class: 'grid2' }, h('div', {}, fields, h('div', { style: { height: '10px' } }), gear, h('div', { style: { height: '10px' } }), staff), ups));
 }
 
 // ---------------------------------------------------------------- league --

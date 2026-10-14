@@ -1,6 +1,6 @@
 // Save state: creation, lookups, persistence.
 import { KIDS, KID_BY_ID } from '../data/kids.js';
-import { SPORTS, UPGRADE_IDS, STAT_CODES } from '../data/world.js';
+import { SPORTS, UPGRADE_IDS, STAT_CODES, GEAR, GEAR_IDS } from '../data/world.js';
 import { kidGradeNow, kidStats, kidHeight } from './stats.js';
 import { DAY_START } from './time.js';
 import { hashString } from './rng.js';
@@ -45,7 +45,7 @@ export function newGame(opts) {
       name: opts.teamName || 'Backyard Bandits', sport: opts.sport || 'soccer', colors: opts.colors || ['#e63946', '#ffffff'],
       registered: false, registeredSeason: 0, shirts: 0, setup: opts.sport === 'basketball',
       roster: ['PLAYER'], invites: [], tryout: null, practice: { dows: [1, 3], start: 15 * 60 + 30, end: 17 * 60, focus: 'SPD' },
-      field: 'backyard', permit: false, principalOK: false, admission: 0.5, upgrades, staff: {},
+      field: 'backyard', permit: false, principalOK: false, admission: 0.5, upgrades, staff: {}, gear: Object.fromEntries(GEAR_IDS.map((g) => [g, 0])), kitBottoms: 'auto',
       history: [], championships: 0, wins: 0, losses: 0, firstWin: false, promised: [],
     },
     league: null,
@@ -88,14 +88,30 @@ export function kidGrade(state, id) {
   return id === 'PLAYER' ? playerGrade(state) : kidGradeNow(KID_BY_ID.get(id), yearOf(state));
 }
 
-export function statsOf(state, id) {
+/** Stat bonuses from your team's gear (only for kids on your roster). */
+export function gearBoost(state, id) {
+  const out = {};
+  const gear = state.team.gear;
+  if (!gear || !(id === 'PLAYER' || state.team.roster.includes(id))) return out;
+  for (const g of GEAR_IDS) {
+    const tier = gear[g] || 0;
+    if (!tier) continue;
+    for (const [code, arr] of Object.entries(GEAR[g].boosts[state.team.sport] || {})) out[code] = (out[code] || 0) + (arr[tier] || 0);
+  }
+  return out;
+}
+
+export function statsOf(state, id, opts = {}) {
+  let out;
   if (id === 'PLAYER') {
     const g = playerGrade(state);
-    const out = {};
+    out = {};
     for (const code of STAT_CODES) out[code] = Math.min(99, state.player.stats[code] + (g - 3) * 3);
-    return out;
-  }
-  return kidStats(KID_BY_ID.get(id), kidGrade(state, id), state.kids[id].train);
+  } else out = kidStats(KID_BY_ID.get(id), kidGrade(state, id), state.kids[id].train);
+  if (opts.raw) return out;
+  const boost = gearBoost(state, id);
+  for (const [code, v] of Object.entries(boost)) out[code] = Math.min(99, out[code] + v);
+  return out;
 }
 
 export function heightOf(state, id) {
@@ -140,6 +156,7 @@ export function deserialize(text) {
   if (!s || s.v !== SAVE_VERSION || !s.kids || !s.team) throw new Error('Not a Backyard League save');
   // Saves from before class sections existed.
   if (s.player.section == null) s.player.section = s.seed % 2;
+  if (!s.team.gear) s.team.gear = Object.fromEntries(GEAR_IDS.map((g) => [g, 0]));
   return s;
 }
 

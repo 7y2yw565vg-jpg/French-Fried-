@@ -141,8 +141,8 @@ SKIN_TONES = ["porcelain", "fair", "light", "light-olive", "olive", "tan",
 HAIR_STYLES = ["buzz cut", "spiky", "bowl cut", "messy mop", "curly afro",
                "braids", "box braids", "pigtails", "ponytail", "high puff",
                "space buns", "bob", "long straight", "long wavy", "mohawk",
-               "cowlick", "side part", "twists", "locs", "fade", "hijab",
-               "patka", "headband + ponytail", "shaggy", "french braid"]
+               "cowlick", "side part", "twists", "locs", "fade", "curtains",
+               "curly top", "headband + ponytail", "shaggy", "french braid"]
 HAIR_COLORS = ["black", "dark brown", "brown", "light brown", "auburn",
                "ginger", "strawberry blonde", "blonde", "platinum blonde",
                "dyed blue tips", "dyed pink streak", "dyed green streak"]

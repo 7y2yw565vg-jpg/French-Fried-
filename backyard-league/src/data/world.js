@@ -213,7 +213,7 @@ export const ITEMS = {
   rope: { name: 'Rope (for 3-legged races)', price: 3, shop: 'sporting goods', kind: 'drill', icon: '🪢' },
   laser_gates: { name: 'Laser Timing Gates', price: 45, shop: 'sporting goods', kind: 'drill', icon: '📡', desc: 'Tryout drills show exact grades instead of a range.' },
   fishing_lure: { name: 'Fishing Lure', price: 3, shop: 'sporting goods', kind: 'gift', like: 'fishing', icon: '🎣' },
-  bike_basket: { name: 'Bike Basket', price: 15, shop: 'sporting goods', kind: 'equipment', icon: '🧺' },
+  bike: { name: 'Bike (with basket)', price: 45, shop: 'sporting goods', kind: 'equipment', icon: '🚲', desc: 'Unlocks the paper route, and you get around town faster.' },
   paper_bag: { name: 'Newspaper Bag', price: 10, shop: 'sporting goods', kind: 'equipment', icon: '👜' },
   push_mower: { name: 'Push Mower (used)', price: 60, shop: 'sporting goods', kind: 'equipment', icon: '🚜' },
   // Mall: other shops
@@ -311,6 +311,56 @@ export const UPGRADES = {
 };
 export const UPGRADE_IDS = Object.keys(UPGRADES);
 
+// Team gear: equipment that makes every kid on your roster better on game day.
+// boosts[sport][stat] = bonus at each tier.
+export const GEAR = {
+  footwear: {
+    label: 'Footwear', icon: '👟',
+    names: {
+      soccer: ['Whatever sneakers they own', 'Molded cleats', 'Bladed speed cleats', 'Pro firm-ground cleats'],
+      baseball: ['Whatever sneakers they own', 'Rubber-spike cleats', 'Metal-spike cleats', 'Pro turf cleats'],
+      basketball: ['Whatever sneakers they own', 'High-top court shoes', 'Cushioned jump shoes', 'Pro signature shoes'],
+      football: ['Whatever sneakers they own', 'Molded cleats', 'Grip cleats', 'Pro speed cleats'],
+    },
+    costs: [0, 35, 90, 220],
+    boosts: { soccer: { SPD: [0, 2, 4, 6], AGI: [0, 1, 3, 5] }, baseball: { SPD: [0, 2, 4, 6], AGI: [0, 1, 2, 4] }, basketball: { LEP: [0, 2, 4, 7], AGI: [0, 1, 3, 4] }, football: { SPD: [0, 2, 4, 6], AGI: [0, 1, 3, 5] } },
+  },
+  balls: {
+    label: 'Balls & Bats', icon: '⚽',
+    names: {
+      soccer: ['One flat ball', 'Real size-4 balls', 'Match balls', 'Pro match balls'],
+      baseball: ['Taped-up wood bat', 'Aluminum bats', 'Composite bats', 'Pro bats + batting gloves'],
+      basketball: ['Playground ball', 'Rubber game balls', 'Composite leather balls', 'Pro game balls'],
+      football: ['Foam football', 'Rubber footballs', 'Leather footballs', 'Pro game footballs'],
+    },
+    costs: [0, 25, 70, 180],
+    boosts: { soccer: { BCL: [0, 2, 4, 6], ACC: [0, 1, 3, 5] }, baseball: { EYE: [0, 2, 4, 6], STR: [0, 1, 3, 5] }, basketball: { ACC: [0, 2, 4, 6], BCL: [0, 1, 3, 5] }, football: { ARM: [0, 2, 4, 6], ACC: [0, 1, 3, 5] } },
+  },
+  gloves: {
+    label: 'Gloves & Grip', icon: '🧤',
+    names: {
+      soccer: ['Bare hands (yikes)', 'Keeper gloves', 'Grip-palm keeper gloves', 'Pro keeper gloves'],
+      baseball: ['Borrowed mitts', 'Vinyl fielding gloves', 'Leather gloves', 'Pro gloves for every position'],
+      basketball: ['Sweaty hands', 'Grip spray', 'Shooting sleeves', 'Pro grip kit'],
+      football: ['Bare hands', 'Receiver gloves', 'Sticky receiver gloves', 'Pro grip gloves'],
+    },
+    costs: [0, 20, 60, 150],
+    boosts: { soccer: { HND: [0, 3, 6, 9] }, baseball: { HND: [0, 3, 5, 8], EYE: [0, 0, 1, 2] }, basketball: { HND: [0, 2, 4, 6], ACC: [0, 0, 1, 2] }, football: { HND: [0, 3, 5, 8] } },
+  },
+  conditioning: {
+    label: 'Conditioning Gear', icon: '💪',
+    names: {
+      soccer: ['Garden hose for water', 'Jump ropes + water jug', 'Agility ladders + hurdles', 'Pro training kit'],
+      baseball: ['Garden hose for water', 'Jump ropes + water jug', 'Weighted bats + bands', 'Pro training kit'],
+      basketball: ['Garden hose for water', 'Jump ropes + water jug', 'Agility ladders + bands', 'Pro training kit'],
+      football: ['Garden hose for water', 'Jump ropes + water jug', 'Tackling dummies + sleds', 'Pro training kit'],
+    },
+    costs: [0, 30, 80, 200],
+    boosts: { soccer: { STA: [0, 2, 4, 6], HUS: [0, 1, 2, 4] }, baseball: { STA: [0, 1, 3, 5], STR: [0, 1, 2, 3] }, basketball: { STA: [0, 2, 4, 6], HUS: [0, 1, 2, 4] }, football: { STR: [0, 2, 4, 6], STA: [0, 1, 3, 4] } },
+  },
+};
+export const GEAR_IDS = Object.keys(GEAR);
+
 export const FIELDS = {
   backyard: {
     name: "Mom & Dad's Backyard", rent: 0, parentCut: 0.5, maxAdmission: 1, caps: { seating: 1, concessions: 1 }, maxTier: 3,
@@ -329,7 +379,7 @@ export const FIELDS = {
 // ------------------------------------------------------------- jobs ----
 export const JOBS = {
   lemonade: { name: 'Lemonade Stand', needs: ['pitcher'], unlock: { earned: 0 }, desc: 'Buy a pitcher, cups and ingredients at the grocery store, then set up your stand on any street.' },
-  paper: { name: 'Paper Route', needs: ['bike_basket', 'paper_bag'], unlock: { earned: 50, trust: 55 }, desc: 'Weekday mornings in your neighborhood. Hit porches, not windows. $0.50 per paper.' },
+  paper: { name: 'Paper Route', needs: ['bike', 'paper_bag'], unlock: { earned: 50, trust: 55 }, desc: 'Needs a bike. Mornings in your neighborhood: every house on your street (10+) gets a paper. Hit porches, not windows. $0.50 per paper.' },
   mowing: { name: 'Lawn Mowing', needs: ['push_mower'], unlock: { earned: 150 }, desc: 'Customers post on the grocery store bulletin board. Neat stripes earn tips.' },
 };
 
