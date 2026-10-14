@@ -48,7 +48,7 @@ await g(() => { document.querySelector('#overlay .screen-bg').click(); window.__
 await shot('08-school', 1200);
 // Walk into homeroom at the bell (teleport into the room), wait for class mode.
 await g(() => {
-  const game = window.__game; const z = game.desc.zones[`room:${game.state.player.homeroom}`];
+  const game = window.__game; const z = game.desc.zones[game.periodRoom({ period: 1 })];
   game.engine.teleport(z.x, z.z, Math.PI);
   game.skip(Math.max(1, 8 * 60 + 1 - game.state.time.minute));
 });
@@ -64,8 +64,18 @@ if (mode === 'class') {
   await shot('10-seat-picker', 500);
   await page.keyboard.press('Escape');
 }
+// Bell: class lets out into the hallway with a countdown to the next room.
+const passing = await g(() => { const game = window.__game; window.__bl.closeAllModals(); game.skip(9 * 60 + 11 - game.state.time.minute); window.__bl.closeAllModals(); return { passing: !!game.passing, next: game.passing && game.passing.next.subject, inHall: game.inZone('hallway') }; });
+console.log('passing period:', JSON.stringify(passing));
+if (!passing.passing || !passing.inHall) errors.push('passing period did not start in the hallway');
+await shot('10b-passing', 1500);
+// Walk into the next room: the bell rings and you sit down.
+const next = await g(() => { const game = window.__game; const z = game.desc.zones[game.passing.next.room]; game.engine.teleport(z.x, z.z, 0); game.checkPeriodArrival(); window.__bl.closeAllModals(); return { mode: game.mode, subject: game.period && game.period.subject, late: game.period && game.period.late }; });
+console.log('next class:', JSON.stringify(next));
+if (next.mode !== 'class' || next.late) errors.push(`arriving during passing should seat you on time: ${JSON.stringify(next)}`);
+await shot('10c-next-class', 1500);
 // Recess: talk to a kid.
-await g(() => { const game = window.__game; game.skip(9 * 60 + 50 - game.state.time.minute); });
+await g(() => { const game = window.__game; game.skip(10 * 60 + 30 - game.state.time.minute); });
 await page.waitForTimeout(500);
 for (let i = 0; i < 3; i++) await page.keyboard.press('Escape');
 const talked = await g(() => {

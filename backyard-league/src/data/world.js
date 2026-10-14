@@ -107,46 +107,84 @@ export const RECESS_ZONES = {
 // ------------------------------------------------------------- school ---
 // Times are minutes after midnight.
 const t = (h, m) => h * 60 + m;
+// Four core subjects, each taught by its own teacher in their own classroom.
+// A grade is split into two sections that rotate through the rooms; between
+// classes you get a short passing period in the hallway.
+export const CORE_SUBJECTS = ['Math', 'Language Arts', 'Science', 'History'];
+export const SECTION_ROTATION = [
+  ['Math', 'Language Arts', 'Science', 'History'],
+  ['Language Arts', 'Math', 'History', 'Science'],
+];
 export const SCHOOL_BLOCKS = [
   { start: t(7, 45), end: t(8, 0), kind: 'arrival', label: 'Before school' },
-  { start: t(8, 0), end: t(8, 50), kind: 'class', period: 1, subject: 'Math' },
-  { start: t(8, 50), end: t(8, 55), kind: 'hall', label: 'Hallway' },
-  { start: t(8, 55), end: t(9, 45), kind: 'class', period: 2, subject: 'Reading' },
-  { start: t(9, 45), end: t(10, 5), kind: 'recess', label: 'Recess' },
-  { start: t(10, 5), end: t(10, 55), kind: 'class', period: 3, subject: ['Science', 'Social Studies', 'Science', 'Social Studies', 'Science'] },
-  { start: t(10, 55), end: t(11, 0), kind: 'hall', label: 'Hallway' },
-  { start: t(11, 0), end: t(11, 40), kind: 'special', period: 4, label: 'Specials' },
-  { start: t(11, 40), end: t(12, 10), kind: 'lunch', label: 'Lunch' },
-  { start: t(12, 10), end: t(12, 15), kind: 'hall', label: 'Hallway' },
-  { start: t(12, 15), end: t(13, 5), kind: 'class', period: 5, subject: 'Spelling' },
-  { start: t(13, 5), end: t(13, 10), kind: 'hall', label: 'Hallway' },
-  { start: t(13, 10), end: t(14, 0), kind: 'class', period: 6, subject: 'Project Time' },
+  { start: t(8, 0), end: t(9, 10), kind: 'class', period: 1 },
+  { start: t(9, 10), end: t(9, 15), kind: 'pass', label: 'Passing period' },
+  { start: t(9, 15), end: t(10, 25), kind: 'class', period: 2 },
+  { start: t(10, 25), end: t(10, 50), kind: 'recess', label: 'Recess' },
+  { start: t(10, 50), end: t(10, 55), kind: 'pass', label: 'Passing period' },
+  { start: t(10, 55), end: t(12, 5), kind: 'class', period: 3 },
+  { start: t(12, 5), end: t(12, 40), kind: 'lunch', label: 'Lunch' },
+  { start: t(12, 40), end: t(12, 45), kind: 'pass', label: 'Passing period' },
+  { start: t(12, 45), end: t(14, 0), kind: 'class', period: 4 },
 ];
 export const SCHOOL_START = t(8, 0);
 export const SCHOOL_END = t(14, 0);
-export const PLAYER_SPECIALS = ['Art', 'Music', 'PE', 'Library', 'Computer Lab']; // Mon..Fri
-export const SPECIAL_ROOMS = { Art: 'art room', Music: 'music room', PE: 'gym', Library: 'school library', 'Computer Lab': 'computer lab', Spanish: 'spanish room' };
-export const PLAYER_LUNCH = '11:30 (B Lunch)';
+export const PLAYER_LUNCH = '11:30 (B Lunch)'; // the kid data's lunch slot that matches yours
+
+// Grade -> subject -> teacher. Every teacher has their own classroom.
+export const SUBJECT_TEACHERS = {
+  2: { Math: 'Ms. Puddle', 'Language Arts': 'Mr. Hopper', Science: 'Mrs. Glitter', History: 'Mr. Dabney' },
+  3: { Math: 'Mrs. Bramblebee', 'Language Arts': 'Mr. Okonkwo', Science: 'Ms. Valdez', History: 'Mr. Pemberton' },
+  4: { Math: 'Mr. Fussbudget', 'Language Arts': 'Mrs. Tanaka', Science: 'Ms. Featherly', History: 'Mrs. Kowalski' },
+  5: { Math: 'Mr. Sparks', 'Language Arts': 'Mrs. Grumbleton', Science: 'Ms. Abara', History: 'Mr. Lindqvist' },
+  6: { Math: 'Mr. Krantz', 'Language Arts': 'Ms. Ruiz', Science: 'Dr. Osei', History: 'Mrs. Delacroix' },
+  7: { Math: 'Mrs. Hargrove', 'Language Arts': 'Mr. Bellweather', Science: 'Ms. Nakamura', History: 'Coach Briggs' },
+  8: { Math: 'Mr. Petrakis', 'Language Arts': 'Ms. Oduya', Science: 'Mr. Vance', History: 'Mrs. Whitlock' },
+};
 
 export const TEACHERS = {
+  'Ms. Puddle': { alert: 0.3, tardyGrace: 3, vibe: 'counts on her fingers and lets you do it too' },
+  'Mr. Hopper': { alert: 0.4, tardyGrace: 2, vibe: 'does all the voices during read-aloud' },
+  'Mrs. Glitter': { alert: 0.35, tardyGrace: 2, vibe: 'covers everything in stickers' },
+  'Mr. Dabney': { alert: 0.4, tardyGrace: 2, vibe: 'dresses up as a different president every Friday' },
   'Mrs. Bramblebee': { alert: 0.45, tardyGrace: 2, vibe: 'is sweet, but has eyes in the back of her head' },
   'Mr. Okonkwo': { alert: 0.35, tardyGrace: 3, vibe: 'tells dad jokes and misses a lot' },
   'Ms. Valdez': { alert: 0.6, tardyGrace: 1, vibe: 'is strict but fair, and LOVES science' },
-  'Ms. Puddle': { alert: 0.3, tardyGrace: 3 }, 'Mr. Hopper': { alert: 0.4, tardyGrace: 2 }, 'Mrs. Glitter': { alert: 0.35, tardyGrace: 2 },
-  'Mr. Fussbudget': { alert: 0.8, tardyGrace: 0, vibe: 'notices EVERYTHING' }, 'Mrs. Tanaka': { alert: 0.5, tardyGrace: 2 },
-  'Ms. Featherly': { alert: 0.4, tardyGrace: 2 }, 'Mrs. Grumbleton': { alert: 0.7, tardyGrace: 1 },
-  'Mr. Sparks': { alert: 0.45, tardyGrace: 2 }, 'Ms. Abara': { alert: 0.5, tardyGrace: 2 },
-  '(Grubbsville Middle) Mr. Krantz': { alert: 0.6, tardyGrace: 1 }, '(Grubbsville Middle) Ms. Ruiz': { alert: 0.5, tardyGrace: 2 },
+  'Mr. Pemberton': { alert: 0.3, tardyGrace: 3, vibe: 'gets lost in stories about knights and forgets to watch the room' },
+  'Mr. Fussbudget': { alert: 0.8, tardyGrace: 0, vibe: 'notices EVERYTHING' },
+  'Mrs. Tanaka': { alert: 0.5, tardyGrace: 2, vibe: 'reads every note out loud' },
+  'Ms. Featherly': { alert: 0.4, tardyGrace: 2, vibe: 'keeps a class bearded dragon named Gerald' },
+  'Mrs. Kowalski': { alert: 0.55, tardyGrace: 1, vibe: 'makes you memorize all the state capitals' },
+  'Mr. Sparks': { alert: 0.45, tardyGrace: 2, vibe: 'turns every problem into a sports stat' },
+  'Mrs. Grumbleton': { alert: 0.7, tardyGrace: 1, vibe: 'has not smiled since 1987' },
+  'Ms. Abara': { alert: 0.5, tardyGrace: 2, vibe: 'sets things on fire (safely) for science' },
+  'Mr. Lindqvist': { alert: 0.35, tardyGrace: 2, vibe: 'brings in Viking helmets' },
+  'Mr. Krantz': { alert: 0.6, tardyGrace: 1, vibe: 'calls everyone by their last name' },
+  'Ms. Ruiz': { alert: 0.5, tardyGrace: 2, vibe: 'runs a class book club with snacks' },
+  'Dr. Osei': { alert: 0.45, tardyGrace: 2, vibe: 'insists on being called Doctor' },
+  'Mrs. Delacroix': { alert: 0.55, tardyGrace: 1, vibe: 'grades map quizzes in red marker' },
+  'Mrs. Hargrove': { alert: 0.65, tardyGrace: 1, vibe: 'has a pop quiz ready at all times' },
+  'Mr. Bellweather': { alert: 0.3, tardyGrace: 3, vibe: 'writes poetry about lunch' },
+  'Ms. Nakamura': { alert: 0.5, tardyGrace: 2, vibe: 'runs the robotics club' },
+  'Coach Briggs': { alert: 0.4, tardyGrace: 2, vibe: 'is the gym coach, and it shows' },
+  'Mr. Petrakis': { alert: 0.55, tardyGrace: 1, vibe: 'is suspiciously good at mental math' },
+  'Ms. Oduya': { alert: 0.45, tardyGrace: 2, vibe: 'gives extra credit for puns' },
+  'Mr. Vance': { alert: 0.6, tardyGrace: 1, vibe: 'once blew up a pumpkin on purpose' },
+  'Mrs. Whitlock': { alert: 0.5, tardyGrace: 2, vibe: 'has a story about every war' },
 };
-export const TEACHERS_BY_GRADE = {
-  2: ['Ms. Puddle', 'Mr. Hopper', 'Mrs. Glitter'],
-  3: ['Mrs. Bramblebee', 'Mr. Okonkwo', 'Ms. Valdez'],
-  4: ['Mr. Fussbudget', 'Mrs. Tanaka', 'Ms. Featherly'],
-  5: ['Mrs. Grumbleton', 'Mr. Sparks', 'Ms. Abara'],
-  6: ['(Grubbsville Middle) Mr. Krantz', '(Grubbsville Middle) Ms. Ruiz'],
-  7: ['(Grubbsville Middle) Mr. Krantz', '(Grubbsville Middle) Ms. Ruiz'],
-  8: ['(Grubbsville Middle) Mr. Krantz', '(Grubbsville Middle) Ms. Ruiz'],
-};
+
+/** Teacher, subject and classroom zone for a section's period. */
+export function classFor(grade, section, period) {
+  const subject = SECTION_ROTATION[section % 2][period - 1];
+  const g = Math.max(2, Math.min(8, grade));
+  const teacher = SUBJECT_TEACHERS[g][subject];
+  return { subject, teacher, room: `room:${teacher}`, grade: g };
+}
+
+/** Room number shown on the door plaque. */
+export function roomNumber(grade, subject) {
+  return `${grade}${String(CORE_SUBJECTS.indexOf(subject) + 1).padStart(2, '0')}`;
+}
 
 // ------------------------------------------------------------- items ----
 // shop: where it is sold. kind: gift | equipment | consumable | drill | team

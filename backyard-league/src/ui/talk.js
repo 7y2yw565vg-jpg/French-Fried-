@@ -286,7 +286,7 @@ export function openAdult(game, npc) {
   if (role === 'lunch' && s.flags[`pudding${s.time.day}`] !== true) buttons.push({ label: 'Extra pudding, please!', cls: 'green', onClick: () => { s.flags[`pudding${s.time.day}`] = true; s.inv.items.pudding = (s.inv.items.pudding || 0) + 1; toast('+1 Pudding Cup (a great gift!)', 'good'); } });
   if (role === 'teacher' && s.loc === 'school' && s.flags[`xc${Math.floor(s.time.day / 7)}`] !== true) buttons.push({ label: 'Extra credit worksheet (30 min)', cls: 'green', onClick: () => {
     s.flags[`xc${Math.floor(s.time.day / 7)}`] = true;
-    for (const sub of ['Math', 'Reading', 'Science', 'Social Studies', 'Spelling']) s.school.prep[sub] = Math.min(8, (s.school.prep[sub] || 0) + 1);
+    for (const sub of ['Math', 'Language Arts', 'Science', 'History']) s.school.prep[sub] = Math.min(8, (s.school.prep[sub] || 0) + 1);
     game.skip(30);
     toast('Extra credit done! Quiz prep +1 in every subject.', 'good');
   } });

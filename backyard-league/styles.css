@@ -204,7 +204,7 @@ table.list tr.click:hover { background: #fff3b0; }
 .classbar { display: grid; gap: 8px; }
 .classbar .title { display: flex; align-items: center; gap: 10px; }
 .classbar .title h3 { font-size: 22px; flex: 1; }
-.seat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.seat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
 .seat { border: 2px solid var(--ink); border-radius: 8px; padding: 4px; font-size: 11px; background: #fff; cursor: pointer; text-align: center; min-height: 34px; }
 .seat.me { background: var(--sun); }
 .seat.empty { background: #eee; cursor: default; color: #aaa; }

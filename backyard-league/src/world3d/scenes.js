@@ -8,9 +8,9 @@ import * as P from './props.js';
 import { buildField } from './fields.js';
 import { trophyModel } from './props.js';
 import { makeArea, finishArea, wallPicture } from './buildings.js';
-import { posterTexture } from './textures.js';
+import { posterTexture, chalkboardTexture, subjectPoster } from './textures.js';
 import { mulberry32, hashString } from '../game/rng.js';
-import { TEACHERS_BY_GRADE } from '../data/world.js';
+import { SUBJECT_TEACHERS, CORE_SUBJECTS, roomNumber } from '../data/world.js';
 
 function base(bounds) {
   return { group: new THREE.Group(), b: new Builder('plain'), colliders: [], zones: {}, interact: [], spawn: { x: 0, z: 0, rot: 0 }, bounds, indoor: false, extra: {}, areas: [], grass: [] };
@@ -354,131 +354,234 @@ export function buildNeighborhood(hoodId, residents, opts = {}) {
 }
 
 // ======================================================== SCHOOL ========
+// One long building: a lockers-lined main hallway with classrooms on both
+// sides. Every grade has a Math, Language Arts, Science and History teacher,
+// each in their own room. Rooms face west: the chalkboard is on the west wall,
+// desks face it, and the door is in the hallway wall near the back.
+const SLOT = 11;
+const slotX = (i) => -71.5 + i * SLOT;
+const LOCKER_BLUE = '#4f78a6';
+
+function classroom(sc, school, { x, north, teacher, subject, grade, i }) {
+  const z = north ? -8 : 8;
+  const doorSide = north ? 'S' : 'N';
+  const DOOR_AT = 3.5;
+  const wall = { Math: '#f3e6cf', 'Language Arts': '#e9efe0', Science: '#e2ecf4', History: '#f4e4dc' }[subject] || '#efe6d2';
+  const a = makeArea(sc, {
+    id: `room-${teacher}`, x, z, w: SLOT - 0.2, d: 9.8, wallH: 3.4, parent: 'school', mode: 'cutaway', focus: true, lid: true,
+    ext: { color: '#e9e2d0', mat: 'paint' }, int: { color: wall, mat: 'paint' }, floor: { color: '#d8cdb8', mat: 'tile' },
+    doors: [{ side: doorSide, at: DOOR_AT, w: 1.6, color: '#7a5233' }], baseboard: '#6b5a4a',
+  });
+  const ab = a.b;
+  const fw = x - (SLOT - 0.2) / 2 + 0.13; // inside face of the front (west) wall
+  const rw = x + (SLOT - 0.2) / 2 - 0.13; // inside face of the back (east) wall
+  const nW = z - 4.9 + 0.13; const sW = z + 4.9 - 0.13;
+  const outer = north ? nW : sW; // exterior wall (windows)
+  // Front: chalkboard with tray, alphabet strip, clock, flag, pull-down map.
+  ab.box(0.08, 1.5, 5.6, '#7a5233', fw + 0.02, 0.85, z, { mat: 'wood' });
+  wallPicture(a.contents, chalkboardTexture(subject), fw + 0.08, 1.6, z, 5.3, 1.3, Math.PI / 2);
+  ab.box(0.16, 0.05, 5.4, '#9a6a44', fw + 0.1, 0.92, z, { mat: 'wood' });
+  for (let k = 0; k < 4; k++) ab.box(0.03, 0.03, 0.12, '#ffffff', fw + 0.12, 0.97, z - 1.5 + k * 0.4, { mat: 'plastic' });
+  ab.box(0.03, 0.22, 5.6, '#ffffff', fw + 0.04, 2.55, z, { mat: 'plastic', shade: (px, py, pz) => ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'][Math.abs(Math.floor(pz * 26)) % 5] });
+  ab.cyl(0.24, 0.24, 0.05, '#ffffff', fw + 0.06, 2.95, z + 3.4, { rot: [0, 0, Math.PI / 2], mat: 'plastic' });
+  ab.cyl(0.26, 0.26, 0.04, '#2b2d42', fw + 0.04, 2.95, z + 3.4, { rot: [0, 0, Math.PI / 2], mat: 'plastic' });
+  ab.cyl(0.015, 0.015, 1.6, '#b08d57', fw + 0.5, 0, z - 4.3, { mat: 'metal' });
+  ab.box(0.02, 0.42, 0.62, '#b22234', fw + 0.5, 1.15, z - 3.98, { mat: 'fabric', shade: (px, py) => (Math.floor((py + 0.5) * 6.5) % 2 ? '#ffffff' : null) });
+  ab.box(0.025, 0.22, 0.26, '#3c3b6e', fw + 0.5, 1.35, z - 3.79, { mat: 'fabric' });
+  // Teacher's desk at the front, angled toward the class.
+  P.teacherDesk(ab, fw + 1.3, z + (north ? 3.0 : -3.0), Math.PI / 2);
+  // Subject touches
+  if (subject === 'Science') {
+    ab.rbox(0.7, 0.9, 2.2, '#3d4a57', fw + 0.5, 0, z + (north ? -2.4 : 2.4), { mat: 'metal', collide: true });
+    for (let k = 0; k < 4; k++) ab.cyl(0.06, 0.08, 0.22, ['#8ac926', '#4cc9f0', '#ffca3a', '#ff595e'][k], fw + 0.5, 0.9, z + (north ? -3.2 : 1.6) + k * 0.5, { mat: 'glass' });
+    ab.box(0.4, 0.3, 0.6, '#cfe8ff', rw - 0.6, 0.9, z + (north ? 2 : -2), { mat: 'glass' });
+  } else if (subject === 'History') {
+    ab.cyl(0.05, 0.08, 0.45, '#8a5a3b', rw - 0.6, 0.9, z + (north ? 2.6 : -2.6), { mat: 'wood' });
+    ab.sphere(0.24, '#3a86ff', rw - 0.6, 1.58, z + (north ? 2.6 : -2.6), [1, 1, 1], { mat: 'plastic', shade: (px, py, pz) => (Math.sin(px * 9) + Math.cos(pz * 7) > 0.6 ? '#57cc99' : null) });
+  } else if (subject === 'Language Arts') {
+    ab.box(2.2, 0.02, 2.2, '#e76f51', rw - 1.6, 0.02, z + (north ? 2.6 : -2.6), { mat: 'carpet' });
+    for (let k = 0; k < 3; k++) ab.sphere(0.32, ['#ffca3a', '#8ac926', '#1982c4'][k], rw - 2.4 + k * 0.8, 0.2, z + (north ? 3.4 : -3.4), [1, 0.6, 1], { mat: 'fabric' });
+  } else {
+    ab.rbox(0.5, 0.06, 2.4, '#e9c46a', rw - 0.4, 0.75, z + (north ? 2.5 : -2.5), { mat: 'wood' });
+    for (let k = 0; k < 6; k++) ab.box(0.1, 0.1, 0.1, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][k % 4], rw - 0.4, 0.81, z + (north ? 1.6 : -3.4) + k * 0.35, { mat: 'plastic' });
+  }
+  // Back wall: cubbies and a bookshelf.
+  for (let r2 = 0; r2 < 3; r2++) for (let c2 = 0; c2 < 6; c2++) {
+    const cz = z - 2.4 + c2 * 0.62 + (north ? -0.6 : 0.6);
+    ab.box(0.4, 0.04, 0.6, '#c99a6b', rw - 0.22, r2 * 0.42, cz, { mat: 'wood' });
+    ab.box(0.36, 0.3, 0.5, ['#e63946', '#2a9d8f', '#f4a261', '#457b9d', '#8338ec', '#ffbe0b'][(r2 + c2 + i) % 6], rw - 0.26, r2 * 0.42 + 0.06, cz, { mat: 'fabric' });
+  }
+  ab.box(0.4, 1.3, 0.04, '#c99a6b', rw - 0.22, 0, z - 2.75 + (north ? -0.6 : 0.6), { mat: 'wood' });
+  ab.box(0.4, 1.3, 0.04, '#c99a6b', rw - 0.22, 0, z + 1.0 + (north ? -0.6 : 0.6), { mat: 'wood' });
+  // Windows on the outside wall, posters on the inside walls.
+  for (const off of [-3.2, -0.6, 2.0]) {
+    ab.box(1.9, 1.4, 0.03, '#bfe3ff', x + off, 1.1, outer + (north ? 0.02 : -0.02), { mat: 'glass' });
+    ab.box(2.0, 0.08, 0.12, '#f4f1ea', x + off, 1.06, outer + (north ? 0.06 : -0.06), { mat: 'paint' });
+  }
+  for (let k = 0; k < 3; k++) wallPicture(a.contents, subjectPoster(subject, k + i), x - 2.5 + k * 2.2, 1.85, (north ? sW : nW) + (north ? -0.02 : 0.02), 1.1, 1.1, north ? Math.PI : 0);
+  wallPicture(a.contents, posterTexture(i * 13 + 5, 'art'), rw - 0.04, 2.25, z + (north ? 1.6 : -1.6), 1.0, 0.9, -Math.PI / 2);
+  // 4 rows x 6 desks, all facing the board. Row 0 is the front.
+  const seats = [];
+  for (let row = 0; row < 4; row++) for (let col = 0; col < 6; col++) {
+    const dx = fw + 3.0 + row * 1.5;
+    const dz = z - 3.35 + col * 1.34;
+    P.studentDesk(ab, dx, dz, Math.PI / 2, ['#2f6fb5', '#2f6fb5', '#e85d04', '#2f6fb5'][(row + col) % 4]);
+    seats.push({ x: dx + 0.5, z: dz, rot: -Math.PI / 2 });
+  }
+  // Hallway side: door plaque and a bulletin board.
+  const hz = north ? -2.95 : 2.95;
+  P.addSign(school.contents, `${roomNumber(grade, subject)} ${subject.toUpperCase()}`, x + DOOR_AT, 2.48, hz + (north ? 0.03 : -0.03), 1.5, north ? 0 : Math.PI, { bg: '#1d3557', color: '#ffffff' });
+  P.addSign(school.contents, teacher, x + DOOR_AT - 1.3, 1.6, hz + (north ? 0.03 : -0.03), 0.95, north ? 0 : Math.PI, { bg: '#f4f1ea', color: '#1d3557' });
+  const name = `room:${teacher}`;
+  zone(sc, name, x, z, SLOT - 1.6, 8.6, {
+    seats, subject, grade,
+    teacher: { x: fw + 1.0, z: z + (north ? 1.4 : -1.4), rot: Math.PI / 2 },
+    door: { x: x + DOOR_AT, z: north ? -1.4 : 1.4, rot: north ? 0 : Math.PI },
+    camYaw: Math.PI / 2,
+    anchor: { x: x - 1.3, z },
+  });
+  return a;
+}
+
+function serviceRoom(sc, school, name, x, north, span = 1) {
+  const z = north ? -8 : 8;
+  const cx = x + (span - 1) * SLOT / 2;
+  const w = span * SLOT;
+  const col = { office: '#e9ecef', detention: '#d6d6d6', cafeteria: '#fff1c1', 'band room': '#ffe8a3', 'school library': '#e2f0cb', 'after-care room': '#e8fff0', nurse: '#e0f2f1', "teachers' lounge": '#efe0d0' }[name] || '#f1e3c8';
+  const floor = { color: name === 'cafeteria' ? '#e8e3d8' : '#d8c6a8', mat: name === 'cafeteria' ? 'checker' : name === 'school library' || name === 'after-care room' ? 'carpet' : name === 'nurse' ? 'tile' : 'wood' };
+  const a = makeArea(sc, {
+    id: `s-${name}`, x: cx, z, w: w - 0.2, d: 9.8, wallH: 3.4, parent: 'school', mode: 'cutaway', focus: true, lid: true,
+    ext: { color: '#e9e2d0', mat: 'paint' }, int: { color: col, mat: 'paint' }, floor,
+    doors: span > 1 ? [{ side: north ? 'S' : 'N', at: -w / 4, w: 2.4, glass: true }, { side: north ? 'S' : 'N', at: w / 4, w: 2.4, glass: true }] : [{ side: north ? 'S' : 'N', at: 3.5, w: 1.6, color: '#7a5233' }],
+  });
+  const ab = a.b;
+  const hz = north ? -2.95 : 2.95;
+  P.addSign(school.contents, name.replace(/\b\w/g, (m) => m.toUpperCase()), span > 1 ? cx : x + 3.5, 2.48, hz + (north ? 0.03 : -0.03), Math.min(3.2, name.length * 0.2 + 0.8), north ? 0 : Math.PI, { bg: '#ffd166', color: '#1d3557' });
+  const back = north ? z - 3.8 : z + 3.8;
+  const extra = {};
+  if (name === 'cafeteria') {
+    extra.seats = [];
+    for (let r2 = 0; r2 < 3; r2++) for (let c = 0; c < 4; c++) {
+      const tx = cx - 11 + c * 6.5; const tz = z - 2.4 + r2 * 2.6;
+      P.lunchTable(ab, tx, tz, ['#8ecae6', '#ffb703', '#90be6d'][r2]);
+      for (const off of [-1, -0.3, 0.4, 1.1]) { extra.seats.push({ x: tx + off, z: tz - 0.85, rot: 0 }); extra.seats.push({ x: tx + off, z: tz + 0.85, rot: Math.PI }); }
+    }
+    P.counter(ab, cx + 14, z, 5, Math.PI / 2, '#adb5bd');
+    for (let k = 0; k < 4; k++) ab.rbox(0.5, 0.3, 0.35, ['#e63946', '#f4a261', '#90be6d', '#ffd166'][k], cx + 14, 1.08, z - 1.8 + k * 1.1, { mat: 'plastic' });
+  }
+  if (name === 'school library') {
+    const rng = mulberry32(31);
+    for (let k = 0; k < 3; k++) P.bookshelf(ab, cx - 7 + k * 7, back, 4, 0, rng);
+    for (let k = 0; k < 3; k++) ab.sphere(0.5, ['#ff595e', '#ffca3a', '#8ac926'][k], cx - 4 + k * 2.5, 0.35, z, [1, 0.7, 1], { mat: 'fabric' });
+  }
+  if (name === 'band room') { ab.rbox(1.8, 1.0, 0.7, '#1a1a1a', x + 2.5, 0, back, { collide: true, mat: 'wood' }); for (let k = 0; k < 5; k++) ab.cyl(0.25, 0.25, 0.5, '#d00000', x - 3 + k * 1.2, 0, z, { mat: 'plastic' }); }
+  if (name === 'office') {
+    ab.rbox(2.2, 0.8, 1.0, '#6d4c41', x, 0, back + (north ? 1.4 : -1.4), { collide: true, mat: 'wood' });
+    ab.rbox(0.6, 0.4, 0.5, '#2b2b2f', x - 0.5, 0.8, back + (north ? 1.4 : -1.4), { mat: 'plastic' });
+    act(sc, 'principal', x, z + (north ? -1 : 1), "Principal Plunkett's desk");
+    zone(sc, 'office', x, z, 8, 6, { boss: { x, z: back + (north ? 0.6 : -0.6) } });
+  }
+  if (name === 'nurse') {
+    ab.rbox(1.0, 0.6, 2.2, '#ffffff', x + 2.5, 0, z, { collide: true, mat: 'fabric' });
+    ab.rbox(1.2, 1.6, 0.6, '#d0d7df', x - 3.5, 0, back, { mat: 'metal' });
+    act(sc, 'nurse', x - 1, z, 'Nurse (lie down: skip class... risky)');
+  }
+  if (name === 'detention') for (let k = 0; k < 6; k++) P.studentDesk(ab, x - 3 + (k % 3) * 3, z + (k < 3 ? -1.5 : 1.5), Math.PI / 2);
+  if (name === 'after-care room') for (let k = 0; k < 4; k++) ab.sphere(0.5, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][k], x - 3 + k * 2, 0.35, z, [1, 0.7, 1], { mat: 'fabric' });
+  if (name === "teachers' lounge") { ab.rbox(2.4, 0.5, 1.0, '#6c5ce7', x, 0, back, { collide: true, mat: 'fabric' }); ab.rbox(0.8, 1.7, 0.7, '#e9ecef', x + 3.5, 0, back, { mat: 'metal' }); }
+  if (name !== 'office') zone(sc, name, cx, z, w - 2, 7, extra);
+  return a;
+}
+
 export function buildSchool(opts) {
   const grade = opts.grade;
   const elementary = grade <= 5;
-  const sc = base({ minX: -100, maxX: 100, minZ: -60, maxZ: 26 });
+  const sc = base({ minX: -114, maxX: 108, minZ: -60, maxZ: 26 });
   const b = sc.b;
-  const rng = mulberry32(99);
-  ground(sc, 0, -16, 220, 100);
-  const slotX = (i) => -65 + i * 10;
+  ground(sc, -3, -16, 236, 100);
   const school = makeArea(sc, {
-    id: 'school', x: 0, z: 0, w: 140, d: 26, wallH: 3.4, mode: 'down', floor: false,
+    id: 'school', x: 0, z: 0, w: 154, d: 26, wallH: 3.4, mode: 'down', floor: false,
     ext: { color: '#b5543c', mat: 'brick' }, int: { color: '#efe6d2', mat: 'paint' }, trim: '#f4f1ea',
     doors: [{ side: 'W', at: 0, w: 3, glass: true }, { side: 'E', at: 0, w: 3, glass: true }, { side: 'N', at: slotX(7), w: 3, glass: true }],
     windows: {
-      N: Array.from({ length: 14 }, (_, i) => i).filter((i) => i !== 7).flatMap((i) => [slotX(i) - 2.3, slotX(i) + 2.3]),
-      S: Array.from({ length: 14 }, (_, i) => slotX(i)),
+      N: Array.from({ length: 14 }, (_, i) => i).filter((i) => i !== 7).flatMap((i) => [slotX(i) - 3.2, slotX(i) - 0.6, slotX(i) + 2.0]),
+      S: Array.from({ length: 14 }, (_, i) => i).flatMap((i) => [slotX(i) - 3.2, slotX(i) - 0.6, slotX(i) + 2.0]),
     },
-    windowW: 1.8, windowH: 1.5, windowY: 1.9,
+    windowW: 1.8, windowH: 1.4, windowY: 1.1,
     roof: { type: 'flat', color: '#7d838a', units: [[-40, 0], [-10, 2], [25, -2], [50, 1]] },
   });
-  // corridor
-  school.b.box(140, 0.06, 6, '#e3dccb', 0, 0, 0, { mat: 'tile' });
-  school.b.box(10, 0.06, 10, '#e3dccb', slotX(7), 0, -8, { mat: 'tile' });
-  for (let i = 0; i < 14; i++) for (const sz of [-1, 1]) {
-    if (i === 7 && sz < 0) continue;
-    for (const off of [-3.5, 3.0]) school.b.box(1.6, 1.9, 0.45, ['#3a86ff', '#ff006e', '#ffbe0b', '#06d6a0'][(i + (sz > 0 ? 1 : 0)) % 4], slotX(i) + off, 0, sz * 2.75, { mat: 'lockers' });
-  }
-  P.addSign(school.contents, 'To Playground', slotX(7), 2.6, -3.15, 2.4);
+  const hb = school.b;
+  // Main hallway: speckled vinyl tile with a two-tone border, like every school ever.
+  hb.box(154, 0.06, 6, '#e9e4d6', 0, 0, 0, { mat: 'tile' });
+  for (const sz of [-1, 1]) hb.box(154, 0.065, 0.35, '#1d3557', 0, 0, sz * 2.3, { mat: 'tile' });
+  for (const sz of [-1, 1]) hb.box(154, 0.065, 0.12, '#ffd166', 0, 0, sz * 2.0, { mat: 'tile' });
+  hb.box(SLOT - 1, 0.06, 10, '#e9e4d6', slotX(7), 0, -8, { mat: 'tile' });
   zone(sc, 'hall-north', slotX(7), -8, 8, 8);
-  zone(sc, 'hallway', 0, 0, 130, 4);
+  zone(sc, 'hallway', 0, 0, 146, 3.4);
 
-  const teachers = elementary ? [2, 3, 4, 5].flatMap((g) => TEACHERS_BY_GRADE[g].map((t) => ({ t, g }))) : [6].flatMap((g) => TEACHERS_BY_GRADE[g].map((t) => ({ t, g })));
-  const north = [];
-  let ti = 0;
-  for (let i = 0; i < 14; i++) {
-    if (i === 7) north.push({ kind: 'passage' });
-    else if (ti < teachers.length) north.push({ kind: 'homeroom', ...teachers[ti++] });
-    else north.push({ kind: 'nurse' });
-  }
-  const roomArea = (id, x, z, w, door, wallColor, floor) => makeArea(sc, {
-    id, x, z, w: w - 0.2, d: 9.8, wallH: 3.4, parent: 'school', mode: 'cutaway', focus: true, lid: true,
-    ext: { color: '#efe6d2', mat: 'paint' }, int: { color: wallColor, mat: 'paint' }, floor,
-    doors: [{ side: door, at: 0, w: 1.7 }], noCollide: false,
-  });
+  // Who goes where. Classrooms first fill the north side, then the south.
+  const grades = elementary ? [3, 4, 5, 2] : [6, 7, 8];
+  const rooms = grades.flatMap((g) => CORE_SUBJECTS.map((subject) => ({ grade: g, subject, teacher: SUBJECT_TEACHERS[g][subject] })));
+  const north = Array.from({ length: 14 }, (_, i) => (i === 7 ? { kind: 'passage' } : null));
+  const south = ['office', 'nurse', 'detention', 'school library', null, 'cafeteria', null, null, 'band room', 'after-care room', 'class', 'class', 'class', 'gym door'];
+  let ri = 0;
+  for (let i = 0; i < 14; i++) if (!north[i]) north[i] = rooms[ri] ? { kind: 'class', ...rooms[ri++] } : { kind: 'service', name: "teachers' lounge" };
+  for (let i = 0; i < 14; i++) if (south[i] === 'class') south[i] = rooms[ri] ? { kind: 'class', ...rooms[ri++] } : { kind: 'service', name: "teachers' lounge" };
+
+  // Lockers line every stretch of hallway wall that isn't a door.
+  const lockerRuns = [];
   north.forEach((r, i) => {
-    const x = slotX(i); const z = -8;
-    if (r.kind === 'passage') return;
-    if (r.kind === 'nurse') {
-      const a = roomArea(`nurse-${i}`, x, z, 10, 'S', '#e0f2f1', { color: '#ffffff', mat: 'tile' });
-      a.b.rbox(1.0, 0.6, 2.2, '#ffffff', x + 2.5, 0, z - 2, { collide: true, mat: 'fabric' });
-      a.b.rbox(1.2, 1.6, 0.6, '#d0d7df', x - 3.5, 0, z - 4.2, { mat: 'metal' });
-      wallPicture(a.contents, posterTexture(77), x, 2.0, z - 4.75, 1.4, 1.4);
-      P.addSign(school.contents, 'Nurse', x, 2.4, -3.15, 1.3);
-      zone(sc, 'nurse', x, z, 8, 7);
-      act(sc, 'nurse', x - 1, z, 'Nurse (lie down: skip class... risky)');
+    const x = slotX(i);
+    if (r.kind === 'passage') {
+      P.addSign(school.contents, 'To Playground', x, 2.6, -3.15, 2.4);
+      // trophy case beside the playground doors
+      hb.box(2.6, 0.9, 0.5, '#6d4630', x + 3.8, 0, -2.8, { mat: 'wood' });
+      hb.box(2.6, 1.3, 0.48, '#d6ecff', x + 3.8, 0.9, -2.8, { mat: 'glass' });
+      for (let k = 0; k < 4; k++) hb.cyl(0.08, 0.12, 0.35 + (k % 2) * 0.15, '#e9c46a', x + 2.9 + k * 0.6, 0.95, -2.8, { mat: 'metal' });
+      sc.colliders.push({ minX: x + 2.5, maxX: x + 5.1, minZ: -3.05, maxZ: -2.55 });
+      lockerRuns.push([x - 5.3, x - 1.8, -2.98, 1]);
       return;
     }
-    const roomName = `room:${r.t}`;
-    const a = roomArea(`room-${i}`, x, z, 10, 'S', ['#ffe8d6', '#e2f0cb', '#dbe7ff', '#ffe0ec'][r.g % 4], { color: '#d8c6a8', mat: 'wood' });
-    const ab = a.b;
-    ab.box(5.2, 1.4, 0.06, '#f8f8f6', x, 1.0, z - 4.78, { mat: 'plastic' });
-    wallPicture(a.contents, posterTexture(i * 7 + 3, 'board'), x, 1.7, z - 4.74, 5.0, 1.3);
-    ab.box(5.4, 0.08, 0.2, '#9aa0a6', x, 0.95, z - 4.72, { mat: 'metal' });
-    ab.rbox(1.8, 0.8, 0.9, '#8d5a3b', x - 3, 0, z - 3.6, { collide: true, mat: 'wood' });
-    ab.sphere(0.13, '#e63946', x - 3.4, 0.9, z - 3.6, [1, 1, 1], { mat: 'plastic' });
-    ab.rbox(0.3, 0.25, 0.22, '#f4a261', x - 2.6, 0.8, z - 3.6, { mat: 'plastic' });
-    ab.cyl(0.32, 0.32, 0.02, '#ffffff', x + 3.8, 2.75, z - 4.85, { rot: [Math.PI / 2, 0, 0], mat: 'plastic' });
-    for (let k = 0; k < 3; k++) wallPicture(a.contents, posterTexture(i * 13 + k, 'art'), x - 4.85, 1.7, z - 2.2 + k * 1.6, 1.0, 1.0, Math.PI / 2);
-    wallPicture(a.contents, posterTexture(i * 5 + 1), x + 4.85, 1.8, z - 1, 1.2, 1.2, -Math.PI / 2);
-    const seats = [];
-    for (let row = 0; row < 4; row++) for (let col = 0; col < 5; col++) {
-      const sx = x - 3.2 + col * 1.6; const sz = z - 2.2 + row * 1.6;
-      P.desk(ab, sx, sz - 0.25);
-      seats.push({ x: sx, z: sz + 0.35, rot: Math.PI });
-    }
-    P.addSign(school.contents, `${r.t.replace('(Grubbsville Middle) ', '')} - Grade ${r.g}`, x, 2.75, -3.15, 2.8);
-    zone(sc, roomName, x, z, 8, 7, { seats, teacher: { x: x + 1.5, z: z - 4.0 }, door: { x, z: -3.5 } });
+    if (r.kind === 'class') classroom(sc, school, { x, north: true, teacher: r.teacher, subject: r.subject, grade: r.grade, i });
+    else serviceRoom(sc, school, r.name, x, true);
+    lockerRuns.push([x - 5.3, x + 1.75, -2.98, 1]);
   });
-  const south = ['office', 'detention', 'after-care room', 'art room', 'music room', 'band room', 'computer lab', 'spanish room', 'school library', 'school library', 'cafeteria', 'cafeteria', 'cafeteria', 'gym door'];
-  south.forEach((name, i) => {
-    const x = slotX(i); const z = 8;
-    if (name === 'gym door') { school.b.box(10, 0.06, 10, '#e3dccb', x, 0, z, { mat: 'tile' }); P.addSign(school.contents, 'Gym ->', x, 2.6, 3.15, 1.6, Math.PI); return; }
-    if ((name === 'school library' && south[i - 1] === 'school library') || (name === 'cafeteria' && south[i - 1] === 'cafeteria')) return;
-    const span = name === 'school library' ? 2 : name === 'cafeteria' ? 3 : 1;
-    const cx = x + (span - 1) * 5;
-    const w = span * 10;
-    const col = { office: '#e9ecef', detention: '#d6d6d6', cafeteria: '#fff1c1', 'art room': '#ffd6e0', 'music room': '#e0d6ff', 'band room': '#ffe8a3', 'computer lab': '#d6f5ff', 'spanish room': '#ffe0c2', 'school library': '#e2f0cb', 'after-care room': '#e8fff0' }[name] || '#f1e3c8';
-    const a = roomArea(`s-${name}`, cx, z, w, 'N', col, { color: name === 'cafeteria' ? '#e8e3d8' : '#d8c6a8', mat: name === 'cafeteria' ? 'checker' : name === 'school library' || name === 'after-care room' ? 'carpet' : 'wood' });
-    const ab = a.b;
-    P.addSign(school.contents, name.replace(/\b\w/g, (m) => m.toUpperCase()), cx, 2.75, 3.15, Math.min(3.2, name.length * 0.2 + 0.8), Math.PI);
-    const extra = {};
-    if (name === 'cafeteria') {
-      extra.seats = [];
-      for (let r2 = 0; r2 < 3; r2++) for (let c = 0; c < 4; c++) {
-        const tx = cx - 10 + c * 6.5; const tz = z - 1.5 + r2 * 2.6;
-        P.lunchTable(ab, tx, tz, ['#8ecae6', '#ffb703', '#90be6d'][r2]);
-        for (const off of [-1, -0.3, 0.4, 1.1]) { extra.seats.push({ x: tx + off, z: tz - 0.85, rot: 0 }); extra.seats.push({ x: tx + off, z: tz + 0.85, rot: Math.PI }); }
-      }
-      P.counter(ab, cx + 12, z + 3, 5, Math.PI / 2, '#adb5bd');
-      for (let k = 0; k < 4; k++) ab.rbox(0.5, 0.3, 0.35, ['#e63946', '#f4a261', '#90be6d', '#ffd166'][k], cx + 12, 1.08, z + 1.2 + k * 1.1, { mat: 'plastic' });
+  south.forEach((r, i) => {
+    const x = slotX(i);
+    if (r === null) return;
+    if (r === 'gym door') {
+      hb.box(SLOT - 1, 0.06, 10, '#e9e4d6', x, 0, 8, { mat: 'tile' });
+      P.addSign(school.contents, 'Gym ->', x, 2.6, 3.15, 1.6, Math.PI);
+      // drinking fountain
+      hb.rbox(0.6, 0.9, 0.45, '#c9ced4', x - 4.4, 0, 2.75, { mat: 'metal', collide: true });
+      return;
     }
-    if (name === 'school library') { for (let k = 0; k < 3; k++) P.bookshelf(ab, cx - 6 + k * 6, z + 3.6, 4, 0, rng); for (let k = 0; k < 3; k++) ab.sphere(0.5, ['#ff595e', '#ffca3a', '#8ac926'][k], cx - 4 + k * 2.5, 0.35, z - 1, [1, 0.7, 1], { mat: 'fabric' }); }
-    if (name === 'computer lab') for (let k = 0; k < 4; k++) { ab.rbox(1.3, 0.06, 0.7, '#a5673f', x - 3 + k * 2, 0.75, z + 2, { mat: 'wood' }); ab.rbox(0.7, 0.45, 0.06, '#1a1a1a', x - 3 + k * 2, 1.1, z + 2.25, { mat: 'plastic' }); ab.box(0.62, 0.38, 0.02, '#4cc9f0', x - 3 + k * 2, 1.12, z + 2.21, { mat: 'glow' }); }
-    if (name === 'art room') { for (let k = 0; k < 4; k++) { ab.box(0.06, 1.5, 0.06, '#8d5a3b', x - 3 + k * 2, 0, z + 1, { mat: 'wood' }); } for (let k = 0; k < 4; k++) wallPicture(a.contents, posterTexture(k + 40, 'art'), x - 3 + k * 2, 1.1, z + 0.94, 0.9, 0.9); }
-    if (name === 'music room' || name === 'band room') { ab.rbox(1.8, 1.0, 0.7, '#1a1a1a', x + 2.5, 0, z + 3, { collide: true, mat: 'wood' }); for (let k = 0; k < 5; k++) ab.cyl(0.25, 0.25, 0.5, '#d00000', x - 3 + k * 1.2, 0, z + 1, { mat: 'plastic' }); }
-    if (name === 'office') {
-      ab.rbox(2.2, 0.8, 1.0, '#6d4c41', x, 0, z + 2.6, { collide: true, mat: 'wood' });
-      ab.rbox(0.6, 0.4, 0.5, '#2b2b2f', x - 0.5, 0.8, z + 2.6, { mat: 'plastic' });
-      act(sc, 'principal', x, z + 1.2, "Principal Plunkett's desk");
-      zone(sc, 'office', x, z, 8, 6, { boss: { x, z: z + 3.4 } });
+    if (typeof r === 'string') {
+      const span = r === 'school library' ? 2 : r === 'cafeteria' ? 3 : 1;
+      serviceRoom(sc, school, r, x, false, span);
+      if (span === 1) lockerRuns.push([x - 5.3, x + 1.75, 2.98, -1]);
+      return;
     }
-    if (name === 'detention') for (let k = 0; k < 6; k++) P.desk(ab, x - 3 + (k % 3) * 3, z + (k < 3 ? -1 : 2));
-    if (name === 'after-care room') for (let k = 0; k < 4; k++) ab.sphere(0.5, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][k], x - 3 + k * 2, 0.35, z + 2, [1, 0.7, 1], { mat: 'fabric' });
-    if (name !== 'office') zone(sc, name, cx, z, w - 2, 7, extra);
+    if (r.kind === 'class') classroom(sc, school, { x, north: false, teacher: r.teacher, subject: r.subject, grade: r.grade, i: i + 20 });
+    else serviceRoom(sc, school, r.name, x, false);
+    lockerRuns.push([x - 5.3, x + 1.75, 2.98, -1]);
   });
+  for (const [x0, x1, z, face] of lockerRuns) {
+    if (x1 - x0 < 1) continue;
+    sc.colliders.push(P.lockerBank(hb, x0, x1, z, face, LOCKER_BLUE));
+  }
   // gym (its own building)
   const gym = makeArea(sc, {
-    id: 'gym', x: 88, z: -8, w: 18, d: 16, wallH: 5, mode: 'cutaway', focus: true,
+    id: 'gym', x: 96, z: -8, w: 18, d: 16, wallH: 5, mode: 'cutaway', focus: true,
     ext: { color: '#b5543c', mat: 'brick' }, int: { color: '#ffe8a3', mat: 'paint' }, floor: { color: '#d9a066', mat: 'wood' },
     doors: [{ side: 'W', at: 6.5, w: 2.5, glass: true }], windows: { N: [-5, 0, 5], S: [-5, 5] }, windowY: 3.4,
     roof: { type: 'gable', color: '#5b6168', h: 2.5 },
   });
-  for (const sx of [-1, 1]) { gym.b.box(0.15, 3.2, 0.15, '#6c757d', 88 + sx * 8.4, 0, -8, { mat: 'metal' }); gym.b.box(1.2, 0.9, 0.06, '#ffffff', 88 + sx * 8.2, 3.0, -8, { mat: 'plastic', rot: [0, Math.PI / 2, 0] }); }
-  gym.b.cyl(1.5, 1.5, 0.02, '#e63946', 88, 0.05, -8, { mat: 'plastic' });
-  zone(sc, 'gym', 88, -8, 14, 12);
-  b.box(10, 0.1, 3, '#cfcac0', 75, 0, -0.8, { mat: 'concrete' });
+  for (const sx of [-1, 1]) { gym.b.box(0.15, 3.2, 0.15, '#6c757d', 96 + sx * 8.4, 0, -8, { mat: 'metal' }); gym.b.box(1.2, 0.9, 0.06, '#ffffff', 96 + sx * 8.2, 3.0, -8, { mat: 'plastic', rot: [0, Math.PI / 2, 0] }); }
+  gym.b.cyl(1.5, 1.5, 0.02, '#e63946', 96, 0.05, -8, { mat: 'plastic' });
+  zone(sc, 'gym', 96, -8, 14, 12);
+  b.box(10, 0.1, 3, '#cfcac0', 82, 0, -0.8, { mat: 'concrete' });
+  b.box(4, 0.1, 6, '#cfcac0', 85, 0, -4, { mat: 'concrete' });
   // playground
   b.box(92, 0.03, 34, '#83c35a', 0, 0, -33, { mat: 'grass' });
   P.fence(b, -46, -15, -46, -51, '#9aa0a6'); P.fence(b, 46, -15, 46, -51, '#9aa0a6'); P.fence(b, -46, -51, 46, -51, '#9aa0a6');
@@ -499,21 +602,21 @@ export function buildSchool(opts) {
   zone(sc, 'playground', 0, -33, 80, 30, { spots: Object.fromEntries(Object.entries(spots).map(([k, [x, z]]) => [k, { x, z }])) });
   sc.schoolField = { x: 30, z: -36 };
   // front: lawn, flag, sign, bus loop
-  b.box(30, 0.06, 40, '#55585e', -86, 0, 0, { mat: 'asphalt' });
-  sidewalk(b, -73, 0, 4, 8);
-  b.box(4, 0.8, 0.6, '#b5543c', -78, 0, 8, { mat: 'brick' });
-  P.addSign(sc.group, elementary ? 'GRUBBSVILLE ELEMENTARY' : 'GRUBBSVILLE MIDDLE SCHOOL', -78, 1.5, 8.35, 4.6, 0, { bg: '#1d3557', color: '#ffd166' });
-  b.cyl(0.07, 0.09, 9, '#d0d7df', -76, 0, -6, { mat: 'metal', collide: true });
-  b.box(1.6, 1.0, 0.03, '#d62828', -75.2, 7.8, -6, { mat: 'fabric', shade: (x, y) => (Math.floor((y + 0.5) * 7) % 2 ? '#ffffff' : null) });
-  b.box(0.7, 0.55, 0.035, '#1d3557', -75.55, 8.03, -6, { mat: 'fabric' });
-  for (let k = 0; k < 4; k++) P.tree(b, -96 + k * 7, 18, 1.1, k % 3);
+  b.box(30, 0.06, 40, '#55585e', -94, 0, 0, { mat: 'asphalt' });
+  sidewalk(b, -80, 0, 4, 8);
+  b.box(4, 0.8, 0.6, '#b5543c', -86, 0, 8, { mat: 'brick' });
+  P.addSign(sc.group, elementary ? 'GRUBBSVILLE ELEMENTARY' : 'GRUBBSVILLE MIDDLE SCHOOL', -86, 1.5, 8.35, 4.6, 0, { bg: '#1d3557', color: '#ffd166' });
+  b.cyl(0.07, 0.09, 9, '#d0d7df', -84, 0, -6, { mat: 'metal', collide: true });
+  b.box(1.6, 1.0, 0.03, '#d62828', -83.2, 7.8, -6, { mat: 'fabric', shade: (x, y) => (Math.floor((y + 0.5) * 7) % 2 ? '#ffffff' : null) });
+  b.box(0.7, 0.55, 0.035, '#1d3557', -83.55, 8.03, -6, { mat: 'fabric' });
+  for (let k = 0; k < 4; k++) P.tree(b, -108 + k * 7, 18, 1.1, k % 3);
   for (let k = 0; k < 4; k++) P.tree(b, -60 + k * 30, 18, 1.0, (k + 1) % 4);
-  b.rbox(2.6, 2.6, 9, '#ffbe0b', -88, 0, -10, { mat: 'shoe', collide: true });
-  b.rbox(2.62, 0.9, 7, '#2b2d42', -88, 1.5, -10.3, { mat: 'glass' });
-  for (const sd of [-3, 3]) for (const sx of [-1.2, 1.2]) b.cyl(0.42, 0.42, 0.35, '#1a1a1a', -88 + sx, 0.42, -10 + sd, { rot: [0, 0, Math.PI / 2], mat: 'rubber' });
-  act(sc, 'exit', -90, 6, 'Leave school (Town Map)', {}, 2.6);
-  sc.spawn = { x: -84, z: 0, rot: Math.PI / 2 };
-  sc.grass.push({ x: -85, z: 18, w: 30, d: 12 }, { x: 0, z: 19, w: 140, d: 10 }, { x: 0, z: -33, w: 90, d: 32 }, { x: 85, z: 12, w: 30, d: 20 });
+  b.rbox(2.6, 2.6, 9, '#ffbe0b', -98, 0, -10, { mat: 'shoe', collide: true });
+  b.rbox(2.62, 0.9, 7, '#2b2d42', -98, 1.5, -10.3, { mat: 'glass' });
+  for (const sd of [-3, 3]) for (const sx of [-1.2, 1.2]) b.cyl(0.42, 0.42, 0.35, '#1a1a1a', -98 + sx, 0.42, -10 + sd, { rot: [0, 0, Math.PI / 2], mat: 'rubber' });
+  act(sc, 'exit', -100, 6, 'Leave school (Town Map)', {}, 2.6);
+  sc.spawn = { x: -91, z: 0, rot: Math.PI / 2 };
+  sc.grass.push({ x: -95, z: 18, w: 30, d: 12 }, { x: 0, z: 19, w: 154, d: 10 }, { x: 0, z: -33, w: 90, d: 32 }, { x: 93, z: 12, w: 30, d: 20 });
   sc.grassCount = 7000;
   return finish(sc, [{ minX: 0, maxX: 16, minZ: -27, maxZ: -17 }, { minX: 23, maxX: 37, minZ: -43, maxZ: -29 }]);
 }

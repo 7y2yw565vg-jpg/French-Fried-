@@ -339,7 +339,8 @@ export class Engine {
       this.camera.lookAt(c.look);
     } else {
       const p = this.playerState;
-      const tgt = new THREE.Vector3(p.x, 1.0, p.z);
+      // An anchor (e.g. the middle of a classroom) overrides following the player.
+      const tgt = this.cam.anchor ? new THREE.Vector3(this.cam.anchor.x, 1.0, this.cam.anchor.z) : new THREE.Vector3(p.x, 1.0, p.z);
       this.cam.target.lerp(tgt, snap ? 1 : Math.min(1, dt * 8));
       const inside = this.areaState.inside.size > 0;
       const dist = this.cam.dist * (inside ? 1.05 : 1);
@@ -392,7 +393,7 @@ export class Engine {
         if (ins) {
           const faces = (wl.nx * camDir.x + wl.nz * camDir.z) > 0.25;
           target = a.mode === 'down' ? 0.14 : (faces ? 0.1 : 1);
-        } else if (parentIn) target = a.lid ? 0.42 : 1;
+        } else if (parentIn) target = a.lid ? 0.8 : 1;
         wl.cur = wl.cur == null ? target : wl.cur + (target - wl.cur) * k;
         wl.obj.scale.y = Math.max(0.02, wl.cur);
         lidY = Math.max(lidY, wl.cur);

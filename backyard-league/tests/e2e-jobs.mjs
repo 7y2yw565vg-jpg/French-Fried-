@@ -120,7 +120,7 @@ await g(() => {
   const game = window.__game; const s = game.state;
   while (s.time.day % 7 !== 5) game.goToBed();
   game.enter('school');
-  const z = game.desc.zones[`room:${s.player.homeroom}`];
+  const z = game.desc.zones[game.periodRoom({ period: 1 })];
   game.engine.teleport(z.x, z.z, Math.PI);
   game.skip(8 * 60 + 1 - s.time.minute);
 });

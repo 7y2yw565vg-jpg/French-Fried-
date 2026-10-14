@@ -272,6 +272,65 @@ export function softDot(color = '0,0,0') {
 }
 
 /** Posters, artwork, whiteboard doodles: a random kid-drawing canvas. */
+/** Green chalkboard with chalk lessons for a subject. */
+export function chalkboardTexture(subject = 'Math') {
+  const key = `chalk${subject}`;
+  if (cache.has(key)) return cache.get(key);
+  const c = document.createElement('canvas'); c.width = 512; c.height = 160;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 512, 160);
+  g.addColorStop(0, '#2f5a43'); g.addColorStop(1, '#264c38');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 160);
+  const rng = mulberry32(subject.length * 131);
+  for (let i = 0; i < 40; i++) { ctx.fillStyle = `rgba(255,255,255,${0.02 + rng() * 0.05})`; ctx.beginPath(); ctx.ellipse(rng() * 512, rng() * 160, 20 + rng() * 60, 6 + rng() * 14, rng(), 0, Math.PI * 2); ctx.fill(); }
+  const lessons = {
+    Math: ['Today: Multiplication!', '12 x 3 = 36', '7 x 8 = 56', 'HW: p. 42 #1-15'],
+    'Language Arts': ['Nouns, Verbs & Adjectives', 'The quick brown fox...', 'Book report due FRI', 'Spelling: because'],
+    Science: ['The Water Cycle', 'Evaporation -> Clouds', '-> Rain -> Repeat!', 'Lab safety first!'],
+    History: ['The Pilgrims, 1620', 'Mayflower -> Plymouth', 'Map quiz: 50 states', 'Read ch. 4'],
+  }[subject] || ['Welcome back!'];
+  ctx.fillStyle = 'rgba(245,245,240,0.92)'; ctx.font = 'bold 30px "Comic Sans MS", "Chalkboard SE", cursive';
+  ctx.fillText(lessons[0], 20, 40);
+  ctx.font = '24px "Comic Sans MS", "Chalkboard SE", cursive';
+  for (let i = 1; i < lessons.length; i++) ctx.fillText(lessons[i], 30 + (i % 2) * 6, 40 + i * 36);
+  ctx.strokeStyle = 'rgba(245,245,240,0.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(20, 50); ctx.lineTo(20 + ctx.measureText(lessons[0]).width * 1.2, 50); ctx.stroke();
+  ctx.fillStyle = '#ffd6e0'; ctx.font = '22px "Comic Sans MS", cursive'; ctx.fillText(':)', 470, 140);
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+  cache.set(key, t);
+  return t;
+}
+
+/** A classroom wall poster for a subject (number line, map, planets, alphabet...). */
+export function subjectPoster(subject, i = 0) {
+  const key = `sp${subject}${i}`;
+  if (cache.has(key)) return cache.get(key);
+  const [c, ctx] = canvas(256);
+  const pal = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93', '#ff924c'];
+  ctx.fillStyle = '#fffaf0'; ctx.fillRect(0, 0, 256, 256);
+  ctx.strokeStyle = pal[i % pal.length]; ctx.lineWidth = 14; ctx.strokeRect(7, 7, 242, 242);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#2a1e1a';
+  if (subject === 'Math') {
+    ctx.font = 'bold 34px sans-serif'; ctx.fillText(i % 2 ? 'TIMES TABLES' : '+  -  x  ÷', 128, 60);
+    ctx.font = 'bold 22px monospace';
+    for (let r = 0; r < 5; r++) for (let k = 0; k < 4; k++) { ctx.fillStyle = pal[(r + k) % pal.length]; ctx.fillText(String((r + 2) * (k + 2)), 50 + k * 52, 100 + r * 30); }
+  } else if (subject === 'Science') {
+    ctx.font = 'bold 30px sans-serif'; ctx.fillText(i % 2 ? 'THE PLANETS' : 'LIFE CYCLE', 128, 52);
+    for (let k = 0; k < 6; k++) { ctx.fillStyle = pal[k]; ctx.beginPath(); ctx.arc(30 + k * 40, 140 + Math.sin(k) * 20, 10 + (k % 3) * 7, 0, Math.PI * 2); ctx.fill(); }
+  } else if (subject === 'History') {
+    ctx.fillStyle = '#9bd5ff'; ctx.fillRect(20, 60, 216, 170);
+    ctx.fillStyle = '#7bc96f'; ctx.beginPath(); ctx.moveTo(40, 110); ctx.bezierCurveTo(90, 70, 150, 90, 200, 80); ctx.lineTo(215, 160); ctx.bezierCurveTo(160, 200, 120, 210, 60, 190); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2a1e1a'; ctx.font = 'bold 30px sans-serif'; ctx.fillText(i % 2 ? 'TIMELINE' : 'OUR NATION', 128, 46);
+  } else {
+    ctx.font = 'bold 30px sans-serif'; ctx.fillText(i % 2 ? 'READ EVERY DAY' : 'Aa Bb Cc', 128, 60);
+    for (let k = 0; k < 5; k++) { ctx.fillStyle = pal[k]; ctx.fillRect(40 + k * 36, 110 + (k % 2) * 8, 26, 110); }
+  }
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+  cache.set(key, t);
+  return t;
+}
+
 export function posterTexture(seed, kind = 'poster') {
   const key = `${kind}${seed}`;
   if (cache.has(key)) return cache.get(key);

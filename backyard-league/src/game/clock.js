@@ -1,6 +1,6 @@
 // Advancing time: emits events the UI reacts to (bells, game day, curfew)
 // and runs the overnight bookkeeping when the player sleeps.
-import { SCHOOL_BLOCKS, TEACHERS_BY_GRADE, SPORTS } from '../data/world.js';
+import { SCHOOL_BLOCKS, SUBJECT_TEACHERS, SPORTS } from '../data/world.js';
 import { KID_BY_ID, shortName } from '../data/kids.js';
 import { addLog, addNews, playerGrade, yearOf } from './state.js';
 import { dayInfo, CURFEW, DAY_START } from './time.js';
@@ -85,11 +85,10 @@ export function sleep(state) {
 
 function newSchoolYear(state) {
   const g = playerGrade(state);
-  const list = TEACHERS_BY_GRADE[g];
-  if (list) state.player.homeroom = list[state.seed % list.length];
+  state.player.section = (state.seed + g) % 2;
   state.school.seatSwap = null;
   state.school.scores = state.school.scores.slice(-2);
-  const out = [`🎒 NEW SCHOOL YEAR! You're in ${g}th grade now. Your homeroom teacher is ${state.player.homeroom}.`];
+  const out = [`🎒 NEW SCHOOL YEAR! You're in ${g}th grade now. ${SUBJECT_TEACHERS[Math.min(8, g)] ? `Your teachers: ${Object.entries(SUBJECT_TEACHERS[Math.min(8, g)]).map(([sub, t]) => `${t} (${sub})`).join(', ')}.` : ''}`];
   // Kids who aged out of a rival's band become free agents.
   for (const [id, ks] of Object.entries(state.kids)) {
     if (ks.team && ks.team !== state.team.name && !ks.ringer) {

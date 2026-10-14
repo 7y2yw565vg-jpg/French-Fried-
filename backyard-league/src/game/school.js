@@ -2,36 +2,64 @@
 import { KIDS, KID_BY_ID, shortName } from '../data/kids.js';
 import { SCIENCE, SOCIAL, READING, SPELLING } from '../data/questions.js';
 import { SNITCH_LINES } from '../data/dialogue.js';
-import { TEACHERS } from '../data/world.js';
+import { TEACHERS, CORE_SUBJECTS, classFor } from '../data/world.js';
 import { addLog, playerGrade, yearOf } from './state.js';
 import { gradeAverage } from './team.js';
-import { homeroomOf, schoolKind } from './routines.js';
+import { sectionOf, schoolKind } from './routines.js';
+import { schoolBlockAt, nextClassBlock } from './time.js';
 import { kidGradeNow } from './stats.js';
 import { seeded, shuffle, pick, randInt, clamp } from './rng.js';
 import { fill, addFriendship } from './social.js';
 
 export const ROWS = 4;
-export const COLS = 5;
+export const COLS = 6;
 
+export function playerSection(state) {
+  return state.player.section ?? state.seed % 2;
+}
+
+/** Period (1-4) in progress, or the next one today; null once classes are over. */
+export function currentPeriod(state) {
+  const b = schoolBlockAt(state.time.minute);
+  if (b && b.kind === 'class') return b.period;
+  const n = nextClassBlock(state.time.minute);
+  return n ? n.period : 4;
+}
+
+/** Subject, teacher and room for one of your periods. */
+export function playerClass(state, period = currentPeriod(state)) {
+  return classFor(playerGrade(state), playerSection(state), period);
+}
+
+export function teacherInfo(state, period) {
+  return TEACHERS[playerClass(state, period).teacher] || { alert: 0.5, tardyGrace: 2 };
+}
+
+/** Kids in your section: the same classmates move with you from room to room. */
 export function classmates(state) {
   const g = playerGrade(state);
   const y = yearOf(state);
-  const room = state.player.homeroom;
-  return KIDS.filter((k) => kidGradeNow(k, y) === g && ['elem', 'middle'].includes(schoolKind(k, g)) && homeroomOf(k, g) === room).map((k) => k.id);
+  const sec = playerSection(state);
+  return KIDS.filter((k) => kidGradeNow(k, y) === g && ['elem', 'middle'].includes(schoolKind(k, g)) && sectionOf(k, g) === sec).map((k) => k.id);
 }
 
-/** Seat chart (row-major, ROWS x COLS). Contains 'PLAYER' and kid ids, or null for empty desks. */
-export function seatChart(state) {
+/** Seat chart for a period (row-major, ROWS x COLS, row 0 = front). Holds 'PLAYER', kid ids, or null. */
+export function seatChart(state, period = currentPeriod(state)) {
+  const { subject } = playerClass(state, period);
   const ids = classmates(state).slice(0, ROWS * COLS - 1);
-  const order = shuffle(seeded(state.seed, 'seats', yearOf(state)), ids);
+  const order = shuffle(seeded(state.seed, 'seats', yearOf(state), subject), ids);
   const seats = new Array(ROWS * COLS).fill(null);
-  let playerSeat = 12;
+  let playerSeat = COLS + Math.floor(seeded(state.seed, 'myseat', subject)() * (ROWS - 1) * COLS);
   const swap = state.school.seatSwap;
-  if (swap && swap.year === yearOf(state)) playerSeat = swap.seat;
+  if (swap && swap.year === yearOf(state) && (swap.subject == null || swap.subject === subject)) playerSeat = swap.seat;
+  // Empty desks go to the front corners, like in every real classroom.
+  const empties = ROWS * COLS - 1 - ids.length;
+  const emptySet = new Set([0, COLS - 1, 1, COLS - 2, 2, COLS - 3].slice(0, Math.max(0, empties)).filter((x) => x !== playerSeat));
   let i = 0;
-  for (let s = 0; s < seats.length; s++) {
-    if (s === playerSeat) { seats[s] = 'PLAYER'; continue; }
-    seats[s] = order[i++] ?? null;
+  for (let st = 0; st < seats.length; st++) {
+    if (st === playerSeat) { seats[st] = 'PLAYER'; continue; }
+    if (emptySet.has(st)) continue;
+    seats[st] = order[i++] ?? null;
   }
   return seats;
 }
@@ -65,7 +93,7 @@ export function passNote(state, targetId, message) {
   const seats = seatChart(state);
   const from = seats.indexOf('PLAYER');
   const to = seats.indexOf(targetId);
-  const teacher = TEACHERS[state.player.homeroom] || { alert: 0.5 };
+  const teacher = teacherInfo(state);
   const rng = seeded(state.seed, 'note', state.time.day, state.time.minute, targetId);
   const hops = pathBetween(from, to).map((s) => seats[s]).filter(Boolean);
   state.school.notesToday += 1;
@@ -107,7 +135,7 @@ export function requestSeatSwap(state, targetId, pay = false) {
     state.money -= 1;
   }
   const seat = seats.indexOf(targetId);
-  state.school.seatSwap = { year: yearOf(state), seat };
+  state.school.seatSwap = { year: yearOf(state), seat, subject: playerClass(state).subject };
   return { ok: true, text: `You swapped seats with ${KID_BY_ID.get(targetId).first_name}.` };
 }
 
@@ -149,15 +177,14 @@ function spellingQuestion(rng) {
   return { q: 'Which word is spelled correctly?', correct, wrong };
 }
 
-export const SUBJECTS = ['Math', 'Reading', 'Science', 'Social Studies', 'Spelling'];
+export const SUBJECTS = CORE_SUBJECTS;
 
 export function makeQuestion(rng, subject, grade) {
   switch (subject) {
     case 'Math': return mathQuestion(rng, grade);
-    case 'Reading': return bankQuestion(rng, READING);
+    case 'Language Arts': return rng() < 0.5 ? bankQuestion(rng, READING) : spellingQuestion(rng);
     case 'Science': return bankQuestion(rng, SCIENCE);
-    case 'Social Studies': return bankQuestion(rng, SOCIAL);
-    case 'Spelling': return spellingQuestion(rng);
+    case 'History': return bankQuestion(rng, SOCIAL);
     default: return mathQuestion(rng, grade);
   }
 }
@@ -284,7 +311,7 @@ export function dareOffer(state, kidId) {
 }
 
 export function resolveDare(state, kidId, dare, roomIds) {
-  const teacher = TEACHERS[state.player.homeroom] || { alert: 0.5 };
+  const teacher = teacherInfo(state);
   const rng = seeded(state.seed, 'dare-r', state.time.day, state.time.minute, dare.id);
   const giver = KID_BY_ID.get(kidId);
   const spotted = rng() < clamp(dare.base * (0.6 + teacher.alert) - (state.player.sneak - 40) / 200, 0.02, 0.98);

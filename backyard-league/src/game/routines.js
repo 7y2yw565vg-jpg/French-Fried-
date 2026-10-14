@@ -1,7 +1,8 @@
 // Where is every kid right now? Pure function of the kid's routine, the clock,
 // and a little save state (team practices).
-import { HOOD_BY_NAME, PLAYER_LUNCH, RECESS_ZONES, SPECIAL_ROOMS, TEACHERS_BY_GRADE, parseSpot } from '../data/world.js';
-import { dayInfo, schoolBlockAt, DOW } from './time.js';
+import { HOOD_BY_NAME, PLAYER_LUNCH, RECESS_ZONES, parseSpot, classFor } from '../data/world.js';
+import { KIDS } from '../data/kids.js';
+import { dayInfo, schoolBlockAt, nextClassBlock, DOW } from './time.js';
 import { kidGradeNow } from './stats.js';
 import { hashString } from './rng.js';
 
@@ -19,12 +20,29 @@ export function schoolLocFor(grade) {
   return grade <= 5 ? 'school' : grade <= 8 ? 'middleschool' : 'highschool';
 }
 
-export function homeroomOf(kid, grade) {
+const sectionCache = new Map();
+/**
+ * Class section (0 or 1) for a public-school kid. Each grade's kids are split
+ * evenly, so both sections fill their classrooms.
+ */
+export function sectionOf(kid, grade) {
   if (!PUBLIC.has(kid.routine.school)) return null;
-  if (grade === kid.grade_at_start && kid.routine.homeroom) return kid.routine.homeroom;
-  const list = TEACHERS_BY_GRADE[grade];
-  if (!list) return null;
-  return list[hashString(kid.id + grade) % list.length];
+  const key = `${kid.grade_at_start}:${grade}`;
+  let map = sectionCache.get(key);
+  if (!map) {
+    const cohort = KIDS.filter((k) => k.grade_at_start === kid.grade_at_start && PUBLIC.has(k.routine.school))
+      .sort((a, b) => hashString(a.id + grade) - hashString(b.id + grade) || a.id.localeCompare(b.id));
+    map = new Map(cohort.map((k, i) => [k.id, i % 2]));
+    sectionCache.set(key, map);
+  }
+  return map.get(kid.id) ?? 0;
+}
+
+/** The classroom a kid is in during a class period (1-4). */
+export function kidClass(kid, grade, period) {
+  const sec = sectionOf(kid, grade);
+  if (sec == null) return null;
+  return classFor(grade, sec, period);
 }
 
 export function kidHood(kid) {
@@ -67,18 +85,14 @@ export function whereIsKid(kid, ctx) {
       }
       if (r.before_school === 'late again' && m < 8 * 60 + 6) return { loc: sLoc, zone: 'hallway', activity: 'running late (again)' };
       const block = schoolBlockAt(m);
-      const room = `room:${homeroomOf(kid, grade)}`;
-      if (!block) return { loc: sLoc, zone: room, activity: 'in class' };
+      const roomAt = (b) => kidClass(kid, grade, (b && b.period) || 1).room;
+      if (!block) return { loc: sLoc, zone: roomAt(null), activity: 'in class' };
       switch (block.kind) {
-        case 'class': return { loc: sLoc, zone: room, activity: 'in class' };
-        case 'hall': return { loc: sLoc, zone: 'hallway', activity: 'between classes' };
+        case 'class': return { loc: sLoc, zone: roomAt(block), activity: 'in class' };
+        case 'pass': { const nc = kidClass(kid, grade, nextClassBlock(m).period); return { loc: sLoc, zone: 'hallway', activity: `heading to ${nc.subject}`, toRoom: nc.room }; }
         case 'recess': return { loc: sLoc, zone: RECESS_ZONES[r.recess_spot] || 'playground', activity: `recess (${r.recess_spot})` };
-        case 'lunch': return r.lunch === PLAYER_LUNCH ? { loc: sLoc, zone: 'cafeteria', activity: 'lunch' } : { loc: sLoc, zone: room, activity: 'in class (different lunch)' };
-        case 'special': {
-          const sp = r.specials_day ? r.specials_day[DOW[info.dow]] : 'Art';
-          return { loc: sLoc, zone: SPECIAL_ROOMS[sp] || 'art room', activity: `${sp} class` };
-        }
-        default: return { loc: sLoc, zone: room, activity: 'in class' };
+        case 'lunch': return r.lunch === PLAYER_LUNCH || !r.lunch ? { loc: sLoc, zone: 'cafeteria', activity: 'lunch' } : { loc: sLoc, zone: roomAt(nextClassBlock(m)), activity: 'in class (different lunch)' };
+        default: return { loc: sLoc, zone: roomAt(null), activity: 'in class' };
       }
     }
     if (!isPublic && m < 15 * 60 + 30) return null; // at their own school
@@ -114,19 +128,22 @@ function weekendSpot(kid, slot, grade) {
 /** Routine facts the player can learn about a kid, in the order chat reveals them. */
 export function routineSlots(kid) {
   const slots = [];
-  if (kid.routine.homeroom) slots.push('homeroom', 'lunch', 'recess', 'specials');
+  if (PUBLIC.has(kid.routine.school)) slots.push('homeroom', 'lunch', 'recess');
   slots.push('before');
   for (const d of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']) slots.push(`after:${d}`);
   for (const w of ['Sat AM', 'Sat PM', 'Sun AM', 'Sun PM']) slots.push(`weekend:${w}`);
   return slots;
 }
 
-export function describeSlot(kid, slot) {
+export function describeSlot(kid, slot, grade = kid.grade_at_start) {
   const r = kid.routine;
-  if (slot === 'homeroom') return `Homeroom: ${r.homeroom}`;
+  if (slot === 'homeroom') {
+    const classes = [1, 2, 3, 4].map((p) => kidClass(kid, grade, p)).filter(Boolean);
+    return classes.length ? `Classes: ${classes.map((c, i) => `P${i + 1} ${c.subject} (${c.teacher})`).join(', ')}` : `School: ${r.school}`;
+  }
   if (slot === 'lunch') return `Lunch: ${r.lunch}`;
   if (slot === 'recess') return `Recess: ${r.recess_spot}`;
-  if (slot === 'specials') return `Specials: ${Object.entries(r.specials_day).map(([d, s]) => `${d} ${s}`).join(', ')}`;
+  if (slot === 'specials') return null; // retired (old saves)
   if (slot === 'before') return `Before school: ${r.before_school}`;
   if (slot.startsWith('after:')) return `${slot.slice(6)} after school: ${r.after_school[slot.slice(6)]}`;
   if (slot.startsWith('weekend:')) return `${slot.slice(8)}: ${r.weekend[slot.slice(8)]}`;

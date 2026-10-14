@@ -1,14 +1,14 @@
 // The phone: team management, kid notebook, field & staff, league, school, money, settings.
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
-import { SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, PLAYER_SPECIALS, SPECIAL_ROOMS } from '../data/world.js';
+import { SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
 import { registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand } from '../game/team.js';
 import { standings, weekGames } from '../game/league.js';
 import { letter } from '../game/stats.js';
-import { letterFor } from '../game/school.js';
+import { letterFor, playerClass, classmates } from '../game/school.js';
 import { friendshipLabel, parseHook } from '../game/social.js';
-import { routineSlots, describeSlot } from '../game/routines.js';
+import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
@@ -163,10 +163,11 @@ function kidsTab(game, root, redraw) {
   const chips = h('div', { class: 'chips' }, ...filters.map(([id, l]) => h('div', { class: `chip ${game._kidFilter === id ? 'sel' : ''}`, onclick: () => { game._kidFilter = id; redraw(); } }, l)));
   const met = KIDS.filter((k) => s.kids[k.id].met);
   const g = playerGrade(s);
+  const classSet = new Set(classmates(s));
   const list = met.filter((k) => {
     const ks = s.kids[k.id];
     switch (game._kidFilter) {
-      case 'class': return kidGrade(s, k.id) === g && k.routine.homeroom === s.player.homeroom;
+      case 'class': return kidGrade(s, k.id) === g && classSet.has(k.id);
       case 'free': return !ks.team;
       case 'rival': return ks.team && ks.team !== s.team.name;
       case 'mine': return s.team.roster.includes(k.id);
@@ -191,10 +192,10 @@ function notebookEntry(game, id) {
   const s = game.state;
   const k = KID_BY_ID.get(id);
   const ks = s.kids[id];
-  const routine = ks.known.length ? ks.known.map((slot) => h('div', {}, `📍 ${describeSlot(k, slot)}`)) : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (once a day) to learn it.')];
+  const routine = ks.known.length ? ks.known.map((slot) => describeSlot(k, slot, kidGrade(s, id))).filter(Boolean).map((txt) => h('div', {}, `📍 ${txt}`)) : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (once a day) to learn it.')];
   const hook = ks.hookAsked ? parseHook(k) : null;
   const body = h('div', {},
-    h('div', { class: 'row' }, portrait(k, 80), h('div', {}, h('b', { style: { fontSize: '20px' } }, kidName(k)), h('div', { class: 'muted' }, `${k.personality}. Lives in ${k.residence.neighborhood} (${k.residence.address}). ${k.routine.school}${k.routine.homeroom ? `, ${k.routine.homeroom}'s class` : ''}.`),
+    h('div', { class: 'row' }, portrait(k, 80), h('div', {}, h('b', { style: { fontSize: '20px' } }, kidName(k)), h('div', { class: 'muted' }, `${k.personality}. Lives in ${k.residence.neighborhood} (${k.residence.address}). ${k.routine.school}${sectionOf(k, kidGrade(s, id)) != null && kidGrade(s, id) === playerGrade(s) ? (sectionOf(k, kidGrade(s, id)) === s.player.section ? ', in your class section' : ', in the other class section') : ''}.`),
       h('div', {}, `Friendship: ${friendshipLabel(ks.f)} (${ks.f})`))),
     h('h3', { style: { margin: '10px 0 4px' } }, 'Routine'), ...routine,
     ks.f >= 30 ? h('p', {}, `❤️ Likes: ${k.likes.join(', ')}`) : h('p', { class: 'muted' }, 'Get friendlier to learn what they like.'),
@@ -285,16 +286,19 @@ function schoolTab(game, root) {
   const avg = gradeAverage(s);
   const rows = SCHOOL_BLOCKS.map((b) => {
     let what = b.label || '';
-    if (b.kind === 'class') what = Array.isArray(b.subject) ? b.subject[Math.min(4, info.dow)] : b.subject;
-    if (b.kind === 'special') what = `${PLAYER_SPECIALS[Math.min(4, info.dow)]} (${SPECIAL_ROOMS[PLAYER_SPECIALS[Math.min(4, info.dow)]]})`;
-    const where = b.kind === 'class' ? `${s.player.homeroom}'s room` : b.kind === 'lunch' ? 'Cafeteria (B Lunch)' : b.kind === 'recess' ? 'Playground' : b.kind === 'hall' ? 'Hallway' : '';
+    let where = b.kind === 'lunch' ? 'Cafeteria' : b.kind === 'recess' ? 'Playground' : b.kind === 'pass' ? 'Hallway (5 min)' : '';
+    if (b.kind === 'class') {
+      const c = playerClass(s, b.period);
+      what = `P${b.period} ${c.subject}`;
+      where = `${c.teacher}, Room ${roomNumber(c.grade, c.subject)}`;
+    }
     const now = s.time.minute >= b.start && s.time.minute < b.end && info.isSchoolDay;
     return h('tr', { style: now ? { background: '#fff3b0' } : {} }, h('td', {}, formatTime(b.start)), h('td', {}, what), h('td', { class: 'muted' }, where));
   });
-  const prep = h('div', {}, ...['Math', 'Reading', 'Science', 'Social Studies', 'Spelling'].map((sub) => h('div', { class: 'row' }, h('span', { style: { width: '120px' } }, sub), h('div', { class: 'bar', style: { width: '120px' } }, h('i', { style: { width: `${((s.school.prep[sub] || 0) / 8) * 100}%`, background: '#8a5cd6' } })))));
+  const prep = h('div', {}, ...CORE_SUBJECTS.map((sub) => h('div', { class: 'row' }, h('span', { style: { width: '120px' } }, sub), h('div', { class: 'bar', style: { width: '120px' } }, h('i', { style: { width: `${((s.school.prep[sub] || 0) / 8) * 100}%`, background: '#8a5cd6' } })))));
   root.append(h('div', { class: 'grid2' },
     h('div', { class: 'box' }, h('h3', {}, info.isSchoolDay ? `Today's schedule (${info.dowLong})` : 'No school today!'), h('table', { class: 'list' }, ...rows),
-      h('p', { class: 'muted' }, `Homeroom: ${s.player.homeroom}. Weekly quiz every Friday in period 1. Be in your seat when the bell rings!`)),
+      h('p', { class: 'muted' }, `You're in section ${'AB'[s.player.section ?? 0]}: the same ${classmates(s).length} classmates move with you from room to room. When the bell rings you have 5 minutes in the hallway to reach your next class. Weekly quiz every Friday in period 1.`)),
     h('div', { class: 'box' }, h('h3', {}, 'Report card'),
       h('div', { class: 'row' }, 'Average:', h('b', { style: { fontSize: '24px' } }, `${letterFor(avg)} (${avg}%)`)),
       h('div', { class: 'muted' }, `Recent scores: ${s.school.scores.slice(-6).join(', ')}`),

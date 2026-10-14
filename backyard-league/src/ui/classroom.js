@@ -2,8 +2,8 @@
 // sneak out, dares from troublemakers, and quizzes.
 import { $, h, clear, btn, modal, toast } from './dom.js';
 import { KID_BY_ID, shortName } from '../data/kids.js';
-import { TEACHERS } from '../data/world.js';
-import { seatChart, neighborsOf, passNote, noteBusted, requestSeatSwap, dareOffer, resolveDare, makeQuiz, quizHints, quizSeconds, recordQuiz, addPrep, SUBJECTS, letterFor, ROWS, COLS } from '../game/school.js';
+import { TEACHERS, roomNumber } from '../data/world.js';
+import { seatChart, neighborsOf, passNote, noteBusted, requestSeatSwap, dareOffer, resolveDare, makeQuiz, quizHints, quizSeconds, recordQuiz, addPrep, SUBJECTS, letterFor, ROWS, COLS, teacherInfo, playerClass } from '../game/school.js';
 import { inviteCheck, invite, parseHook, completeHook, addFriendship } from '../game/social.js';
 import { dayInfo, formatTime } from '../game/time.js';
 import { seeded } from '../game/rng.js';
@@ -20,7 +20,7 @@ export function enterClass(game, period) {
   const rng = seeded(s.seed, 'class', s.time.day, period.block.start);
   // Quizzes: weekly on Friday period 1, pop quizzes sometimes.
   if (info.dow === 4 && period.block.period === 1 && s.school.lastQuizDay !== s.time.day) runQuiz(game, SUBJECTS, 8, 'Friday Weekly Quiz');
-  else if (period.subject !== 'Project Time' && rng() < 0.12 && s.school.popQuizDay !== s.time.day) { s.school.popQuizDay = s.time.day; runQuiz(game, [period.subject], 4, `POP QUIZ: ${period.subject}!`); }
+  else if (rng() < 0.12 && s.school.popQuizDay !== s.time.day) { s.school.popQuizDay = s.time.day; runQuiz(game, [period.subject], 4, `POP QUIZ: ${period.subject}!`); }
   // Troublemakers offer dares.
   const seats = seatChart(s);
   const trouble = seats.filter((id) => id && id !== 'PLAYER' && ['Class Clown', 'Troublemaker', 'Prankster'].includes(KID_BY_ID.get(id).personality));
@@ -30,21 +30,25 @@ export function enterClass(game, period) {
 
 function seatPlayer(game) {
   const s = game.state;
-  const zone = game.desc.zones[`room:${s.player.homeroom}`];
+  const p = game.period || game.classPeriod;
+  const zone = p && game.desc.zones[p.room];
   if (!zone) return;
   const idx = seatChart(s).indexOf('PLAYER');
   const seat = zone.seats[idx];
   game.engine.teleport(seat.x, seat.z, seat.rot);
   game.engine.playerState.sitting = true;
-  game.engine.cam.pitch = 1.05;
-  game.engine.cam.dist = 9;
-  game.engine.cam.yaw = Math.PI; // look back at the class so you see faces
+  // From the back of the room, looking past the desks to the board.
+  game.engine.cam.pitch = 0.58;
+  game.engine.cam.dist = 9.5;
+  game.engine.cam.yaw = zone.camYaw ?? Math.PI / 2;
+  game.engine.cam.anchor = zone.anchor || null;
 }
 
 export function exitClass(game) {
   if (game.mode !== 'class') return;
   game.mode = 'free';
   game.engine.playerState.sitting = false;
+  game.engine.cam.anchor = null;
   game.classPeriod = null;
   game.dare = null;
   if (!game.talking) clear($('#panel'));
@@ -68,13 +72,13 @@ function renderClass(game) {
   const p = game.classPeriod;
   if (!p || game.mode !== 'class') return;
   const panel = clear($('#panel'));
-  const teacher = s.player.homeroom;
+  const teacher = p.teacher;
   const tinfo = TEACHERS[teacher] || {};
   const left = Math.max(0, p.block.end - s.time.minute);
   const roomIds = seatChart(s).filter((x) => x && x !== 'PLAYER');
   const buttons = h('div', { class: 'btn-row' },
     btn('🙋 Pay attention (skip to the bell)', () => {
-      addPrep(s, p.subject === 'Project Time' ? SUBJECTS[s.time.day % 5] : p.subject, 2);
+      addPrep(s, p.subject, 2);
       s.player.smarts = Math.min(100, s.player.smarts + 0.5);
       toast(`You paid attention. ${p.subject} prep +2.`, 'good');
       game.skip(Math.max(1, p.block.end - s.time.minute));
@@ -99,8 +103,8 @@ function renderClass(game) {
       }, 'small red'),
       btn('Nah', () => { game.dare = null; addFriendship(s, dare.kidId, -1); renderClass(game); }, 'small white'))) : null;
   panel.appendChild(h('div', { class: 'card classbar' },
-    h('div', { class: 'title' }, h('h3', {}, `📚 ${p.subject} with ${teacher.replace('(Grubbsville Middle) ', '')}`), h('span', { class: 'pill' }, `${left} min left (bell at ${formatTime(p.block.end)})`)),
-    h('div', { class: 'muted' }, `${tinfo.vibe ? `${teacher.replace('(Grubbsville Middle) ', '')} ${tinfo.vibe}. ` : ''}${p.late ? 'You were late. ' : ''}You can talk to the kids next to you, or pass notes to kids farther away.`),
+    h('div', { class: 'title' }, h('h3', {}, `📚 ${p.subject} with ${teacher} · Room ${roomNumber(playerClass(s, p.block.period).grade, p.subject)}`), h('span', { class: 'pill' }, `${left} min left (bell at ${formatTime(p.block.end)})`)),
+    h('div', { class: 'muted' }, `${tinfo.vibe ? `${teacher} ${tinfo.vibe}. ` : ''}${p.late ? 'You were late. ' : ''}You can talk to the kids next to you, or pass notes to kids farther away.`),
     dareBox, buttons));
   clearTimeout(game._classTimer);
   game._classTimer = setTimeout(() => { if (game.mode === 'class' && !game.talking) renderClass(game); }, 4000);
@@ -169,7 +173,7 @@ function whisperFlow(game) {
   const me = seats.indexOf('PLAYER');
   const near = new Set(neighborsOf(seats, me));
   seatPicker(game, 'Whisper to a neighbor', (id) => {
-    const alert = (TEACHERS[s.player.homeroom] || { alert: 0.5 }).alert;
+    const alert = teacherInfo(s).alert;
     if (Math.random() < alert * 0.15) {
       s.school.trouble.push(s.time.day);
       sfx('whistle');
@@ -208,7 +212,7 @@ function hallPass(game) {
 
 function sneakOut(game) {
   const s = game.state;
-  const alert = (TEACHERS[s.player.homeroom] || { alert: 0.5 }).alert;
+  const alert = teacherInfo(s).alert;
   const chance = Math.max(0.1, 0.35 + s.player.sneak / 200 - alert * 0.3);
   if (Math.random() < chance) {
     s.player.sneak = Math.min(100, s.player.sneak + 1);
@@ -227,9 +231,10 @@ function leaveSeat(game) {
   game.mode = 'free';
   game.leftClass = true;
   game.engine.playerState.sitting = false;
+  game.engine.cam.anchor = null;
   clear($('#panel'));
-  const zone = game.desc.zones[`room:${s.player.homeroom}`];
-  if (zone && zone.door) game.engine.teleport(zone.door.x, zone.door.z + 1.2, 0);
+  const zone = game.period && game.desc.zones[game.period.room];
+  if (zone && zone.door) game.engine.teleport(zone.door.x, zone.door.z, zone.door.rot ?? 0);
   game.engine.cam.pitch = 0.95;
   game.engine.cam.dist = 13;
 }

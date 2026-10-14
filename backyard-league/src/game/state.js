@@ -26,7 +26,7 @@ export function newGame(opts) {
     seed,
     player: {
       name: opts.name || 'Rookie', look: opts.look, perk: opts.perk || 'smooth', hood: opts.hood || 'maple',
-      homeroom: 'Mrs. Bramblebee', stats: pstats,
+      section: seed % 2, stats: pstats,
       charisma: opts.perk === 'smooth' ? 60 : 45, sneak: opts.perk === 'sneaky' ? 60 : 40,
       smarts: opts.perk === 'teacherskid' ? 60 : 45, rep: 0,
     },
@@ -75,7 +75,7 @@ export function playerKid(state) {
     looks: { ...p.look, height_in: 50, accessories: p.look.accessories || [] },
     residence: { neighborhood: p.hood, address: 'Your house' },
     hidden: { potential: 70, growth_curve: 'Steady Climber', coachability: 70, sneakiness: p.sneak },
-    stats: p.stats, routine: { school: 'Grubbsville Elementary', homeroom: p.homeroom },
+    stats: p.stats, routine: { school: 'Grubbsville Elementary', homeroom: null },
     isPlayer: true,
   };
 }
@@ -138,6 +138,8 @@ export function serialize(state) {
 export function deserialize(text) {
   const s = JSON.parse(text);
   if (!s || s.v !== SAVE_VERSION || !s.kids || !s.team) throw new Error('Not a Backyard League save');
+  // Saves from before class sections existed.
+  if (s.player.section == null) s.player.section = s.seed % 2;
   return s;
 }
 

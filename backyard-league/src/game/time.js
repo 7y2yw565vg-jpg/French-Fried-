@@ -53,9 +53,9 @@ export function schoolBlockAt(minute) {
   return SCHOOL_BLOCKS.find((b) => minute >= b.start && minute < b.end) || null;
 }
 
-export function blockSubject(block, dow) {
-  if (!block || !block.subject) return null;
-  return Array.isArray(block.subject) ? block.subject[dow] : block.subject;
+/** The class block in progress at `minute`, or the next one today (null after the last). */
+export function nextClassBlock(minute) {
+  return SCHOOL_BLOCKS.find((b) => b.kind === 'class' && minute < b.end) || null;
 }
 
 /** Hours of daylight shading for the 3D sun: 0 = midnight, 1 = noon. */

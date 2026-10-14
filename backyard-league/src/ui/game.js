@@ -2,12 +2,12 @@
 // kid presence/streaming, school periods, and routes interactions to UI modules.
 import * as THREE from 'three';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
-import { LOCATIONS, NEIGHBORHOODS, HOOD_BY_NAME, PLAYER_SPECIALS, SPECIAL_ROOMS, TEACHERS, ADULTS, SPORTS } from '../data/world.js';
+import { LOCATIONS, NEIGHBORHOODS, HOOD_BY_NAME, TEACHERS, ADULTS, SPORTS, roomNumber } from '../data/world.js';
 import { saveToStorage, playerGrade, yearOf, heightOf, addLog, hasItem } from '../game/state.js';
-import { dayInfo, formatTime, schoolBlockAt, blockSubject } from '../game/time.js';
+import { dayInfo, formatTime, schoolBlockAt, nextClassBlock } from '../game/time.js';
 import { advance, sleep, finishPractice } from '../game/clock.js';
-import { whereIsKid, schoolLocFor, homeroomOf } from '../game/routines.js';
-import { seatChart, markTardy, markAbsent, applyPunishment } from '../game/school.js';
+import { whereIsKid, schoolLocFor, sectionOf } from '../game/routines.js';
+import { seatChart, markTardy, markAbsent, applyPunishment, playerClass, teacherInfo } from '../game/school.js';
 import { practiceToday } from '../game/team.js';
 import { pickupsFor, collectPickup, jobReady, mowJobs } from '../game/economy.js';
 import { playerGameThisWeek, ensureSeason } from '../game/league.js';
@@ -28,6 +28,7 @@ import { hashString, mulberry32 } from '../game/rng.js';
 import { checkAchievements } from '../game/achievements.js';
 
 export const SPEEDS = { slow: 1.0, normal: 0.6, fast: 0.35 };
+const PASS_SPM = 12; // seconds of real time per game minute in the hallway
 
 export function playerLook(state) {
   const g = playerGrade(state);
@@ -168,7 +169,7 @@ export class Game {
     const mySchool = schoolLocFor(playerGrade(s));
     const desired = new Map();
     const roomFill = new Map();
-    const homeroomZone = `room:${s.player.homeroom}`;
+    const homeroomZone = s.loc === 'school' ? playerClass(s).room : null;
     const chart = s.loc === 'school' ? seatChart(s) : null;
     const hidden = this.hiddenKids || new Set();
     for (const kid of KIDS) {
@@ -204,11 +205,15 @@ export class Game {
       if (idx == null || idx < 0) {
         const n = ctx.roomFill.get(w.zone) || 0;
         ctx.roomFill.set(w.zone, n + 1);
-        idx = w.zone === ctx.homeroomZone ? 19 - n : n;
+        idx = w.zone === ctx.homeroomZone ? z.seats.length - 1 - n : n;
       }
       const seat = z.seats[idx % z.seats.length];
       Object.assign(spec, { x: seat.x, z: seat.z, rot: seat.rot, mode: w.activity.startsWith('in class') ? 'sit' : 'wander', area: { x: z.x, z: z.z, w: z.w, d: z.d } });
       if (spec.mode !== 'sit') place(z, 0.8);
+    } else if (w.zone === 'hallway' && w.toRoom && d.zones[w.toRoom] && d.zones[w.toRoom].door) {
+      // Between classes: kids crowd the hallway near the door of their next class.
+      const door = d.zones[w.toRoom].door;
+      place({ x: door.x - 2.5, z: 0, w: 9, d: 3.2 });
     } else if ((w.zone === 'cafeteria' || w.zone === 'food court' || w.zone === 'homework tables') && z && z.seats) {
       const n = ctx.roomFill.get(w.zone) || 0;
       ctx.roomFill.set(w.zone, n + 1);
@@ -291,12 +296,12 @@ export class Game {
     }
     if (s.loc === 'school') {
       for (const [zn, z] of Object.entries(d.zones)) {
-        if (zn.startsWith('room:') && z.teacher) add(`t-${zn}`, zn.slice(5).replace('(Grubbsville Middle) ', ''), z.teacher.x, z.teacher.z, { rot: 0, role: 'teacher' });
+        if (zn.startsWith('room:') && z.teacher) add(`t-${zn}`, zn.slice(5), z.teacher.x, z.teacher.z, { rot: z.teacher.rot ?? 0, role: 'teacher' });
       }
       if (d.zones.office) add('principal', 'Principal Plunkett', d.zones.office.boss.x, d.zones.office.boss.z, { rot: Math.PI, look: { shirt: 'gray', hair: 'bald', accessories: ['glasses'] }, role: 'principal' });
       if (d.zones.cafeteria) add('lunch', 'Lunch Lady Lorraine', d.zones.cafeteria.x + 12, d.zones.cafeteria.z + 2, { role: 'lunch', look: { shirt: 'white', hair: 'curly afro' } });
       add('monitor', 'Hall Monitor Mr. Beasley', -30, 0, { role: 'monitor', look: { shirt: 'navy', hair: 'buzz cut' } });
-      for (const sp of ['art room', 'music room', 'gym', 'school library', 'computer lab', 'spanish room']) if (d.zones[sp]) add(`sp-${sp}`, `${sp.replace(/\b\w/g, (m) => m.toUpperCase())} Teacher`, d.zones[sp].x, d.zones[sp].z + (sp === 'gym' ? -5 : 3), { role: 'teacher' });
+      for (const [sp, who] of [['gym', 'Coach Rhodes'], ['school library', 'Librarian Mr. Quill'], ['band room', 'Band Director Ms. Tuba']]) if (d.zones[sp]) add(`sp-${sp}`, who, d.zones[sp].x, d.zones[sp].z + (sp === 'gym' ? -5 : 2), { role: 'teacher' });
     }
     if (s.loc === 'library') {
       add('commish', 'Commissioner Gertrude', 14, -0.3, { rot: 0, role: 'league', look: { gray: true, hair: 'bob' } });
@@ -382,13 +387,16 @@ export class Game {
     this.engine.paused = !(this.mode === 'free' || this.mode === 'mow') || modalOpen() || $('#overlay').classList.contains('show') || !!this.talking;
     if (running) {
       this.acc += dt;
-      const spm = SPEEDS[this.settings.speed] || 0.6;
+      // Passing periods run slow (about a minute of real time) so you can chat on the way.
+      const spm = this.passing && s.loc === 'school' && this.mode === 'free' ? PASS_SPM : SPEEDS[this.settings.speed] || 0.6;
+      this.spm = spm;
       if (this.acc >= spm) {
         this.acc -= spm;
         this.advance(1);
       }
     }
     this.streamT += dt;
+    if (this.passing) { this.passT = (this.passT || 0) + dt; if (this.passT > 0.25) { this.passT = 0; this.hud.update(); } }
     if (this.streamT > 0.35) {
       this.streamT = 0;
       this.streamNPCs();
@@ -454,36 +462,73 @@ export class Game {
   }
 
   periodRoom(block) {
-    const s = this.state;
-    const dow = dayInfo(s.time.day).dow;
-    if (block.kind === 'class') return `room:${s.player.homeroom}`;
-    return SPECIAL_ROOMS[PLAYER_SPECIALS[dow]] || 'art room';
+    return playerClass(this.state, block.period).room;
+  }
+
+  /** Where to stand in the hallway just outside a classroom's door. */
+  doorSpot(room) {
+    const z = this.desc && this.desc.zones[room];
+    return z && z.door ? z.door : null;
   }
 
   onBell(block) {
     const s = this.state;
     sfx('bell');
+    const wasInClass = this.mode === 'class' || (this.period && this.period.attended && s.loc === 'school' && this.inZone(this.period.room));
+    const leftRoom = this.period && this.period.room;
     this.closePeriod();
     exitClass(this);
-    if (block.kind === 'class' || block.kind === 'special') {
-      const dow = dayInfo(s.time.day).dow;
-      const subject = block.kind === 'class' ? blockSubject(block, dow) : PLAYER_SPECIALS[dow];
-      const room = this.periodRoom(block);
-      this.period = { block, room, subject, attended: false, late: false };
-      if (s.loc === 'school' && this.inZone(room)) this.attend(false);
-      else toast(`🔔 ${subject} is starting! Get to ${room.startsWith('room:') ? `${room.slice(5)}'s room` : `the ${room}`}.`, s.loc === 'school' ? '' : 'bad');
-    } else if (block.kind === 'hall') {
-      const next = schoolBlockAt(block.end);
-      toast(`Hallway time! ${next ? `Next: ${blockSubject(next, dayInfo(s.time.day).dow) || next.label || 'class'}` : ''} You have 5 minutes.`);
+    this.passing = null;
+    if (block.kind === 'class') {
+      const c = playerClass(s, block.period);
+      this.period = { block, room: c.room, subject: c.subject, teacher: c.teacher, attended: false, late: false };
+      if (s.loc === 'school' && this.inZone(c.room)) this.attend(false);
+      else toast(`🔔 ${c.subject} is starting! Get to ${c.teacher}'s room (Room ${roomNumber(c.grade, c.subject)}).`, s.loc === 'school' ? '' : 'bad');
+    } else if (block.kind === 'pass') {
+      const next = nextClassBlock(block.end);
+      const c = playerClass(s, next.period);
+      this.passing = { block, next: c, nextBlock: next };
+      this.spm = PASS_SPM;
+      this.acc = 0;
+      if (s.loc === 'school') {
+        // Class let out: you're in the hallway with a few minutes to get to the next room.
+        const spot = wasInClass && leftRoom ? this.doorSpot(leftRoom) : null;
+        if (spot) {
+          this.engine.teleport(spot.x, spot.z, spot.rot ?? 0);
+          this.engine.cam.pitch = 0.95;
+          this.engine.cam.dist = 13;
+        }
+        toast(`🏃 Passing period! Get to ${c.subject} with ${c.teacher} (Room ${roomNumber(c.grade, c.subject)}) before the bell.`, 'good');
+      }
     } else if (block.kind === 'recess') {
       if (s.school.noRecessUntil && s.time.day <= s.school.noRecessUntil) toast('No recess for you today (you got in trouble). Sit tight.', 'bad');
-      else toast('RECESS! Go play (and recruit) on the playground!', 'good');
-    } else if (block.kind === 'lunch') toast('Lunch time! Your lunch is B Lunch in the cafeteria.', 'good');
+      else {
+        toast('RECESS! Go play (and recruit) on the playground!', 'good');
+        if (s.loc === 'school' && wasInClass && this.desc.zones.playground) { const pg = this.desc.zones.playground; this.engine.teleport(pg.x - 2, pg.z + pg.d / 2 - 2, Math.PI); }
+      }
+    } else if (block.kind === 'lunch') {
+      toast('Lunch time! Head to the cafeteria.', 'good');
+      if (s.loc === 'school' && wasInClass && leftRoom) { const spot = this.doorSpot(leftRoom); if (spot) this.engine.teleport(spot.x, spot.z, spot.rot ?? 0); }
+    }
     this.hud.render();
+  }
+
+  /** Seconds of real time left in the passing period (for the HUD countdown). */
+  passingSecondsLeft() {
+    const p = this.passing;
+    if (!p) return 0;
+    return Math.max(0, (p.block.end - this.state.time.minute) * (this.spm || PASS_SPM) - (this.acc || 0));
   }
 
   checkPeriodArrival() {
     const s = this.state;
+    if (this.passing && s.loc === 'school' && this.mode === 'free' && this.inZone(this.passing.next.room, -1.2)) {
+      // Made it! Take your seat and the bell rings.
+      const left = this.passing.block.end - s.time.minute;
+      this.passing = null;
+      if (left > 0) this.skip(left);
+      return;
+    }
     const p = this.period;
     if (!p || s.loc !== 'school' || this.mode !== 'free') return;
     if (p.attended) {
@@ -492,7 +537,7 @@ export class Game {
       return;
     }
     if (this.inZone(p.room)) {
-      const teacher = TEACHERS[s.player.homeroom] || { tardyGrace: 2 };
+      const teacher = teacherInfo(s, p.block.period);
       const late = s.time.minute > p.block.start + teacher.tardyGrace;
       this.attend(late);
     }
@@ -505,8 +550,7 @@ export class Game {
     p.attended = true;
     s.school.attended[`${s.time.day}:${p.block.start}`] = true;
     if (late && !p.excusedLate) { p.late = true; toast(markTardy(s), 'bad'); }
-    if (p.block.kind === 'class') enterClass(this, p);
-    else toast(`${p.subject} class! Kids from other homerooms are here. Go say hi.`, 'good');
+    enterClass(this, p);
   }
 
   closePeriod() {
@@ -521,6 +565,7 @@ export class Game {
 
   onDismissal() {
     const s = this.state;
+    this.passing = null;
     this.closePeriod();
     exitClass(this);
     if (s.school.detentionDay === s.time.day) {
@@ -546,7 +591,7 @@ export class Game {
     const mon = this.engine.npc('ADULT-monitor');
     if (!mon) return;
     const block = dayInfo(s.time.day).isSchoolDay ? schoolBlockAt(s.time.minute) : null;
-    const patrolling = block && (block.kind === 'class' || block.kind === 'special');
+    const patrolling = block && block.kind === 'class';
     if (mon.mode !== 'goto') {
       const tx = mon.char.root.position.x < 0 ? 40 : -40;
       this.engine.walkNPC('ADULT-monitor', tx, 0, 1.4);
@@ -603,6 +648,7 @@ export class Game {
     if (forced && s.loc !== 'home') msgs.unshift('😬 You stayed out past curfew. Mom & Dad had to come get you (trust went down).');
     s.loc = 'home';
     this.period = null;
+    this.passing = null;
     this.hallPassUntil = 0;
     saveToStorage(s);
     this.enter('home', 'bed');
@@ -671,4 +717,4 @@ export class Game {
   }
 }
 
-export { formatTime, h, ask, SPORTS, THREE, homeroomOf, mowJobs };
+export { formatTime, h, ask, SPORTS, THREE, sectionOf, mowJobs };

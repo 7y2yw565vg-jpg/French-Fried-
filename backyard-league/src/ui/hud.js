@@ -1,11 +1,13 @@
 // Heads-up display: clock, money, grades, trust, current school period, goal.
 import { $, h, clear, btn, money } from './dom.js';
-import { dayInfo, formatTime, schoolBlockAt, blockSubject } from '../game/time.js';
+import { dayInfo, formatTime, schoolBlockAt } from '../game/time.js';
+import { playerClass } from '../game/school.js';
+import { roomNumber } from '../data/world.js';
 import { gradeAverage, registrationChecklist, isRegistered } from '../game/team.js';
 import { letterFor } from '../game/school.js';
 import { weatherFor } from '../game/economy.js';
 import { playerGameThisWeek } from '../game/league.js';
-import { PLAYER_SPECIALS, SPORTS } from '../data/world.js';
+import { SPORTS } from '../data/world.js';
 import { openMap } from './mapview.js';
 import { openPhone } from './phone.js';
 
@@ -56,9 +58,16 @@ export class Hud {
     let text = '';
     let alert = false;
     if (block) {
-      const subj = block.kind === 'class' ? blockSubject(block, info.dow) : block.kind === 'special' ? PLAYER_SPECIALS[info.dow] : block.label;
+      const c = block.kind === 'class' ? playerClass(s, block.period) : null;
+      const subj = c ? c.subject : block.label;
       text = `🏫 ${subj} until ${formatTime(block.end)}`;
-      if ((block.kind === 'class' || block.kind === 'special') && g.period && !g.period.attended) { text = `⚠️ GET TO ${subj.toUpperCase()}!`; alert = true; }
+      if (c && g.period && !g.period.attended) { text = `⚠️ GET TO ${subj.toUpperCase()} (ROOM ${roomNumber(c.grade, c.subject)})!`; alert = true; }
+      if (block.kind === 'pass' && g.passing) {
+        const secs = Math.ceil(g.passingSecondsLeft());
+        const n = g.passing.next;
+        text = `⏱️ ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} to get to ${n.subject} · Room ${roomNumber(n.grade, n.subject)}`;
+        alert = secs <= 15;
+      }
       if (g.hallPassActive()) text += ' (hall pass)';
     } else if (info.isSchoolDay && s.time.minute < 8 * 60) {
       text = `🎒 School starts at 8:00`;

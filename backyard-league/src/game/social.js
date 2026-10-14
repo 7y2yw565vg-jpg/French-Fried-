@@ -57,7 +57,7 @@ export function chat(state, id) {
     ks.known.push(revealed);
   }
   state.player.charisma = Math.min(100, state.player.charisma + 0.2);
-  return { text: say(state, kid, first ? 'greet' : 'chat'), gained, revealed, revealedText: revealed ? describeSlot(kid, revealed) : null };
+  return { text: say(state, kid, first ? 'greet' : 'chat'), gained, revealed, revealedText: revealed ? describeSlot(kid, revealed, kidGrade(state, id)) : null };
 }
 
 // --------------------------------------------------------- gifts --------
