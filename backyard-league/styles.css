@@ -350,3 +350,12 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
   .quiz-opts { grid-template-columns: 1fr; }
   .hud-goal { display: none; }
 }
+
+/* Title screen: logo pinned to the top, buttons to the bottom, stadium in between. */
+.screen.title-screen { display: block; padding: 0; overflow: hidden; }
+.title-screen .title-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: max(10px, 2vh) 16px max(18px, 4vh); pointer-events: none; }
+.title-screen .title-wrap > * { pointer-events: auto; }
+.title-screen .title-wrap::before { inset: 0; background: linear-gradient(to bottom, rgba(10,18,30,0.5), rgba(10,18,30,0) 30%, rgba(10,18,30,0) 70%, rgba(10,18,30,0.5)); }
+.title-screen .logo-art { width: min(780px, 90vw, 72vh); margin: 0 auto; }
+.title-screen .title-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+.title-screen .title-buttons .btn { min-width: 220px; }

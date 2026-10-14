@@ -201,7 +201,7 @@ export class Engine {
   loadWorld(desc, spawn) {
     if (this.world) {
       this.scene.remove(this.world.group);
-      disposeTree(this.world.group);
+      if (!this.world.keep) disposeTree(this.world.group); // cached worlds (title stadiums) are reused
     }
     this.clearNPCs();
     this.clearMarkers();

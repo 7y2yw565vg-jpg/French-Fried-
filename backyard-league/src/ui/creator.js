@@ -32,38 +32,43 @@ const SHOWCASE = [
   ['football', ['#2fa35b', '#ffffff'], 'GORILLAS', ['GORILLAS', 'DRAGONS'], [21, 17]],
 ];
 const SLIDE_MS = 9000;
-let slideTimer = null; let prepTimer = null;
+let slideTimer = null;
 let slideIndex = 0;
-let nextDesc = null;
+let spinAngle = 0.6;
+// Stadiums are built once and reused, so later laps swap instantly.
+const arenaCache = new Map();
 
 function arenaFor(i) {
-  const [sport, colors, label, names, score] = SHOWCASE[i % SHOWCASE.length];
+  const k = i % SHOWCASE.length;
+  if (arenaCache.has(k)) return arenaCache.get(k);
+  const [sport, colors, label, names, score] = SHOWCASE[k];
   const desc = buildArena(sport, colors, label);
   desc.setScore(score[0], score[1], 'FINAL', names);
+  desc.keep = true; // the engine leaves cached worlds intact when swapping
+  arenaCache.set(k, desc);
   return desc;
 }
 
-function showArena(engine, desc, i) {
+function showArena(engine, desc) {
+  // Carry the spin across slides so the camera keeps circling instead of restarting.
+  if (engine.camMode === 'cine' && engine.cine) spinAngle = engine.cine.angle;
   engine.loadWorld(desc, desc.spawn);
   if (engine.player) engine.player.root.visible = false;
   engine.clearNPCs();
   engine.setTimeOfDay(17 * 60 + 30, false);
   const v = desc.view;
-  engine.cinematic({ x: v.x, z: v.z }, v.radius, { height: v.height, spin: 0.07, angle: i * 1.6 + 0.6 });
+  engine.cinematic({ x: v.x, z: v.z }, v.radius, { height: v.height, spin: 0.07, angle: spinAngle });
   engine.cine.look.set(v.x, 0, v.z);
 }
 
 export function titleBackdrop(engine) {
   stopTitleBackdrop();
-  showArena(engine, arenaFor(slideIndex), slideIndex);
+  showArena(engine, arenaFor(slideIndex));
+  // Build and swap on the cut itself, so any hitch is hidden by the change of shot.
   const tick = () => {
-    // build the next stadium a little early, then swap on the beat
-    prepTimer = setTimeout(() => { nextDesc = arenaFor(slideIndex + 1); }, SLIDE_MS - 2000);
     slideTimer = setTimeout(() => {
       slideIndex++;
-      const d = nextDesc || arenaFor(slideIndex);
-      nextDesc = null;
-      showArena(engine, d, slideIndex);
+      showArena(engine, arenaFor(slideIndex));
       tick();
     }, SLIDE_MS);
   };
@@ -71,9 +76,11 @@ export function titleBackdrop(engine) {
 }
 
 export function stopTitleBackdrop() {
-  clearTimeout(slideTimer); clearTimeout(prepTimer);
-  slideTimer = null; prepTimer = null;
-  nextDesc = null;
+  clearTimeout(slideTimer);
+  slideTimer = null;
+  // Free the cached stadiums; the one on screen goes when the next world loads.
+  for (const d of arenaCache.values()) d.keep = false;
+  arenaCache.clear();
 }
 
 /** Show one showcase stadium (debug / screenshots). */
@@ -81,7 +88,7 @@ export function showcaseArena(engine, sport) {
   const i = Math.max(0, SHOWCASE.findIndex((x) => x[0] === sport));
   stopTitleBackdrop();
   const d = arenaFor(i);
-  showArena(engine, d, i);
+  showArena(engine, d);
   return d;
 }
 
@@ -98,7 +105,7 @@ export function showTitle(engine, onNew, onContinue, current = null) {
     if (!f) return;
     try { const st = deserialize(await f.text()); stopTitleBackdrop(); onContinue(st); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); }
   });
-  ov.appendChild(h('div', { class: 'screen' },
+  ov.appendChild(h('div', { class: 'screen title-screen' },
     h('div', { class: 'title-wrap' },
       buildLogo(),
       h('div', { class: 'title-buttons' },
