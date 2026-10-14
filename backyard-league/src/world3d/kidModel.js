@@ -367,11 +367,15 @@ export function buildCharacter(look, opts = {}) {
   const rng = mulberry32(hashString(String(look.id || 'x')));
   const H = (look.heightIn || 50) / 50;
   const grade = look.grade ?? 3;
-  const R = adult ? 0.165 : grade <= 5 ? 0.235 : grade <= 8 ? 0.215 : 0.195;
+  // Grown-ups: about 1.4x a kid's height with the same chunky cartoon style
+  // (big head, sturdy limbs) rather than a stretched-out kid.
+  const R = adult ? 0.205 : grade <= 5 ? 0.235 : grade <= 8 ? 0.215 : 0.195;
   const w = BUILD_W[look.build] ?? 1;
-  const legLen = (adult ? 0.8 : 0.4) * H * (look.build === 'lanky' ? 1.1 : 1);
-  const torsoLen = (adult ? 0.56 : 0.32) * H;
-  const rc = (adult ? 0.19 : 0.15) * w;
+  const legLen = (adult ? 0.52 : 0.4) * H * (look.build === 'lanky' ? 1.08 : 1);
+  const torsoLen = (adult ? 0.4 : 0.32) * H;
+  const rc = (adult ? 0.2 : 0.15) * w;
+  const lk = adult ? 1.45 : 1; // limb thickness
+  const fk = adult ? 1.22 : 1; // hands and shoes
   const skin = SKIN[look.skin] || SKIN.tan;
   const hair = HAIR[look.hairColor] || HAIR.brown;
   const acc = new Set(look.accessories || []);
@@ -390,7 +394,7 @@ export function buildCharacter(look, opts = {}) {
     ? (kitPants ? (lightKit(uniform[1]) ? '#ecebe6' : lightKit(uniform[0]) ? '#ecebe6' : '#d9d8d2') : (lightKit(uniform[1]) ? '#2b2b2f' : uniform[1]))
     : fit.pants;
   const stripe = uniform ? (kitPants ? uniform[0] : null) : bottom === 'joggers' || bottom === 'shorts' ? fit.stripe : null;
-  const longSleeve = ['hoodie', 'sweater', 'flannel', 'jacket'].includes(top) || look.shirt === 'dinosaur hoodie';
+  const longSleeve = adult || ['hoodie', 'sweater', 'flannel', 'jacket'].includes(top) || look.shirt === 'dinosaur hoodie'; // grown-ups wear long sleeves
   const noSleeve = top === 'tank';
   const bareLegs = ['shorts', 'cargo shorts', 'skirt'].includes(bottom);
   const wheelchair = [...acc].some((a) => a.startsWith('wheelchair'));
@@ -418,7 +422,7 @@ export function buildCharacter(look, opts = {}) {
     }
     if (top === 'flannel' && z > 0.3 && Math.abs(x) < 0.2) return under;
     if (top === 'jacket') {
-      if (z > 0.3 && Math.abs(x) < 0.03) return '#d6d9de';
+      if (z > 0.3 && Math.abs(x) < 0.03) return shade(shirt, 0.7);
       if (Math.abs(x) > 0.86) return trim;
       if (y < 0.07) return shade(shirt, 0.8);
       return null;
@@ -487,6 +491,10 @@ export function buildCharacter(look, opts = {}) {
   if (acc.has('fanny pack')) tb.rbox(0.16, 0.07, 0.06, '#f72585', 0, 0.02, rc * 0.82, { mat: 'cloth' });
   if (acc.has('scarf (even in summer)')) { tb.add(TORUS, '#e76f51', [0, torsoLen - 0.03, 0], [Math.PI / 2, 0, 0], [rc * 0.6, rc * 0.55, 0.9], null, 'cloth'); tb.box(0.07, 0.2, 0.03, '#e76f51', rc * 0.3, torsoLen - 0.24, rc * 0.62, { mat: 'cloth' }); }
   if (acc.has('bandana')) tb.add(TORUS, '#c1121f', [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.5, rc * 0.45, 0.6], null, 'cloth');
+  if (adult && top !== 'overalls') {
+    tb.add(TORUS, '#3a2a20', [0, 0.0, 0], [Math.PI / 2, 0, 0], [rc * 0.97, rc * 0.79, 0.12], null, 'rubber');
+    tb.rbox(0.07, 0.045, 0.02, '#c9a227', 0, -0.015, rc * 0.8, { mat: 'metal' });
+  }
   const torso = tb.mesh();
   body.add(torso);
   if (uniform && opts.number != null) {
@@ -528,8 +536,9 @@ export function buildCharacter(look, opts = {}) {
     const goggles = acc.has('sport goggles');
     for (const sd of [-1, 1]) {
       const a = sd * 0.34;
-      const gx = Math.sin(a) * R * 1.03; const gz = Math.cos(a) * R * 1.03;
-      hb.add(TORUS, goggles ? '#1b9aaa' : '#2a2a2a', [gx, hc - R * 0.02, gz], [0, a, 0], [R * (goggles ? 0.2 : 0.17), R * (goggles ? 0.22 : 0.19), 0.35], null, 'plastic');
+      const gr = R * (adult ? 0.99 : 1.03); // frames sit on the face
+      const gx = Math.sin(a) * gr; const gz = Math.cos(a) * gr;
+      hb.add(TORUS, goggles ? '#1b9aaa' : '#2a2a2a', [gx, hc - R * 0.02, gz], [0, a, 0], [R * (goggles ? 0.2 : 0.17), R * (goggles ? 0.22 : 0.19), adult ? 0.1 : 0.35], null, 'plastic');
     }
     hb.box(R * 0.24, 0.012, 0.012, goggles ? '#1b9aaa' : '#2a2a2a', 0, hc + R * 0.02, R * 1.03, { center: true, mat: 'plastic' });
     if (goggles) hb.add(TORUS, '#222', [0, hc, 0], [Math.PI / 2, 0, 0], [R * 1.01, R * 1.0, 0.18], null, 'rubber');
@@ -550,35 +559,35 @@ export function buildCharacter(look, opts = {}) {
   head.add(face);
 
   // ---- arms
-  const shoulderY = torsoLen * 0.84;
-  const armLen = (adult ? 0.5 : 0.27) * H;
+  const shoulderY = torsoLen * (adult ? 0.8 : 0.84);
+  const armLen = (adult ? 0.4 : 0.27) * H;
   const sleevePattern = top === 'flannel' || (pattern && pattern !== 'tie-dye') ? (x, y, z) => patternShade(x * 0.4, y * 0.3, z * 0.4) : null;
   const mkArm = (sd) => {
     const ab = new Builder();
     const ua = armLen * 0.48;
-    const sw = Math.sqrt(w);
+    const sw = Math.sqrt(w) * lk;
     if (noSleeve) ab.sphere(0.046 * sw, skin, -sd * 0.008, -0.01, 0, [1, 1, 1], { mat: 'skin' });
     else {
-      ab.sphere(0.052 * sw, sleeveC, -sd * 0.012, -0.005, 0, [1, 1, 1], { mat: 'cloth', shade: sleevePattern });
+      ab.sphere(0.052 * sw * (adult ? 0.85 : 1), sleeveC, -sd * 0.012, -0.005, 0, [1, 1, 1], { mat: 'cloth', shade: sleevePattern });
       if (!longSleeve) ab.add(SLEEVE, sleeveC, [0, -ua * 0.72, 0], [0, 0, 0], [0.058 * sw, ua * 0.74, 0.056 * sw], sleevePattern, 'cloth');
     }
     if (uniform) ab.add(TORUS, trim, [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.058, 0.058, 0.25], null, 'cloth');
     if (top === 'raglan' && !uniform) ab.add(TORUS, shade(sleeveC, 0.8), [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.057, 0.057, 0.22], null, 'cloth');
     const armC = longSleeve ? sleeveC : skin;
-    ab.add(CAPSULE, armC, [0, -ua * 0.55, 0], [0, 0, 0], [longSleeve ? 0.05 : 0.045, ua * 0.6, longSleeve ? 0.05 : 0.045], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
-    ab.add(CAPSULE, armC, [0, -ua - armLen * 0.25, 0.02], [0.18, 0, 0], [longSleeve ? 0.047 : 0.042, armLen * 0.32, longSleeve ? 0.047 : 0.042], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
+    ab.add(CAPSULE, armC, [0, -ua * 0.55, 0], [0, 0, 0], [(longSleeve ? 0.05 : 0.045) * lk, ua * 0.6, (longSleeve ? 0.05 : 0.045) * lk], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
+    ab.add(CAPSULE, armC, [0, -ua - armLen * 0.25, 0.02], [0.18, 0, 0], [(longSleeve ? 0.047 : 0.042) * lk, armLen * 0.32, (longSleeve ? 0.047 : 0.042) * lk], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
     if (longSleeve) {
-      ab.cyl(0.046, 0.046, 0.035, top === 'jacket' ? trim : shade(sleeveC, 0.8), 0, -armLen - 0.035, 0.05, { mat: 'cloth' });
-      ab.cyl(0.04, 0.04, 0.03, skin, 0, -armLen - 0.05, 0.055, { mat: 'skin' });
+      ab.cyl(0.046 * lk, 0.046 * lk, 0.035, top === 'jacket' ? trim : shade(sleeveC, 0.8), 0, -armLen - 0.035, 0.05, { mat: 'cloth' });
+      ab.cyl(0.04 * lk, 0.04 * lk, 0.03, skin, 0, -armLen - 0.05, 0.055, { mat: 'skin' });
     }
     const hy = -armLen - 0.06; const hz = 0.06;
-    ab.sphere(0.052, skin, 0, hy, hz, [0.95, 1.1, 0.8], { mat: 'skin' });
-    ab.sphere(0.022, skin, sd * -0.035, hy + 0.02, hz + 0.03, [1, 1.4, 1], { mat: 'skin' });
+    ab.sphere(0.052 * fk, skin, 0, hy, hz, [0.95, 1.1, 0.8], { mat: 'skin' });
+    ab.sphere(0.022 * fk, skin, sd * -0.035 * fk, hy + 0.02, hz + 0.03, [1, 1.4, 1], { mat: 'skin' });
     if (sd < 0 && acc.has('friendship bracelets')) for (let k = 0; k < 3; k++) ab.add(TORUS, ['#ff70a6', '#70d6ff', '#ffd670'][k], [0, -armLen + 0.03 + k * 0.025, 0.05], [Math.PI / 2 - 0.18, 0, 0], [0.047, 0.047, 0.25], null, 'cloth');
     if (sd > 0 && acc.has('cast with signatures')) ab.add(CAPSULE, '#f8f8f8', [0, -ua - armLen * 0.22, 0.02], [0.18, 0, 0], [0.058, armLen * 0.25, 0.058], (x, y) => (Math.sin(y * 40) > 0.85 ? '#3a86ff' : null), 'cloth');
     const m = ab.mesh();
     const pivot = new THREE.Group();
-    pivot.position.set(sd * (rc + 0.015), shoulderY, 0);
+    pivot.position.set(sd * (adult ? rc * 0.93 + 0.03 : rc + 0.015), shoulderY, 0);
     pivot.add(m);
     return pivot;
   };
@@ -589,7 +598,7 @@ export function buildCharacter(look, opts = {}) {
   const mkLeg = (sd) => {
     const lb = new Builder();
     const thigh = legLen * 0.5; const shin = legLen * 0.42;
-    const lr = 0.058 * Math.sqrt(w);
+    const lr = 0.058 * Math.sqrt(w) * lk;
     const kneeY = -thigh;
     const ankle = kneeY - shin;
     const stripeShade = stripe ? (x) => (x * sd > 0.82 ? stripe : null) : null;
@@ -618,13 +627,14 @@ export function buildCharacter(look, opts = {}) {
     }
     // sneaker: sole, upper, toe, tongue, laces, stripe
     const sy = -legLen + 0.0;
-    lb.rbox(0.13, 0.045, 0.27, '#f2f2f2', 0, sy, 0.045, { mat: 'rubber' });
-    lb.rbox(0.135, 0.02, 0.275, '#c9c9c9', 0, sy, 0.045, { mat: 'rubber' });
-    lb.rbox(0.12, 0.09, 0.2, shoeC, 0, sy + 0.04, 0.02, { mat: acc.has('light-up sneakers') ? 'glow' : 'shoe' });
-    lb.sphere(0.062, shoeC, 0, sy + 0.06, 0.11, [0.98, 0.72, 1.1], { mat: 'shoe' });
-    lb.rbox(0.07, 0.06, 0.08, shade(shoeC, 0.9), 0, sy + 0.1, 0.07, { mat: 'shoe', rot: [-0.5, 0, 0] });
-    for (let k = 0; k < 3; k++) lb.box(0.07, 0.012, 0.012, '#ffffff', 0, sy + 0.115 - k * 0.012, 0.035 + k * 0.03, { center: true, rot: [-0.5, 0, 0], mat: 'cloth' });
-    for (const side of [-1, 1]) lb.box(0.004, 0.025, 0.12, shoeAccent, side * 0.061, sy + 0.055, 0.02, { center: true, rot: [0.25, 0, 0], mat: 'shoe' });
+    const f = fk;
+    lb.rbox(0.13 * f, 0.045 * f, 0.27 * f, '#f2f2f2', 0, sy, 0.045 * f, { mat: 'rubber' });
+    lb.rbox(0.135 * f, 0.02 * f, 0.275 * f, '#c9c9c9', 0, sy, 0.045 * f, { mat: 'rubber' });
+    lb.rbox(0.12 * f, 0.09 * f, 0.2 * f, shoeC, 0, sy + 0.04 * f, 0.02 * f, { mat: acc.has('light-up sneakers') ? 'glow' : 'shoe' });
+    lb.sphere(0.062 * f, shoeC, 0, sy + 0.06 * f, 0.11 * f, [0.98, 0.72, 1.1], { mat: 'shoe' });
+    lb.rbox(0.07 * f, 0.06 * f, 0.08 * f, shade(shoeC, 0.9), 0, sy + 0.1 * f, 0.07 * f, { mat: 'shoe', rot: [-0.5, 0, 0] });
+    for (let k = 0; k < 3; k++) lb.box(0.07 * f, 0.012, 0.012, '#ffffff', 0, sy + (0.115 - k * 0.012) * f, (0.035 + k * 0.03) * f, { center: true, rot: [-0.5, 0, 0], mat: 'cloth' });
+    for (const side of [-1, 1]) lb.box(0.004, 0.025 * f, 0.12 * f, shoeAccent, side * 0.061 * f, sy + 0.055 * f, 0.02 * f, { center: true, rot: [0.25, 0, 0], mat: 'shoe' });
     if (acc.has('knee pads')) lb.rbox(lr * 2.3, 0.08, lr * 1.4, '#222', 0, kneeY - 0.04, lr * 0.5, { mat: 'rubber' });
     if (sd > 0 && acc.has('band-aid on knee') && bareLegs) lb.box(lr * 1.0, 0.03, 0.01, '#e9c49a', 0, kneeY - 0.02, lr * 0.85, { center: true });
     const m = lb.mesh();

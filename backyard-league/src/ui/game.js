@@ -27,7 +27,7 @@ import { sfx } from './audio.js';
 import { hashString, mulberry32 } from '../game/rng.js';
 import { checkAchievements } from '../game/achievements.js';
 
-export const SPEEDS = { slow: 1.0, normal: 0.6, fast: 0.35 };
+export const SPEEDS = { slow: 2.0, normal: 1.25, fast: 0.7 }; // real seconds per game minute
 const PASS_SPM = 12; // seconds of real time per game minute in the hallway
 
 export function playerLook(state) {
@@ -389,7 +389,9 @@ export class Game {
     if (running) {
       this.acc += dt;
       // Passing periods run slow (about a minute of real time) so you can chat on the way.
-      const spm = this.passing && s.loc === 'school' && this.mode === 'free' ? PASS_SPM : SPEEDS[this.settings.speed] || 0.6;
+      let spm = this.passing && s.loc === 'school' && this.mode === 'free' ? PASS_SPM : SPEEDS[this.settings.speed] || SPEEDS.normal;
+      // School-day mornings run slower until you get to school, so there's time to get ready and walk over.
+      if (s.loc !== 'school' && s.time.minute < 8 * 60 && dayInfo(s.time.day).isSchoolDay) spm *= 1.6;
       this.spm = spm;
       if (this.acc >= spm) {
         this.acc -= spm;

@@ -576,7 +576,7 @@ export class Engine {
       const rx = Math.cos(yaw); const rz = -Math.sin(yaw);
       const dx = rx * mx + fx * -mz; const dz = rz * mx + fz * -mz;
       const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || (a && a.run) || (push > 0.92 && a && a.autoRun);
-      const sp = (run ? 7.0 : 4.2 * Math.max(0.45, push)) * this.speedMult;
+      const sp = (run ? 5.6 : 3.3 * Math.max(0.45, push)) * this.speedMult;
       const [nx, nz] = this._collide(p.x + dx * sp * dt, p.z + dz * sp * dt);
       p.x = nx; p.z = nz;
       const target = Math.atan2(dx, dz);
@@ -588,7 +588,7 @@ export class Engine {
       this.onMove && this.onMove(dt * sp);
     } else if (!p.override) p.mode = p.sitting ? 'sit' : 'idle';
     this._placePlayer();
-    this.player.update(dt, p.override || p.mode, 1);
+    this.player.update(dt, p.override || p.mode, p.mode === 'walk' || p.mode === 'run' ? 0.82 : 1); // stride matches the walk speed
   }
 
   _updateNPCs(dt) {
