@@ -29,7 +29,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
       const t0 = i / n; const t1 = (i + 1) / n;
       const mx = x1 + (x2 - x1) * (t0 + t1) / 2 + (crooked ? (rng() - 0.5) * 0.25 : 0);
       const mz = z1 + (z2 - z1) * (t0 + t1) / 2 + (crooked ? (rng() - 0.5) * 0.25 : 0);
-      b.add(BOX, lineCol, [mx, 0.035, mz], [0, ang + (crooked ? (rng() - 0.5) * 0.08 : 0), 0], [lw, 0.02, len / n + 0.05]);
+      b.add(BOX, lineCol, [mx, 0.045, mz], [0, ang + (crooked ? (rng() - 0.5) * 0.08 : 0), 0], [lw, 0.02, len / n + 0.05], null, 'paint');
     }
   };
   const circle = (x, z, r) => {
@@ -42,7 +42,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
 
   const info = { sport, cx, cz, L, W };
   if (sport === 'basketball') {
-    b.box(L + 1.5, 0.05, W + 1.5, up.goals >= 3 ? '#c98b52' : '#b9b4ab', cx, 0, cz);
+    b.box(L + 1.5, 0.05, W + 1.5, up.goals >= 3 ? '#c98b52' : '#b9b4ab', cx, 0, cz, { mat: up.goals >= 3 ? 'wood' : 'concrete' });
     line(cx - L / 2, cz - W / 2, cx + L / 2, cz - W / 2); line(cx - L / 2, cz + W / 2, cx + L / 2, cz + W / 2);
     line(cx - L / 2, cz - W / 2, cx - L / 2, cz + W / 2); line(cx + L / 2, cz - W / 2, cx + L / 2, cz + W / 2);
     line(cx, cz - W / 2, cx, cz + W / 2);
@@ -70,7 +70,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
   } else {
     // soccer & football grass
     const stripe = (up.lines || 0) >= 2;
-    b.box(L + 2, 0.03, W + 2, '#66b04a', cx, 0, cz, { shade: stripe ? (x) => (Math.floor((x + 0.5) * 10) % 2 ? '#5aa53f' : '#6fbb52') : null });
+    b.box(L + 2, 0.04, W + 2, '#6db54a', cx, 0, cz, { mat: 'grass', shade: stripe ? (x) => (Math.floor((x + 0.5) * 10) % 2 ? '#5fa83f' : '#79c255') : (x, y, z) => ((Math.round(x * 7) * 13 + Math.round(z * 5) * 7) % 11 === 0 ? '#9a8a5a' : null) });
     line(cx - L / 2, cz - W / 2, cx + L / 2, cz - W / 2); line(cx - L / 2, cz + W / 2, cx + L / 2, cz + W / 2);
     line(cx - L / 2, cz - W / 2, cx - L / 2, cz + W / 2); line(cx + L / 2, cz - W / 2, cx + L / 2, cz + W / 2);
     line(cx, cz - W / 2, cx, cz + W / 2);
@@ -141,7 +141,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
   if (at >= 2) for (const dx of [-1, 1]) { b.cyl(0.05, 0.05, 3, '#555', anX + dx * 6, 0, anZ); b.box(0.5, 0.6, 0.4, '#222', anX + dx * 6, 3, anZ); }
   if (at >= 3) { b.box(2.5, 1.2, 2, '#6c757d', anX, 2.2, anZ + 1); for (const dx of [-1, 1]) b.box(0.15, 2.2, 0.15, '#555', anX + dx, 0, anZ + 1); b.box(2.2, 0.6, 0.06, '#bfe3ff', anX, 2.6, anZ); }
 
-  group.add(b.mesh({ outline: 0.02 }));
+  group.add(b.mesh());
 
   // scoreboard (dynamic canvas)
   const sb = up.scoreboard || 0;
@@ -151,12 +151,12 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
   const sbb = new Builder();
   if (sb === 0) { sbb.box(0.05, 1.3, 0.05, '#8d5a3b', sbX - 0.4, 0, sbZ); sbb.box(0.05, 1.3, 0.05, '#8d5a3b', sbX + 0.4, 0, sbZ); }
   else { sbb.box(0.15, 2 + sb * 0.8, 0.15, '#444', sbX - sbScale * 0.7, 0, sbZ); sbb.box(0.15, 2 + sb * 0.8, 0.15, '#444', sbX + sbScale * 0.7, 0, sbZ); }
-  group.add(sbb.mesh({ outline: 0.015 }));
+  group.add(sbb.mesh());
   const cv = document.createElement('canvas');
   cv.width = 256; cv.height = 128;
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const board = new THREE.Mesh(new THREE.PlaneGeometry(2 * sbScale, sbScale), new THREE.MeshBasicMaterial({ map: tex }));
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(2 * sbScale, sbScale), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
   board.position.set(sbX, sb === 0 ? 1.6 : 2 + sb * 0.8 + sbScale / 2, sbZ - 0.1);
   board.rotation.y = Math.PI;
   group.add(board);

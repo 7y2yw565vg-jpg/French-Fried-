@@ -162,7 +162,7 @@ test('clutch override changes only the forced moment onward', () => {
 test('full season: register, play through, get standings and a history entry', () => {
   const s = newGame(opts('basketball'));
   ensureSeason(s);
-  assert.ok(s.league && s.league.teams.length === 4);
+  assert.ok(s.league && s.league.teams.length === 7); // 7 rivals + you = 8
   s.money = 500;
   const free = KIDS.filter((k) => k.grade_at_start >= 3 && k.grade_at_start <= 5 && !s.kids[k.id].team).slice(0, 7);
   for (const k of free) signKid(s, k.id);
@@ -174,10 +174,10 @@ test('full season: register, play through, get standings and a history entry', (
     sleep(s);
   }
   const st = standings(s);
-  assert.equal(st.length, 5);
+  assert.equal(st.length, 8);
   assert.equal(s.team.history.length, 1);
   const me = st.find((t) => t.player);
-  assert.equal(me.w + me.l + me.t, 8);
+  assert.equal(me.w + me.l + me.t, 10);
   assert.ok(attraction(s) >= 0);
   const back = deserialize(serialize(s));
   assert.equal(back.team.name, 'Test Tigers');

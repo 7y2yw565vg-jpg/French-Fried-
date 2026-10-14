@@ -308,6 +308,12 @@ export const ADULTS = {
 };
 
 export const RIVAL_COLORS = {
+  'Sunnyside Sprinkler Squad': ['#00b4d8', '#ffd60a'], 'Old Town Owls FC': ['#5e548e', '#e0b1cb'], 'Maple Hollow Mudskippers': ['#7f4f24', '#a7c957'],
+  'Riverside Rubber Duckies': ['#ffd60a', '#0077b6'], 'Sunnyside Sluggers': ['#d00000', '#ffba08'], 'Oakridge Acorns': ['#606c38', '#dda15e'],
+  'Pickle Creek Puddle Jumpers': ['#2a9d8f', '#e9c46a'], 'Riverside Rim Rockers': ['#3d405b', '#f2cc8f'], 'Oakridge Royals': ['#3c096c', '#ffd166'],
+  'Maple Hollow Monster Trucks': ['#e85d04', '#212529'], 'Pickle Creek Crunch': ['#38b000', '#000000'], 'Old Town Thunderbirds': ['#023e8a', '#ff006e'],
+  'Pinecrest Middle Polar Bears (6-8)': ['#caf0f8', '#03045e'], "St. Bart's Middle Bulldogs (6-8)": ['#9d0208', '#ffffff'], 'Riverside Middle Hurricanes (6-8)': ['#0096c7', '#ff7b00'],
+  'Grubbsville Middle Thunder Turtles (6-8)': ['#2d6a4f', '#95d5b2'], 'Grubbsville Middle Night Owls (6-8)': ['#14213d', '#fca311'],
   'Oakridge Thunder Ponies': ['#6b4bd1', '#f5d76e'], 'Riverside River Rats': ['#3a7bd5', '#9aa5b1'],
   'Mall Rats United': ['#e84a8a', '#1a1a2e'], 'Pickle Creek Kickles': ['#5aa83a', '#f1f1f1'],
   'Pickle Creek Dillweeds': ['#3f8f2a', '#c9e265'], 'Pinecrest Polo Penguins': ['#1b2a49', '#ffffff'],

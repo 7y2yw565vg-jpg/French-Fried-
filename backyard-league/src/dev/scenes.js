@@ -13,7 +13,9 @@ document.body.style.margin = '0';
 const div = document.createElement('div');
 div.style.cssText = 'width:100vw;height:100vh';
 document.body.appendChild(div);
-const eng = new Engine(div);
+const eng = new Engine(div); window.__eng = eng;
+if (q.get('q')) eng.setQuality(q.get('q'), false);
+localStorage.setItem('bl-quality-locked', '1');
 let desc;
 if (which === 'home') desc = S.buildHome({ sport, upgrades: ups, colors: ['#e63946', '#ffffff'], trophies: [{ name: 'Jr League Champions', slot: 0 }, { name: 'Game Ball: First Win', slot: 1 }] });
 else if (which === 'hood') {
@@ -33,6 +35,9 @@ eng.setTimeOfDay(Number(q.get('m') || 600), desc.indoor);
 if (q.get('yaw')) eng.cam.yaw = Number(q.get('yaw'));
 if (q.get('d')) eng.cam.dist = Number(q.get('d'));
 if (q.get('p')) eng.cam.pitch = Number(q.get('p'));
-KIDS.slice(0, 8).forEach((k, i) => eng.addNPC({ id: k.id, look: lookFromKid(k, 3), tag: k.first_name, x: sx + (i % 4) * 1.4 - 2, z: sz - 3 - Math.floor(i / 4) * 1.5, mode: 'idle', interact: 'Talk' }));
+const off = Number(q.get('o') || 0);
+const nk = Number(q.get('n') ?? 8);
+KIDS.slice(off, off + nk).forEach((k, i) => eng.addNPC({ id: k.id, look: lookFromKid(k, 3), tag: q.get('notag') ? null : k.first_name, x: sx + (i % 4) * 1.3 - 2, z: sz - 2.5 - Math.floor(i / 4) * 1.6, rot: Number(q.get('kr') || 0), mode: 'idle', interact: 'Talk' }));
+if (q.get('cam')) { const [cx, cy, cz, lx, ly, lz] = q.get('cam').split(',').map(Number); eng.camMode = 'fixed'; eng.player.root.visible = false; eng.camera.position.set(cx, cy, cz); eng.camera.lookAt(lx, ly, lz); eng._updateCamera = () => {}; }
 if (q.get('cine')) eng.cinematic(desc.fieldInfo ? { x: desc.fieldInfo.cx, z: desc.fieldInfo.cz } : { x: sx, z: sz }, 22);
 setTimeout(() => { window.__done = { npcs: eng.npcs.size, colliders: desc.colliders.length, interact: desc.interact.map((i) => i.kind) }; }, 800);

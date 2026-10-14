@@ -8,13 +8,21 @@ import { positionRating } from './stats.js';
 import { dayInfo, seasonId } from './time.js';
 import { seeded, shuffle, hashString, clamp } from './rng.js';
 
-const MIDDLE_EXTRA = ['Grubbsville Middle Thunder Turtles (6-8)', 'Grubbsville Middle Night Owls (6-8)'];
+// Teams that start the game with no kids; the AI fills their rosters each preseason.
+// With the 4 roster teams from the data, every league has 7 rivals (8 teams with yours).
+export const EXTRA_JR_TEAMS = {
+  Soccer: ['Sunnyside Sprinkler Squad', 'Old Town Owls FC', 'Maple Hollow Mudskippers'],
+  Baseball: ['Riverside Rubber Duckies', 'Sunnyside Sluggers', 'Oakridge Acorns'],
+  Basketball: ['Pickle Creek Puddle Jumpers', 'Riverside Rim Rockers', 'Oakridge Royals'],
+  Football: ['Maple Hollow Monster Trucks', 'Pickle Creek Crunch', 'Old Town Thunderbirds'],
+};
+const MIDDLE_EXTRA = ['Grubbsville Middle Thunder Turtles (6-8)', 'Grubbsville Middle Night Owls (6-8)', 'Pinecrest Middle Polar Bears (6-8)', 'St. Bart\'s Middle Bulldogs (6-8)', 'Riverside Middle Hurricanes (6-8)'];
 
 export const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export function rivalsFor(sport, bandId) {
   const sportName = SPORTS[sport].name.replace('Flag ', '');
-  if (bandId === 'jr') return KIDS_META.rival_teams.filter((t) => t.sport === sportName && !t.name.includes('6-8')).map((t) => t.name);
+  if (bandId === 'jr') return [...KIDS_META.rival_teams.filter((t) => t.sport === sportName && !t.name.includes('6-8')).map((t) => t.name), ...EXTRA_JR_TEAMS[sportName]];
   return [...KIDS_META.rival_teams.filter((t) => t.name.includes('6-8')).map((t) => t.name), ...MIDDLE_EXTRA];
 }
 
@@ -63,7 +71,7 @@ export function aiRecruit(state, fraction) {
   const news = [];
   for (const t of lg.teams) {
     const have = rosterOf(state, t.name).filter((id) => eligibility(state, id).ok).length;
-    const target = sp.recRoster - (hashString(t.name) % 2);
+    const target = sp.minRoster + 1 + (hashString(t.name) % 2);
     const need = Math.ceil(Math.max(0, target - have) * fraction);
     for (let i = 0; i < need && pool.length; i++) {
       const k = pool.shift();
