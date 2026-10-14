@@ -207,6 +207,9 @@ export class Engine {
     this.clearMarkers();
     this.world = desc;
     desc.areas = desc.areas || [];
+    // Big venues ask for a wider shadow area.
+    const se = desc.shadowExtent || 34; const shc = this.sun.shadow.camera;
+    if (shc.right !== se) { shc.left = -se; shc.right = se; shc.top = se; shc.bottom = -se; shc.far = Math.max(160, se * 4); shc.updateProjectionMatrix(); }
     this.scene.add(desc.group);
     const s = spawn || desc.spawn;
     this.playerState.x = s.x; this.playerState.z = s.z; this.playerState.rot = s.rot || 0;

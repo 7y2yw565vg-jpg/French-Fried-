@@ -1,12 +1,13 @@
 // Boot: 3D engine, title screen, creator, then the game.
 import { Engine } from './world3d/engine.js';
 import { $, clear, modal, closeAllModals } from './ui/dom.js';
-import { showTitle, showCreator } from './ui/creator.js';
+import { showTitle, showCreator, stopTitleBackdrop, showcaseArena } from './ui/creator.js';
 import { Game } from './ui/game.js';
 import { newGame, saveToStorage } from './game/state.js';
 import { ensureSeason } from './game/league.js';
 import { setVolume } from './ui/audio.js';
 import { setupInput } from './ui/input.js';
+import { buildVenue } from './world3d/scenes.js';
 
 let engine;
 try {
@@ -18,7 +19,22 @@ try {
 
 let game = null;
 setupInput(engine, () => game);
-window.__bl = { closeAllModals, engine }; // handy for debugging in the console
+// Handy for debugging in the console (and for screenshot tests).
+window.__bl = {
+  closeAllModals,
+  engine,
+  stopTitle: () => stopTitleBackdrop(),
+  arena: (sport) => showcaseArena(engine, sport),
+  /** Show a sport's field at an upgrade tier (0-4) from above. */
+  venue(sport, tier = 2) {
+    const ups = Object.fromEntries(['goals', 'lines', 'flags', 'benches', 'seating', 'scoreboard', 'announcer', 'concessions', 'uniforms', 'training'].map((k) => [k, tier]));
+    const desc = buildVenue(sport, ups, ['#e63946', '#ffffff'], 'Debug Field');
+    engine.loadWorld(desc, { x: 0, z: 60, rot: 0 });
+    if (engine.player) engine.player.root.visible = false;
+    engine.clearNPCs();
+    return desc;
+  },
+};
 
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem('bl-settings')) || {}; } catch { return {}; }

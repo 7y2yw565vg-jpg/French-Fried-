@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { h, btn, clear, $, modal } from './dom.js';
 import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world3d/toon.js';
-import { buildVenue } from '../world3d/scenes.js';
+import { buildArena } from '../world3d/arenas.js';
 import { buildLogo } from './logo.js';
 import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS } from '../world3d/kidModel.js';
 import { HAIR_STYLES } from '../world3d/hair.js';
@@ -22,53 +22,67 @@ export function randomTeamName() {
   return `${ADJ[Math.floor(Math.random() * ADJ.length)]} ${NOUN[Math.floor(Math.random() * NOUN.length)]}`;
 }
 
-// Title background: a slideshow of fully upgraded championship fields, one per
-// sport, seen from high above.
+// Title background: aerial shots of pro stadiums for each sport, slowly
+// circling, switching sport every few seconds. The next stadium is built in the
+// background and swapped in without a fade to black.
 const SHOWCASE = [
-  ['soccer', ['#e63946', '#ffffff'], ['ROCKETS', 'SHARKS'], [3, 2]],
-  ['baseball', ['#24427a', '#f9d342'], ['COMETS', 'BANDITS'], [7, 5]],
-  ['basketball', ['#8a5cd6', '#ffffff'], ['THUNDER', 'HORNETS'], [48, 44]],
-  ['football', ['#2fa35b', '#ffffff'], ['GORILLAS', 'DRAGONS'], [21, 17]],
+  ['soccer', ['#e63946', '#ffffff'], 'ROCKETS', ['ROCKETS', 'SHARKS'], [3, 2]],
+  ['baseball', ['#24427a', '#f9d342'], 'COMETS', ['COMETS', 'BANDITS'], [7, 5]],
+  ['basketball', ['#8a5cd6', '#ffd23f'], 'THUNDER', ['THUNDER', 'HORNETS'], [98, 94]],
+  ['football', ['#2fa35b', '#ffffff'], 'GORILLAS', ['GORILLAS', 'DRAGONS'], [21, 17]],
 ];
-const MAXED = { goals: 4, lines: 4, flags: 4, benches: 4, seating: 4, scoreboard: 4, announcer: 4, concessions: 4, uniforms: 4, training: 0 };
-let slideTimer = null;
+const SLIDE_MS = 9000;
+let slideTimer = null; let prepTimer = null;
 let slideIndex = 0;
+let nextDesc = null;
 
-function showSlide(engine, i) {
-  const [sport, colors, names, score] = SHOWCASE[i % SHOWCASE.length];
-  const desc = buildVenue(sport, MAXED, colors, 'Championship Field');
-  engine.loadWorld(desc, { x: 0, z: 60, rot: 0 });
+function arenaFor(i) {
+  const [sport, colors, label, names, score] = SHOWCASE[i % SHOWCASE.length];
+  const desc = buildArena(sport, colors, label);
+  desc.setScore(score[0], score[1], 'FINAL', names);
+  return desc;
+}
+
+function showArena(engine, desc, i) {
+  engine.loadWorld(desc, desc.spawn);
   if (engine.player) engine.player.root.visible = false;
   engine.clearNPCs();
-  engine.setTimeOfDay(17 * 60 + 15, false);
-  if (desc.setScore) desc.setScore(score[0], score[1], 'FINAL', names);
-  const f = desc.fieldInfo || { cx: 0, cz: 2 };
-  const height = { baseball: 46, basketball: 24, football: 34, soccer: 30 }[sport] || 30;
-  engine.cinematic({ x: f.cx, z: f.cz }, height * 0.27, { height, spin: 0.03, angle: i * 1.1 + 0.4 });
-  engine.cine.look.set(f.cx, 0, f.cz);
+  engine.setTimeOfDay(17 * 60 + 30, false);
+  const v = desc.view;
+  engine.cinematic({ x: v.x, z: v.z }, v.radius, { height: v.height, spin: 0.07, angle: i * 1.6 + 0.6 });
+  engine.cine.look.set(v.x, 0, v.z);
 }
 
 export function titleBackdrop(engine) {
   stopTitleBackdrop();
-  showSlide(engine, slideIndex);
-  const curtain = document.getElementById('curtain');
-  slideTimer = setInterval(() => {
-    if (!curtain) { showSlide(engine, ++slideIndex); return; }
-    curtain.classList.remove('fade');
-    curtain.style.transition = 'opacity 0.5s ease';
-    curtain.style.opacity = '1';
-    setTimeout(() => {
-      showSlide(engine, ++slideIndex);
-      curtain.style.opacity = '0';
-    }, 520);
-  }, 8000);
+  showArena(engine, arenaFor(slideIndex), slideIndex);
+  const tick = () => {
+    // build the next stadium a little early, then swap on the beat
+    prepTimer = setTimeout(() => { nextDesc = arenaFor(slideIndex + 1); }, SLIDE_MS - 2000);
+    slideTimer = setTimeout(() => {
+      slideIndex++;
+      const d = nextDesc || arenaFor(slideIndex);
+      nextDesc = null;
+      showArena(engine, d, slideIndex);
+      tick();
+    }, SLIDE_MS);
+  };
+  tick();
 }
 
 export function stopTitleBackdrop() {
-  clearInterval(slideTimer);
-  slideTimer = null;
-  const curtain = document.getElementById('curtain');
-  if (curtain) { curtain.style.opacity = ''; curtain.style.transition = ''; }
+  clearTimeout(slideTimer); clearTimeout(prepTimer);
+  slideTimer = null; prepTimer = null;
+  nextDesc = null;
+}
+
+/** Show one showcase stadium (debug / screenshots). */
+export function showcaseArena(engine, sport) {
+  const i = Math.max(0, SHOWCASE.findIndex((x) => x[0] === sport));
+  stopTitleBackdrop();
+  const d = arenaFor(i);
+  showArena(engine, d, i);
+  return d;
 }
 
 export function showTitle(engine, onNew, onContinue, current = null) {

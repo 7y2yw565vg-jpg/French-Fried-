@@ -91,7 +91,8 @@ function formation(sport, f, lineup, side, phase) {
         const sp = spots[p.pos] || [hx, f.home.z];
         out.push({ x: sp[0], z: sp[1] }); continue;
       }
-      out.push({ x: f.cx - 6 + out.length * 1.1, z: f.sideZ - 0.8 }); continue;
+      const bl = f.benchLine; // batting team waits in the dugout
+      out.push(bl ? { x: bl.x + bl.dx * out.length * 0.8, z: bl.z + bl.dz * out.length * 0.8 } : { x: f.cx - 6 + out.length * 1.1, z: f.sideZ - 0.8 }); continue;
     }
     out.push({ x: f.cx + x * dir, z: f.cz + z });
   }
