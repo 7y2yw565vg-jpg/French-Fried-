@@ -97,7 +97,8 @@ await page.click('text=Invite to tryout').catch(() => {});
 await shot('12-invite', 900);
 await page.click('text=Bye').catch(() => {});
 
-// Phone.
+// Phone. (A late quiz result can pop up on slow machines; clear it first.)
+await g(() => window.__bl.closeAllModals());
 await page.keyboard.press('Tab');
 await shot('13-phone-team', 800);
 await page.click('text=📒 Kids');
