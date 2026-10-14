@@ -21,6 +21,8 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
   const lineCol = lineTier === 0 ? '#f7f3e8' : '#ffffff';
   const lw = lineTier >= 2 ? 0.14 : 0.1;
   const crooked = lineTier === 0;
+  // Paint sits clearly above the surface it's on (thin layers flicker from far away).
+  const lineY = sport === 'basketball' ? 0.08 : sport === 'baseball' ? 0.1 : 0.055;
   const line = (x1, z1, x2, z2, w = lw, col = lineCol) => {
     const len = Math.hypot(x2 - x1, z2 - z1);
     const ang = Math.atan2(x2 - x1, z2 - z1) + (crooked ? (rng() - 0.5) * 0.06 : 0);
@@ -29,7 +31,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
       const t0 = i / n; const t1 = (i + 1) / n;
       const mx = x1 + (x2 - x1) * (t0 + t1) / 2 + (crooked ? (rng() - 0.5) * 0.2 : 0);
       const mz = z1 + (z2 - z1) * (t0 + t1) / 2 + (crooked ? (rng() - 0.5) * 0.2 : 0);
-      b.add(BOX, col, [mx, 0.045, mz], [0, ang + (crooked ? (rng() - 0.5) * 0.08 : 0), 0], [w, 0.02, len / n + 0.04], null, 'paint');
+      b.add(BOX, col, [mx, lineY, mz], [0, ang + (crooked ? (rng() - 0.5) * 0.08 : 0), 0], [w, 0.02, len / n + 0.04], null, 'paint');
     }
   };
   /** Arc around (x, z) from angle a0 to a1 (radians, 0 = +x, counter-clockwise toward -z). */
@@ -57,7 +59,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
     // three-point arcs, center circle and restricted-area arcs.
     const wood = tierGoals >= 3;
     b.box(L + 2, 0.05, W + 2, wood ? '#c98b52' : '#b9b4ab', cx, 0, cz, { mat: wood ? 'wood' : 'concrete' });
-    if (wood) b.box(L + 2.4, 0.045, W + 2.4, colors[0], cx, 0, cz, { mat: 'paint' });
+    if (wood) b.box(L + 2.4, 0.03, W + 2.4, colors[0], cx, 0, cz, { mat: 'paint' });
     rect(cx - L / 2, cz - W / 2, cx + L / 2, cz + W / 2);
     line(cx, cz - W / 2, cx, cz + W / 2);
     arc(cx, cz, 1.15); arc(cx, cz, 0.4, 0, Math.PI * 2, 12);
@@ -65,7 +67,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
       const bx = cx + sx * L / 2; // baseline
       const rimX = bx - sx * 1.0;
       const laneL = 3.6; const laneW = 3.1;
-      if (lineTier >= 2) b.box(laneL, 0.05, laneW, sx < 0 ? colors[0] : shade(colors[0], 0.85), bx - sx * laneL / 2, 0.005, cz, { mat: 'paint' });
+      if (lineTier >= 2) b.box(laneL, 0.05, laneW, sx < 0 ? colors[0] : shade(colors[0], 0.85), bx - sx * laneL / 2, 0.02, cz, { mat: 'paint' });
       rect(Math.min(bx, bx - sx * laneL), cz - laneW / 2, Math.max(bx, bx - sx * laneL), cz + laneW / 2);
       arc(bx - sx * laneL, cz, 1.15, sx < 0 ? -Math.PI / 2 : Math.PI / 2, sx < 0 ? Math.PI / 2 : Math.PI * 1.5, 14);
       // three-point line: straight corners + arc
@@ -77,7 +79,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
       arc(rimX, cz, 0.8, sx < 0 ? -Math.PI / 2 : Math.PI / 2, sx < 0 ? Math.PI / 2 : Math.PI * 1.5, 10);
       hoop(b, cx + sx * (L / 2 - 0.3), cz, -sx, tierGoals);
     }
-    if (lineTier >= 4) b.cyl(1.1, 1.1, 0.03, colors[0], cx, 0.02, cz);
+    if (lineTier >= 4) b.cyl(1.1, 1.1, 0.03, colors[0], cx, 0.04, cz);
     info.goals = [-1, 1].map((sx) => ({ x: cx + sx * (L / 2 - 1.3), z: cz }));
   } else if (sport === 'baseball') {
     buildDiamond({ b, group, line, arc, info, up, colors, cx, cz, rng, opts });
@@ -89,7 +91,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
     if (sport === 'soccer') {
       rect(cx - L / 2, cz - W / 2, cx + L / 2, cz + W / 2);
       line(cx, cz - W / 2, cx, cz + W / 2);
-      arc(cx, cz, 2.2); b.cyl(0.14, 0.14, 0.02, lineCol, cx, 0.045, cz, { mat: 'paint' });
+      arc(cx, cz, 2.2); b.cyl(0.14, 0.14, 0.02, lineCol, cx, 0.06, cz, { mat: 'paint' });
       for (const sx of [-1, 1]) {
         const gx = cx + sx * L / 2;
         // penalty area, goal area, spot, arc
@@ -97,7 +99,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
         rect(Math.min(gx, gx - sx * pD), cz - pW / 2, Math.max(gx, gx - sx * pD), cz + pW / 2);
         rect(Math.min(gx, gx - sx * gD), cz - gW / 2, Math.max(gx, gx - sx * gD), cz + gW / 2);
         const spotX = gx - sx * 2.9;
-        b.cyl(0.12, 0.12, 0.02, lineCol, spotX, 0.045, cz, { mat: 'paint' });
+        b.cyl(0.12, 0.12, 0.02, lineCol, spotX, 0.06, cz, { mat: 'paint' });
         const a = Math.acos((pD - 2.9) / 2.0);
         if (sx < 0) arc(spotX, cz, 2.0, -a, a, 12); else arc(spotX, cz, 2.0, Math.PI - a, Math.PI + a, 12);
         for (const sz of [-1, 1]) arc(gx, cz + sz * W / 2, 0.5, sx < 0 ? (sz < 0 ? 0 : -Math.PI / 2) : (sz < 0 ? Math.PI / 2 : Math.PI), sx < 0 ? (sz < 0 ? Math.PI / 2 : 0) : (sz < 0 ? Math.PI : Math.PI * 1.5), 6);
@@ -267,17 +269,17 @@ function buildDiamond({ b, group, line, arc, info, up, colors, cx, cz, rng, opts
   // Grass fan out to the fence, then the dirt infield "skin" and the grass infield.
   const fan = (r, col, mat, y) => b.add(new THREE.CylinderGeometry(1, 1, 1, 40, 1, false, Math.PI / 4 * 1, Math.PI / 2), col, [hx, y, hz], [0, 0, 0], [r, 0.03, r], null, mat);
   fan(R + 0.6, '#6db54a', 'grass', 0.02);
-  if (tier >= 3) { fan(R + 0.6, '#b98552', 'dirt', 0.025); fan(R - 0.7, '#6db54a', 'grass', 0.03); }
-  fan(bd * 1.55, tier >= 1 ? '#c68b59' : '#a8b86a', 'dirt', 0.035);
-  b.add(new THREE.CylinderGeometry(1, 1, 1, 4), '#79c255', [hx + bd * 0.707, 0.04, hz], [0, 0, 0], [bd * 0.62, 0.03, bd * 0.62], null, 'grass');
-  b.cyl(1.2, 1.2, 0.05, '#c68b59', hx, 0.02, hz, { mat: 'dirt' });
-  for (const p of info.bases) b.cyl(0.75, 0.75, 0.05, '#c68b59', p.x, 0.025, p.z, { mat: 'dirt' });
+  if (tier >= 3) { fan(R + 0.6, '#b98552', 'dirt', 0.03); fan(R - 0.7, '#6db54a', 'grass', 0.04); }
+  fan(bd * 1.55, tier >= 1 ? '#c68b59' : '#a8b86a', 'dirt', 0.05);
+  b.add(new THREE.CylinderGeometry(1, 1, 1, 4), '#79c255', [hx + bd * 0.707, 0.06, hz], [0, 0, 0], [bd * 0.62, 0.03, bd * 0.62], null, 'grass');
+  b.cyl(1.2, 1.2, 0.05, '#c68b59', hx, 0.04, hz, { mat: 'dirt' });
+  for (const p of info.bases) b.cyl(0.75, 0.75, 0.05, '#c68b59', p.x, 0.04, p.z, { mat: 'dirt' });
   b.cyl(0.9, 1.1, 0.12, '#c68b59', info.mound.x, 0.03, info.mound.z, { mat: 'dirt' });
   b.box(0.45, 0.04, 0.12, '#ffffff', info.mound.x, 0.15, info.mound.z, { mat: 'rubber' });
   // bases, plate, foul lines, batter's boxes
   const baseCol = tier === 0 ? '#a47148' : '#ffffff';
-  for (const p of info.bases) b.box(0.42, 0.07, 0.42, baseCol, p.x, 0.04, p.z, { rot: [0, Math.PI / 4, 0], mat: 'rubber' });
-  b.box(0.36, 0.06, 0.36, '#ffffff', hx, 0.04, hz, { rot: [0, Math.PI / 4, 0], mat: 'rubber' });
+  for (const p of info.bases) b.box(0.42, 0.07, 0.42, baseCol, p.x, 0.07, p.z, { rot: [0, Math.PI / 4, 0], mat: 'rubber' });
+  b.box(0.36, 0.06, 0.36, '#ffffff', hx, 0.07, hz, { rot: [0, Math.PI / 4, 0], mat: 'rubber' });
   for (const deg of [45, -45]) { const [x2, z2] = at(deg, R); line(hx, hz, x2, z2); }
   for (const sz of [-1, 1]) { const zz = hz + sz * 0.55; line(hx - 0.5, zz - 0.25, hx + 0.5, zz - 0.25, 0.06); line(hx - 0.5, zz + 0.25, hx + 0.5, zz + 0.25, 0.06); line(hx - 0.5, zz - 0.25, hx - 0.5, zz + 0.25, 0.06); line(hx + 0.5, zz - 0.25, hx + 0.5, zz + 0.25, 0.06); }
   // backstop behind home

@@ -287,7 +287,7 @@ export function buildArena(sport, colors = ['#e63946', '#ffffff'], label = 'RIVA
     const indoor = sport === 'basketball';
     const margin = indoor ? 2.6 : 3.4;
     const hw = L / 2 + margin; const hd = W / 2 + margin;
-    if (indoor) b.box(L + 9, 0.04, W + 9, '#20242b', 0, 0.0, 0, { mat: 'concrete' });
+    if (indoor) b.box(L + 9, 0.04, W + 9, '#20242b', 0, -0.04, 0, { mat: 'concrete' });
     else b.box(L + 7, 0.04, W + 7, '#5fa83f', 0, -0.01, 0, { mat: 'grass' });
     // pitch-side advertising boards
     const adPath = resample(roundedRect(0, 0, L / 2 + 1.6, W / 2 + 1.6, 0.6, 2), 2.4);
