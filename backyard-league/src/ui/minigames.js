@@ -14,7 +14,7 @@ export async function playKidGame(game, kid) {
   const skill = (kid.stats.AGI + kid.stats.EYE) / 2;
   let won;
   if (RPS_GAMES.includes(name)) won = await rps(`${name} vs ${kid.first_name}`);
-  else won = (await timing(`${name[0].toUpperCase()}${name.slice(1)} vs ${kid.first_name}`, `Stop the needle in the green zone! ${kid.first_name} is ${skill > 70 ? 'really good' : skill > 50 ? 'pretty good' : 'not great'} at this.`, { zone: Math.max(0.1, 0.3 - skill / 500), speed: 1 + skill / 90, rounds: 3, need: 2 })) >= 2;
+  else won = (await timing(`${name[0].toUpperCase()}${name.slice(1)} vs ${kid.first_name}`, `Stop the needle in the green zone! ${kid.first_name} is ${skill > 70 ? 'really good' : skill > 50 ? 'pretty good' : 'not great'} at this.`, { zone: Math.max(0.14, 0.3 - skill / 600), speed: 0.5 + skill / 220, rounds: 3, need: 2 })) >= 2;
   const gained = minigameResult(game.state, kid.id, won);
   sfx(won ? 'good' : 'bad');
   toast(`${won ? 'You won!' : 'You lost!'} +${gained} friendship${won && hook.type === 'minigame' ? '. That was what it would take!' : ''}`, won ? 'good' : '');
@@ -78,8 +78,11 @@ export function timing(title, text, opts = {}) {
     const key = (e) => { if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') { e.preventDefault(); e.stopPropagation(); press(); } };
     window.addEventListener('keydown', key, true);
     const m = modal({ title, body: h('div', {}, h('p', {}, text), meter, info), buttons: [{ label: 'STOP! (Space)', cls: 'big', keep: true, onClick: press }], dismissable: false, onClose: () => window.removeEventListener('keydown', key, true) });
+    let last = performance.now();
     const loop = () => {
-      t += 1 / 60;
+      const now = performance.now();
+      t += Math.min(0.05, (now - last) / 1000); // real time, so fast screens aren't faster
+      last = now;
       const pos = (Math.sin(t * speed * 2.4) + 1) / 2;
       needle.style.left = `calc(${pos * 100}% - 4px)`;
       if (!stopped) raf = requestAnimationFrame(loop);
