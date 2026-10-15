@@ -326,8 +326,12 @@ export function recruitState(state, id) {
   const diff = kid.recruitment.difficulty;
   let threshold = BASE_THRESHOLD[diff] ?? 40;
   if (ks.team && ks.team !== state.team.name) threshold += 12;
+  // Doing what they asked ("What would it take?") wins them over sooner.
+  if (ks.hook) threshold -= 15;
   threshold = Math.round(clamp(threshold - (att - 35) / 4, 10, 90));
-  return { kid, ks, band, g, status, att, threshold, needsHook: diff !== 'Easy' || status === 'Not Into Sports (Yet)' || (ks.team && ks.team !== state.team.name) };
+  // Only kids already on another team need their condition met (or to be best friends) before switching.
+  const onOtherTeam = !!(ks.team && ks.team !== state.team.name);
+  return { kid, ks, band, g, status, att, threshold, needsHook: onOtherTeam };
 }
 
 export function inviteCheck(state, id) {
@@ -342,8 +346,8 @@ export function inviteCheck(state, id) {
     return { ok: false, code: 'loyal', text: fill(pick(seeded(id), GENERIC.loyal), { team: ks.team }) };
   }
   const enough = ks.f >= r.threshold;
-  const bigFriends = ks.f >= r.threshold + 28;
-  if (enough && (!r.needsHook || ks.hook || bigFriends)) return { ok: true, text: say(state, kid, 'yes') };
+  const bestFriends = ks.f >= 85;
+  if (enough && (!r.needsHook || ks.hook || bestFriends)) return { ok: true, text: say(state, kid, 'yes') };
   let text = say(state, kid, 'no');
   if (ks.team && ks.team !== state.team.name) text = fill(pick(seeded(id, 'p'), GENERIC.poachable), { team: ks.team });
   else if (kid.recruitment.status === 'Not Into Sports (Yet)') text = GENERIC.notSporty[0];

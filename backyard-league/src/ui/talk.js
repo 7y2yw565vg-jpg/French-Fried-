@@ -3,7 +3,7 @@ import { $, h, clear, btn, toast, modal, money } from './dom.js';
 import { KID_BY_ID, kidName } from '../data/kids.js';
 import { ITEMS, STAFF_ROLES, ADULTS, SPORTS } from '../data/world.js';
 import { SKIN, HAIR, OUTFIT } from '../world3d/toon.js';
-import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, recruitState, inviteHangout, doHangout, canExchangeNumbers, exchangeNumbers, PHONE_FRIENDSHIP } from '../game/social.js';
+import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, inviteHangout, doHangout, canExchangeNumbers, exchangeNumbers, PHONE_FRIENDSHIP } from '../game/social.js';
 import { formatTime } from '../game/time.js';
 import { kidGrade, addLog } from '../game/state.js';
 import { attraction, kidSchoolAverage, isRegistered } from '../game/team.js';
@@ -179,11 +179,10 @@ function render(game, id, line, opts = {}) {
         redo(`${r.text}\n(${kid.first_name} will come to your next tryout. Schedule one from your phone: Team tab.)`);
       } else {
         if (r.code === 'old' && s.scandal.offer && s.scandal.offer.ringer === id) { redo(`${r.text}\n(Psst. Somebody said they could "fix" the paperwork...)`); return; }
-        redo(r.text + (r.code === 'friendship' ? `\n(${kid.first_name} needs to like you more: ${friendshipLabel(r.threshold)} or better.)` : '') + (r.needsHook ? '\n(Try asking: "What would it take?")' : ''));
+        redo(r.text + (r.code === 'friendship' ? `\n(${kid.first_name} needs to like you more: ${friendshipLabel(r.threshold)} or better.${!ks.hook ? ' Or ask "What would it take?" for a shortcut.' : ''})` : '') + (r.code === 'hook' ? `\n(${kid.first_name} plays for another team. Ask "What would it take?" to win them over, or become best friends.)` : ''));
       }
     }, 'small green');
-    const rs = recruitState(s, id);
-    if (rs.needsHook && !ks.hook) add('🤔 What would it take?', () => {
+    if (!ks.hook) add('🤔 What would it take?', () => {
       const hook = askWhatItTakes(s, id);
       let extra = '';
       if (hook.type === 'task') { extra = `\n⭐ A yellow marker shows where to go.`; game.addTaskMarkers(); }

@@ -336,3 +336,15 @@ test('creator: skill points, trait effects and no-trait option', () => {
   a.player.charisma = b.player.charisma = 45;
   assert.ok(chat(b, tm.id, `like:${tm.likes[0]}`).gained < chat(a, tm.id, `like:${tm.likes[0]}`).gained);
 });
+
+test('recruiting: good friends join without a quest unless they play for another team', () => {
+  const s = newGame(opts());
+  const med = KIDS.find((k) => k.recruitment.difficulty === 'Medium' && k.grade_at_start === 3 && !s.kids[k.id].team);
+  s.kids[med.id].f = 60;
+  assert.ok(inviteCheck(s, med.id).ok, 'a free agent who likes you joins');
+  const rival = KIDS.find((k) => s.kids[k.id].team && k.recruitment.status === 'On Rival Team (Poachable)' && k.grade_at_start === 3);
+  s.kids[rival.id].f = 70;
+  assert.equal(inviteCheck(s, rival.id).code, 'hook', 'a kid on another team still needs their condition');
+  s.kids[rival.id].f = 90;
+  assert.ok(inviteCheck(s, rival.id).ok, 'unless you are best friends');
+});
