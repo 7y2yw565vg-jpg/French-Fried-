@@ -17,7 +17,7 @@ export function makeArea(sc, opts) {
   const area = {
     id: opts.id, rect: { minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2 }, parent: opts.parent || null,
     mode: opts.mode || 'cutaway', focus: !!opts.focus, wallH: H, walls: [], objs: [], cx: x, cz: z,
-    b: new Builder('plain'), contents: new THREE.Group(), pendingDoors: [],
+    b: new Builder('plain'), contents: new THREE.Group(), pendingDoors: [], sc,
   };
   const ext = opts.ext || { color: '#e9e2d0', mat: 'paint' };
   const int = opts.int || { color: '#f3ead8', mat: 'paint' };
@@ -160,9 +160,12 @@ function addDoor(sc, area, { dd, dh, fx, sd }, wallObj) {
   sc.doors.push({ pivot, x: cx, z: cz, roll: !!dd.roll, dh, wall: wallObj, open: 0, dir: sd.horiz ? -sd.nz : sd.nx });
 }
 
-/** Merge an area's furniture builder into its contents group. */
+/** Merge an area's furniture builder into its contents group (and keep its furniture solid). */
 export function finishArea(area) {
+  if (!area.b) return;
   if (!area.b.empty) area.contents.add(area.b.mesh());
+  if (area.sc && area.b.colliders.length) area.sc.colliders.push(...area.b.colliders);
+  area.sc = null;
   area.b = null;
 }
 
