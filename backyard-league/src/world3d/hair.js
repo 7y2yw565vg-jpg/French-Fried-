@@ -110,7 +110,7 @@ function pushColor(arr, hex, f = 1) { tmpC.set(hex).multiplyScalar(f); arr.push(
  */
 function shell(ctx, o) {
   const { R, hc, color, dark, light, skin, hat } = ctx;
-  const A = 56; const NC = o.drape ? 7 : 0; const NK = 16;
+  const A = o.ridges && o.ridges > 8 ? 96 : 64; const NC = o.drape ? 7 : 0; const NK = 18;
   const pos = []; const uv = []; const col = []; const idx = [];
   const rows = NC + NK + 1;
   const T = o.T ?? 0.08;
@@ -120,6 +120,8 @@ function shell(ctx, o) {
     const a = -Math.PI + (i / A) * TAU;
     let eb = o.bowl != null && Math.abs(a) < 2.3 ? Math.max(o.bowl - Math.max(0, Math.abs(a) - 1.2) * 0.25, baseHairline(a, front) - 0.3) : baseHairline(a, front);
     if (o.lowSides) eb -= o.lowSides * smooth(0.8, 1.6, Math.abs(a));
+    // Pointed tufts along the hairline (sculpted cartoon locks), aligned with the ridges.
+    if (o.tufts) eb -= (o.tuftDepth ?? 0.14) * Math.pow(1 - Math.abs(Math.sin((a - (o.tuftShift || 0)) * o.tufts / 2)), 1.6) * (o.tuftBack ? 1 : 1 - 0.6 * smooth(1.6, 2.6, Math.abs(a)));
     const L = o.drape ? Math.max(0, o.drape(a)) : 0;
     const dr = smooth(0, 0.35, L);
     const eStart = lerp(eb, EDR, dr);
@@ -131,8 +133,12 @@ function shell(ctx, o) {
       let k = 1.028 + T * prof * side * (1 + (o.top || 0) * smooth(0.6, 1.5, e));
       if (o.ridges) {
         const ph = o.ridges * (a + (o.swirl || 0) * (Math.PI / 2 - e)) + (o.part != null ? 0 : 0);
-        k += (o.ridgeAmp ?? 0.018) * Math.cos(ph) * smooth(0, 0.25, e - eb) * side;
+        const cr = Math.cos(ph - (o.tuftShift || 0) * o.ridges);
+        k += (o.ridgeAmp ?? 0.018) * (o.chunky ? (Math.sqrt(Math.max(0, (cr + 1) / 2)) * 2 - 1) : cr) * smooth(0, 0.25, e - eb) * side;
       }
+      // A swoop of volume rising off the forehead, and a raised crest down the middle.
+      if (o.quiff) k += o.quiff * Math.exp(-(a * a) / (2 * 0.5 * 0.5)) * Math.exp(-((e - 1.0) ** 2) / (2 * 0.3 * 0.3)) * prof;
+      if (o.crest) { const da = Math.min(Math.abs(a), Math.PI - Math.abs(a)); k += o.crest * Math.exp(-(da * da) / (2 * 0.28 * 0.28)) * smooth(0.45, 1.1, e) * (1 - 0.45 * smooth(1.25, 1.57, e)) * prof; }
       if (o.curl) k += o.curl * (Math.sin(a * 13 + e * 7) * Math.sin(e * 15 - a * 5) + 0.5 * Math.sin(a * 23 - e * 19)) * prof;
       if (o.part != null) { const d = Math.abs(wrapA(a - o.part)); k -= 0.03 * (1 - smooth(0, 0.07, d)) * smooth(0.6, 0.9, e); }
       if (hat) k = Math.min(k, 1.075);
@@ -140,7 +146,7 @@ function shell(ctx, o) {
     };
     const colAt = (e, k, a2, isEdge) => {
       let c = color;
-      const groove = o.ridges ? Math.cos(o.ridges * (a2 + (o.swirl || 0) * (Math.PI / 2 - e))) : 0;
+      const groove = o.ridges ? Math.cos(o.ridges * (a2 + (o.swirl || 0) * (Math.PI / 2 - e)) - (o.tuftShift || 0) * o.ridges) : 0;
       if (groove < -0.4) c = dark;
       const band = 1 - smooth(0.08, 0.2, Math.abs(e - (o.shineE ?? 0.95)));
       if (band > 0 && groove > -0.2) c = mix(c, light, band * 0.55);
@@ -295,13 +301,13 @@ export function buildHair(styleIn, ctx) {
       const a = lerp(a1, a2, n === 1 ? 0.5 : i / (n - 1));
       const hl = baseHairline(a, 0.5);
       const sweep = o.sweep || 0;
-      L(a, hl + 0.32, 1.06, a + sweep * 0.5, hl + 0.05, k, a + sweep, hl - len, k - 0.01, 0.2, 0.06, { segs: 8, ...o });
+      L(a, hl + 0.32, 1.06 + shellK * 0.6, a + sweep * 0.5, hl + 0.05, k + shellK * 0.6, a + sweep, hl - len, k - 0.01 + shellK * 0.6, 0.4, 0.1, { segs: 10, sides: 12, roundTip: true, tipMix: 0.5, ...o });
     }
   };
   // Face-framing lock for long hair: from the part, around the temple, down past the cheek.
   const frame = (sd, part, i, wav = 0) => {
     const a0 = part + sd * 0.05; const e0 = 1.1 - i * 0.12;
-    L(a0, e0, 1.07, sd * (0.75 + i * 0.12), 0.62 - i * 0.04, 1.13, sd * (1.08 + i * 0.1), -0.5 - i * 0.12, 1.14 + wav, 0.26, 0.07, { segs: 12 });
+    L(a0, e0, 1.07 + shellK, sd * (0.75 + i * 0.12), 0.62 - i * 0.04, 1.12 + shellK, sd * (1.08 + i * 0.1), -0.5 - i * 0.12, 1.12 + shellK + wav, 0.42, 0.11, { segs: 12, sides: 12, roundTip: true, tipMix: 0.5 });
   };
   // Long hanging strand (locs, braids) from the scalp down the back/sides.
   const hang = (a, e, len, w, o = {}) => {
@@ -311,37 +317,81 @@ export function buildHair(styleIn, ctx) {
     if (covered(a, e) && !o.keep) return;
     add(lock(ctx, [top, H(a, (e - 0.1) / 2, 1.14), below, end], w * R, w * R * 0.85, w * R, w * R * 0.85, { segs: 14, sides: 7, roundTip: true, ...o }));
   };
-  const S = (o) => add(shell(ctx, o));
+  let shellK = 0;
+  const S = (o) => { shellK = (o.T ?? 0.08) - 0.04; add(shell(ctx, o)); };
+  // One chunky sculpted clump: fat at the root, tapering to a soft point,
+  // riding over the scalp from (a0,e0) to (a1,e1) and lifting off at the tip.
+  const C = (a0, e0, a1, e1, o = {}) => {
+    if (covered(a0, e0) && !o.keep) return;
+    const w = (o.w ?? 0.42) * R; const th = (o.th ?? 0.16) * R; const lift = o.lift ?? 0.08; const base = (o.k ?? 1.06) + shellK;
+    const lerpA = (t) => a0 + wrapA(a1 - a0) * t;
+    const pts = [H(a0, e0, base), H(lerpA(0.35), lerp(e0, e1, 0.35), base + 0.1 + lift * 0.25), H(lerpA(0.75), lerp(e0, e1, 0.75), base + 0.1 + lift * 0.6), H(lerpA(1), e1, base + 0.06 + lift)];
+    if (o.tipUp) pts[3].y += o.tipUp * R;
+    add(lock(ctx, pts, w, w * 0.22, th, th * 0.5, { segs: 12, sides: 12, tipMix: 0.75, ...o.lock }));
+  };
+  /**
+   * Sculpted cartoon hair made of big clumps. cfg: sweep (sideways flow, + = to
+   * the kid's left), quiff (front tips flick up), fringe (how far front clumps
+   * reach down the forehead), short (shorter clumps for clipped cuts), messy,
+   * crown (extra height), w/th (clump size).
+   */
+  // Front locks that lift up off the forehead (the swoop in the reference art).
+  const quiff = (n, up) => {
+    for (let i = 0; i < n; i++) {
+      const a = (n === 1 ? 0 : (i / (n - 1) - 0.5)) * 1.3;
+      C(a * 0.5, 1.2, a * 1.1, baseHairline(a, 0.5) + 0.3, { w: 0.55, th: 0.2, lift: up * (1 - Math.abs(a) * 0.5), tipUp: up * 0.5, k: 1.0 });
+    }
+  };
+  const sculpt = (cfg = {}) => {
+    const sw = cfg.sweep || 0; const q = cfg.quiff || 0; const fr = cfg.fringe ?? 0.12; const sh = cfg.short ? 0.6 : 1;
+    const mess = cfg.messy || 0; const W = cfg.w ?? 1; const TH = cfg.th ?? 1;
+    const j = () => (rng() - 0.5) * mess;
+    // crown: clumps from the top of the head flowing forward
+    const nCrown = cfg.nCrown ?? 5;
+    for (let i = 0; i < nCrown; i++) {
+      const a = (i / (nCrown - 1) - 0.5) * 1.6 + j();
+      C(a + Math.PI * 0.9 * Math.sign(a || 1) * 0 + Math.PI, 1.25 + j() * 0.3, a * 0.6 + sw * 0.6, 1.25 - 0.35 * sh, { w: 0.55 * W, th: 0.2 * TH, lift: 0.14 + (cfg.crown || 0), k: 1.06 });
+    }
+    // top/front ring: forward-flowing clumps ending at the hairline (fringe) with a flick
+    const nFront = cfg.nFront ?? 7;
+    for (let i = 0; i < nFront; i++) {
+      const a = (i / (nFront - 1) - 0.5) * 2.2 + j();
+      const hl = baseHairline(a, 0.5);
+      const tipE = hl + (fr < 0 ? -fr : 0.32 - fr) * (cfg.short ? 1.4 : 1);
+      C(a * 0.7 - sw * 0.3, 1.32 + j() * 0.2, a + sw * 0.5 + j(), Math.max(hl - 0.1, tipE), { w: 0.5 * W, th: 0.18 * TH, lift: 0.1 + q * (1 - Math.abs(a) / 1.6) * 0.45, tipUp: q * 0.25 * (1 - Math.abs(a) / 1.6), k: 1.06 });
+    }
+    // sides + back: clumps flowing down and slightly back
+    const nSide = cfg.nSide ?? 12;
+    for (let i = 0; i < nSide; i++) {
+      const a = 0.9 + (i / (nSide - 1)) * (TAU - 1.8) + j();
+      const aa = wrapA(a);
+      const hl = baseHairline(aa, 0.5);
+      C(aa, 1.0 + j() * 0.3, aa + Math.sign(aa) * 0.12 + sw * 0.2, Math.max(hl + 0.06, hl + 0.3 * (1 - sh) + 0.08), { w: 0.52 * W, th: 0.16 * TH * sh, lift: 0.07, k: 1.04 });
+    }
+  };
 
   switch (style) {
     case 'buzz cut': S({ T: 0.02, stubble: 0.35, front: 0.52 }); break;
     case 'crew cut':
-      S({ T: 0.06, front: 0.52, ridges: 20, ridgeAmp: 0.008, sides: 0.4, sideStart: 0.35 });
-      for (let i = 0; i < 6; i++) { const a = -0.45 + i * 0.18; L(a, 0.62, 1.05, a, 0.66, 1.16, a, 0.8, 1.2, 0.16, 0.06, { segs: 6, pointy: true }); }
+      S({ T: 0.11, front: 0.52, ridges: 12, ridgeAmp: 0.04, chunky: 1, tufts: 12, tuftDepth: 0.08, sides: 0.55, sideStart: 0.35, top: 0.15, quiff: 0.12 });
       break;
     case 'fade':
-      S({ T: 0.1, front: 0.55, sides: 0.15, sideStart: 0.62, curl: 0.012, top: 0.25 });
-      break;
-    case 'curly top':
-      S({ T: 0.16, front: 0.52, sides: 0.12, sideStart: 0.6, curl: 0.03, top: 0.5 });
-      for (let i = 0; i < 26; i++) { const a = (rng() - 0.5) * 2.2; const e = 0.7 + rng() * 0.8; if (!covered(a, e)) add(puff(ctx, H(a, e, 1.16 + 0.08 * Math.sin(e * 2)), R * 0.11, { bump: 0.12, seed: i, detail: 2 })); }
+      S({ T: 0.11, front: 0.55, sides: 0.15, sideStart: 0.62, ridges: 11, ridgeAmp: 0.05, chunky: 1, tufts: 11, tuftDepth: 0.1, top: 0.25, quiff: 0.2 });
       break;
     case 'side part':
-      S({ T: 0.08, front: 0.5, ridges: 22, ridgeAmp: 0.012, part: 0.55, sides: 0.6, sideStart: 0.3 });
-      for (let i = 0; i < 6; i++) { const a = 0.45 - i * 0.2; L(0.55, 0.95 - i * 0.04, 1.06, a - 0.25, 0.62, 1.13, a - 0.55, 0.42, 1.11, 0.24, 0.07, { segs: 10 }); }
+      S({ T: 0.13, front: 0.5, part: 0.55, ridges: 13, ridgeAmp: 0.05, chunky: 1, swirl: 0.45, tufts: 13, tuftDepth: 0.16, tuftShift: 0.1, sides: 0.8, sideStart: 0.3, top: 0.15, quiff: 0.12 });
       break;
     case 'spiky':
-      S({ T: 0.06, front: 0.52, ridges: 14, ridgeAmp: 0.01 });
-      for (let i = 0; i < 16; i++) {
-        const a = (i / 16) * TAU - Math.PI; const e = 0.55 + (i % 3) * 0.2;
-        const fr = Math.cos(a) > 0.4;
-        L(a, e, 1.04, a, e + 0.15, 1.25, a * 1.05, e + (fr ? 0.35 : 0.2), 1.48 + rng() * 0.12, 0.2, 0.09, { pointy: true, segs: 8 });
+      S({ T: 0.11, front: 0.52, ridges: 12, ridgeAmp: 0.04, chunky: 1, tufts: 12, tuftDepth: 0.1 });
+      for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * TAU - Math.PI + (rng() - 0.5) * 0.2; const e = 0.75 + (i % 3) * 0.22;
+        const front = Math.cos(a) > 0.3;
+        L(a, e, 1.03 + shellK, a, e + 0.12, 1.22 + shellK, a * 1.04, e + (front ? 0.3 : 0.18), 1.38 + shellK + rng() * 0.1, 0.4, 0.18, { pointy: true, segs: 10, sides: 12, tipMix: 0.6 });
       }
-      L(0, 1.25, 1.04, 0.2, 1.4, 1.3, 0.1, 1.5, 1.5, 0.24, 0.1, { pointy: true, segs: 8 });
+      L(0, 1.3, 1.04 + shellK, 0.15, 1.42, 1.26 + shellK, 0.1, 1.5, 1.44 + shellK, 0.42, 0.2, { pointy: true, segs: 10, sides: 12, tipMix: 0.6 });
       break;
     case 'faux hawk':
-      S({ T: 0.06, front: 0.52, sides: 0.3, sideStart: 0.6, ridges: 12, ridgeAmp: 0.01 });
-      for (let i = 0; i < 7; i++) { const e = 0.7 + i * 0.12; L(0, e, 1.03, i % 2 ? 0.08 : -0.08, e + 0.08, 1.28, 0, e + 0.12, 1.42 - i * 0.02, 0.24, 0.1, { pointy: true, segs: 8 }); }
+      S({ T: 0.09, front: 0.52, sides: 0.3, sideStart: 0.6, ridges: 12, ridgeAmp: 0.04, chunky: 1, tufts: 12, tuftDepth: 0.1, crest: 0.24, quiff: 0.1 });
       break;
     case 'mohawk':
       S({ T: 0.02, front: 0.52, stubble: 0.5 });
@@ -354,35 +404,32 @@ export function buildHair(styleIn, ctx) {
       }
       break;
     case 'cowlick':
-      S({ T: 0.08, front: 0.5, ridges: 16, ridgeAmp: 0.014, swirl: 1.4 });
-      bangs(-0.5, 0.5, 5, 0.12, 1.1, { sweep: 0.15 });
-      L(0.3, 1.35, 1.05, 0.6, 1.45, 1.3, 1.0, 1.25, 1.42, 0.16, 0.06, { pointy: true, segs: 8 });
+      S({ T: 0.13, front: 0.5, ridges: 12, ridgeAmp: 0.05, chunky: 1, swirl: 1.0, tufts: 12, tuftDepth: 0.18, quiff: 0.14 });
+      L(Math.PI - 0.2, 1.3, 1.08 + shellK, Math.PI - 0.1, 1.45, 1.2 + shellK, Math.PI, 1.5, 1.32 + shellK, 0.34, 0.16, { pointy: true, segs: 10, sides: 12, tipMix: 0.6 }); // the cowlick at the crown
       break;
     case 'messy mop':
-      S({ T: 0.13, front: 0.45, curl: 0.02, ridges: 9, ridgeAmp: 0.03, swirl: 0.8 });
-      for (let i = 0; i < 18; i++) { const a = (rng() - 0.5) * TAU; const e = 0.3 + rng() * 1.0; L(a, e, 1.08, a + (rng() - 0.5) * 0.6, e - 0.1, 1.2, a + (rng() - 0.5) * 0.9, e - 0.3 - rng() * 0.2, 1.17, 0.22, 0.07, { segs: 8 }); }
-      bangs(-0.7, 0.7, 6, 0.3, 1.13, { sweep: 0.1 });
+      S({ T: 0.16, front: 0.45, ridges: 10, ridgeAmp: 0.07, chunky: 1, swirl: 0.8, tufts: 10, tuftDepth: 0.32, tuftBack: true, curl: 0.008, top: 0.25 });
       break;
     case 'curtains':
-      S({ T: 0.1, front: 0.48, part: 0, ridges: 18, ridgeAmp: 0.012, lowSides: 0.15 });
-      for (const sd of [-1, 1]) for (let i = 0; i < 4; i++) { const a = sd * (0.12 + i * 0.16); L(sd * 0.05, 1.05 - i * 0.05, 1.07, a + sd * 0.2, 0.5, 1.13, a + sd * 0.55, 0.12, 1.12, 0.26, 0.07, { segs: 10 }); }
+      S({ T: 0.14, front: 0.48, part: 0, ridges: 12, ridgeAmp: 0.05, chunky: 1, tufts: 12, tuftDepth: 0.26, tuftShift: 0.26, lowSides: 0.15 });
       break;
     case 'bowl cut':
-      S({ T: 0.13, front: 0.34, bowl: 0.3, ridges: 30, ridgeAmp: 0.01 });
+      S({ T: 0.16, front: 0.34, bowl: 0.3, ridges: 18, ridgeAmp: 0.04, chunky: 1, tufts: 18, tuftDepth: 0.09, tuftBack: true });
       break;
     case 'shaggy':
-      S({ T: 0.13, front: 0.4, lowSides: 0.3, curl: 0.012, ridges: 12, ridgeAmp: 0.022 });
-      for (let i = 0; i < 16; i++) { const a = -Math.PI + (i / 16) * TAU; if (Math.abs(a) < 0.9) continue; const hl = baseHairline(a) - 0.25; L(a, hl + 0.35, 1.1, a + 0.05, hl, 1.17, a + 0.1, hl - 0.35, 1.13, 0.26, 0.07, { segs: 8 }); }
-      bangs(-0.75, 0.75, 7, 0.32, 1.13, { sweep: -0.1 });
+      S({ T: 0.16, front: 0.4, lowSides: 0.3, ridges: 10, ridgeAmp: 0.07, chunky: 1, swirl: 0.5, tufts: 10, tuftDepth: 0.36, tuftBack: true, top: 0.2 });
       break;
     case 'pixie':
-      S({ T: 0.08, front: 0.5, ridges: 18, ridgeAmp: 0.012, sides: 0.7, sideStart: 0.3 });
-      for (let i = 0; i < 6; i++) { const a = 0.6 - i * 0.22; L(0.4, 0.9, 1.06, a - 0.15, 0.55, 1.12, a - 0.4, 0.3, 1.1, 0.22, 0.07, { segs: 8 }); }
+      S({ T: 0.12, front: 0.5, ridges: 12, ridgeAmp: 0.05, chunky: 1, swirl: -0.6, tufts: 12, tuftDepth: 0.2, sides: 0.7, sideStart: 0.3 });
+      break;
+    case 'curly top':
+      S({ T: 0.1, front: 0.52, top: 0.25, curl: 0.03, lowSides: 0.05 });
+      for (let i = 0; i < 46; i++) { const a = (rng() - 0.5) * 2.6; const e = 0.66 + rng() * 0.9; if (!covered(a, e)) add(puff(ctx, H(a, e, 1.12 + shellK + 0.06 * Math.sin(e * 2)), R * 0.12, { bump: 0.04, seed: i, detail: 2, colorFixed: mix(ctx.color, ctx.light, rng() * 0.35) })); }
       break;
     case 'curly afro': {
       if (hat) { S({ T: 0.16, front: 0.48, curl: 0.03, lowSides: 0.1 }); break; }
       S({ T: 0.5, front: 0.48, curl: 0.05, top: 0.35, lowSides: 0.1 });
-      for (let i = 0; i < 60; i++) { const a = rng() * TAU; const e = 0.05 + rng() * 1.45; if (Math.cos(a) > 0.5 && e < 0.55) continue; add(puff(ctx, H(a, e, 1.42 + 0.12 * smooth(0.6, 1.4, e)), R * 0.14, { bump: 0.12, seed: i, detail: 2 })); }
+      for (let i = 0; i < 150; i++) { const a = rng() * TAU; const e = 0.05 + rng() * 1.5; if (Math.cos(a) > 0.5 && e < 0.55) continue; add(puff(ctx, H(a, e, 1.46 + 0.12 * smooth(0.6, 1.4, e)), R * 0.14, { bump: 0.04, seed: i, detail: 2, colorFixed: mix(ctx.color, ctx.light, rng() * 0.3) })); }
       break;
     }
     case 'high puff':
@@ -413,7 +460,7 @@ export function buildHair(styleIn, ctx) {
       for (let i = 0; i < 22; i++) { const a = -Math.PI + (i / 22) * TAU; if (Math.abs(a) < 0.95) continue; hang(a, 0.7 + (i % 2) * 0.25, 1.2 + (i % 3) * 0.1, 0.075, { braid: 9, tipColor: ctx.color, keep: false }); }
       break;
     case 'braids':
-      S({ T: 0.07, front: 0.5, part: 0, ridges: 20, ridgeAmp: 0.012 });
+      S({ T: 0.08, front: 0.5, part: 0, ridges: 14, ridgeAmp: 0.03, chunky: 1 });
       for (const sd of [-1, 1]) {
         const top = H(sd * 1.75, 0.0, 1.12);
         const end = top.clone(); end.y -= R * 1.25; end.x *= 1.05; end.z = Math.abs(end.z) * 0.3 + R * 0.25;
@@ -428,7 +475,7 @@ export function buildHair(styleIn, ctx) {
       bangs(-0.4, 0.4, 3, 0.1, 1.1);
       break;
     case 'pigtails':
-      S({ T: 0.07, front: 0.5, part: 0, ridges: 20, ridgeAmp: 0.012 });
+      S({ T: 0.08, front: 0.5, part: 0, ridges: 14, ridgeAmp: 0.03, chunky: 1 });
       bangs(-0.5, 0.5, 5, 0.22, 1.11);
       for (const sd of [-1, 1]) {
         const root = H(sd * 1.95, 0.45, 1.1);
@@ -439,7 +486,7 @@ export function buildHair(styleIn, ctx) {
       }
       break;
     case 'ponytail': case 'headband + ponytail': {
-      S({ T: 0.07, front: 0.5, ridges: 24, ridgeAmp: 0.012, swirl: 0, shineE: 1.0 });
+      S({ T: 0.08, front: 0.5, ridges: 14, ridgeAmp: 0.03, chunky: 1, swirl: 0, shineE: 1.0 });
       if (style === 'ponytail') bangs(-0.55, 0.55, 5, 0.18, 1.1, { sweep: 0.2 });
       const root = H(Math.PI, hat === 'cap' || hat === 'backwards cap' ? 0.32 : 0.65, 1.12);
       const end = root.clone(); end.y -= R * 1.25; end.z -= R * 0.25;
@@ -458,14 +505,14 @@ export function buildHair(styleIn, ctx) {
       if (!hat) add(puff(ctx, H(0, 1.45, 1.22), R * 0.38, { bump: 0.05, seed: 9, spiral: true, sy: 0.85 }));
       break;
     case 'bob':
-      S({ T: 0.11, front: 0.32, ridges: 26, ridgeAmp: 0.01, drape: (a) => smooth(0.9, 1.4, Math.abs(a)) * 0.62, flare: 0.08 });
+      S({ T: 0.12, front: 0.32, ridges: 14, ridgeAmp: 0.035, chunky: 1, tufts: 14, tuftDepth: 0.08, tuftBack: true, drape: (a) => smooth(0.9, 1.4, Math.abs(a)) * 0.62, flare: 0.08 });
       break;
     case 'long straight':
-      S({ T: 0.09, front: 0.5, part: 0.25, ridges: 26, ridgeAmp: 0.01, drape: (a) => smooth(0.95, 1.45, Math.abs(a)) * (1.4 + 0.25 * smooth(1.6, 3, Math.abs(a))), flare: 0.05 });
+      S({ T: 0.1, front: 0.5, part: 0.25, ridges: 14, ridgeAmp: 0.03, chunky: 1, drape: (a) => smooth(0.95, 1.45, Math.abs(a)) * (1.4 + 0.25 * smooth(1.6, 3, Math.abs(a))), flare: 0.05 });
       for (const sd of [-1, 1]) for (let i = 0; i < 3; i++) frame(sd, 0.25, i);
       break;
     case 'long wavy':
-      S({ T: 0.11, front: 0.48, part: -0.3, ridges: 20, ridgeAmp: 0.016, drape: (a) => smooth(0.95, 1.45, Math.abs(a)) * (1.3 + 0.2 * smooth(1.6, 3, Math.abs(a))), flare: 0.14, wave: 0.05 });
+      S({ T: 0.12, front: 0.48, part: -0.3, ridges: 12, ridgeAmp: 0.04, chunky: 1, drape: (a) => smooth(0.95, 1.45, Math.abs(a)) * (1.3 + 0.2 * smooth(1.6, 3, Math.abs(a))), flare: 0.14, wave: 0.05 });
       for (const sd of [-1, 1]) for (let i = 0; i < 3; i++) frame(sd, -0.3, i, 0.04);
       break;
     default:

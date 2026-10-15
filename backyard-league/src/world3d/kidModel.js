@@ -536,7 +536,7 @@ export function buildCharacter(look, opts = {}) {
   const bulk = hairBulk(look.hairStyle);
   if (acc.has('sweatband') && hat !== 'beanie' && hat !== 'bucket hat') {
     // A snug band around the forehead (radius of the hair at that height).
-    const by = 0.38; const br = R * Math.sqrt(Math.max(0.5, bulk * bulk - by * by)) * 1.02;
+    const by = 0.38; const br = R * Math.sqrt(Math.max(0.5, bulk * bulk - by * by)) * 1.09;
     hb.add(BAND, '#ffffff', [0, hc + R * by, 0], [-0.12, 0, 0], [br, R * 0.2, br], (x, y, z) => (z > 0.85 ? '#e63946' : null), 'cloth');
   }
   if (acc.has('headphones')) {
