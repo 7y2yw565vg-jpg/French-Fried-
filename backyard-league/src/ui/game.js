@@ -560,6 +560,7 @@ export class Game {
       if (left > 0) this.skip(left);
       return;
     }
+    this.ensurePeriod();
     const p = this.period;
     if (!p || s.loc !== 'school' || this.mode !== 'free') return;
     if (p.attended) {
@@ -572,6 +573,22 @@ export class Game {
       const late = s.time.minute > p.block.start + teacher.tardyGrace;
       this.attend(late);
     }
+  }
+
+  /**
+   * A class is in session but we never heard its bell (you loaded a save, or
+   * the game started mid-class): pick it up from the clock and the schedule.
+   */
+  ensurePeriod() {
+    const s = this.state;
+    if (this.period || this.passing) return;
+    if (!dayInfo(s.time.day).isSchoolDay) return;
+    const block = schoolBlockAt(s.time.minute);
+    if (!block || block.kind !== 'class') return;
+    if (s.school.attended[`${s.time.day}:${block.start}`]) return; // already went to this class
+    const c = playerClass(s, block.period);
+    this.period = { block, room: c.room, subject: c.subject, teacher: c.teacher, attended: false, late: false };
+    this.hud.update();
   }
 
   attend(late) {

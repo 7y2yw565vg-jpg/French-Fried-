@@ -7,7 +7,7 @@ import { addItem, hasItem, itemCount, playerGrade } from '../game/state.js';
 import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS } from '../game/team.js';
 import { askPrincipal, addPrep, SUBJECTS, makeQuiz } from '../game/school.js';
 import { doTask } from '../game/social.js';
-import { dayInfo, schoolBlockAt } from '../game/time.js';
+import { dayInfo, schoolBlockAt, formatTime } from '../game/time.js';
 import { standings, joinLeague } from '../game/league.js';
 import { SCIENCE } from '../data/questions.js';
 import { openPhone } from './phone.js';
@@ -66,7 +66,7 @@ const HANDLERS = {
           };
           round(0);
         } } : null,
-        { label: left ? `Do a chore (+$1, ${left} left today)` : 'Chores all done today', cls: 'blue', disabled: !left, onClick: () => { const r = doChore(s); if (r.ok) game.skip(20); toast(r.text, r.ok ? 'good' : ''); game.hud.render(); } },
+        { label: left ? `Do a chore (20 min, +$1, ${left} left today)` : 'Chores all done today', cls: 'blue', disabled: !left, onClick: () => { const r = doChore(s); if (r.ok) game.skip(20); toast(r.ok ? `${r.text} It's now ${formatTime(s.time.minute)}.` : r.text, r.ok ? 'good' : ''); game.hud.render(); } },
         { label: 'Bye!', cls: 'white' },
       ].filter(Boolean),
     });
