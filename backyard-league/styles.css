@@ -397,3 +397,17 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .preview-controls { display: flex; align-items: center; gap: 8px; background: rgba(255,250,240,0.85); border: 2px solid var(--ink); border-radius: 999px; padding: 4px 8px; }
 .preview-controls .btn { min-width: 0; padding: 4px 10px; }
 .preview-hint { font-size: 12px; font-weight: 900; color: var(--muted); padding: 0 4px; }
+/* creator: skill points */
+.stat-alloc { display: grid; gap: 8px; }
+.stat-left { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+.stat-left .btn { margin-left: auto; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+.stat-row { display: grid; grid-template-columns: 96px 30px 1fr 30px 30px; align-items: center; gap: 6px; font-size: 13px; }
+.stat-row .btn { min-width: 0; padding: 2px 0; width: 30px; }
+.stat-row .stat-val { text-align: right; }
+@media (max-width: 760px) { .stat-grid { grid-template-columns: 1fr; } }
+.stat-alloc .stat-row { grid-template-columns: 92px 28px minmax(40px, 1fr) 28px 28px; }
+.stat-alloc .stat-row .btn.small { width: 28px; min-width: 28px; max-width: 28px; height: 28px; min-height: 28px; padding: 0; justify-content: center; }
+.stat-alloc .stat-row .bar { width: auto; }
+.stat-alloc .stat-grid > .stat-row { display: grid; }
+.stat-alloc .stat-row .bar { display: block; width: auto; }

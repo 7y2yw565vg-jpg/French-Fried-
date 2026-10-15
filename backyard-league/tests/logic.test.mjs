@@ -319,3 +319,20 @@ test('money: prices change how many people buy; teams can join mid-season', () =
   const mine = m.league.schedule.filter((r) => r.games.some((g) => g.home === m.team.name || g.away === m.team.name)).map((r) => r.week);
   assert.ok(mine.length >= 7 && Math.min(...mine) >= 6, JSON.stringify(mine));
 });
+
+test('creator: skill points, trait effects and no-trait option', () => {
+  const pts = { SPD: 15, EYE: 20, HUS: 3 }; // EYE is over the cap
+  const s = newGame({ ...opts(), perk: 'none', statPoints: pts });
+  assert.equal(s.player.perk, 'none');
+  assert.equal(s.player.stats.SPD, 65);
+  assert.equal(s.player.stats.EYE, 65); // capped at +15
+  assert.equal(s.player.stats.HUS, 53);
+  assert.equal(s.player.stats.AGI, 50);
+  const g = newGame({ ...opts(), perk: 'gymrat', statPoints: pts });
+  assert.equal(g.player.stats.AGI, 55);
+  // Teacher's Kid: troublemakers warm up more slowly.
+  const tm = KIDS.find((k) => k.personality === 'Troublemaker');
+  const a = newGame({ ...opts(), perk: 'none' }); const b = newGame({ ...opts(), perk: 'teacherskid' });
+  a.player.charisma = b.player.charisma = 45;
+  assert.ok(chat(b, tm.id, `like:${tm.likes[0]}`).gained < chat(a, tm.id, `like:${tm.likes[0]}`).gained);
+});

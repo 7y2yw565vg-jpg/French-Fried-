@@ -6,7 +6,7 @@ import { buildArena } from '../world3d/arenas.js';
 import { buildLogo } from './logo.js';
 import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, SHOE_COLORS } from '../world3d/kidModel.js';
 import { HAIR_STYLES } from '../world3d/hair.js';
-import { SPORTS, PERKS, NEIGHBORHOODS } from '../data/world.js';
+import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT_POINT_CAP, PLAYER_BASE_STAT } from '../data/world.js';
 import { KIDS } from '../data/kids.js';
 import { loadFromStorage, deserialize } from '../game/state.js';
 import { sfx } from './audio.js';
@@ -118,10 +118,10 @@ export function showTitle(engine, onNew, onContinue, current = null) {
 }
 
 export function showCreator(engine, onDone) {
-  const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: ['backwards cap'], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim', shoes: 'sneakers', shoeColor: 'white' };
-  let hatPick = 'backwards cap'; let sigPick = 'none';
+  const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: [], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim', shoes: 'sneakers', shoeColor: 'white' };
+  let hatPick = 'none'; let sigPick = 'none';
   const syncAcc = () => { look.accessories = [hatPick, sigPick].filter((v) => v !== 'none'); };
-  const cfg = { name: '', perk: 'smooth', hood: 'maple', sport: 'soccer', teamName: randomTeamName(), colors: ['#e63946', '#ffffff'] };
+  const cfg = { name: '', perk: 'none', statPoints: Object.fromEntries(STAT_CODES.map((c) => [c, 0])), hood: 'maple', sport: 'soccer', teamName: randomTeamName(), colors: ['#e63946', '#ffffff'] };
 
   // preview world: a little grass platform
   const group = new THREE.Group();
@@ -189,11 +189,34 @@ export function showCreator(engine, onDone) {
   const perkCards = h('div', { class: 'sport-cards' });
   for (const [id, p] of Object.entries(PERKS)) {
     const c = h('div', { class: `sport-card ${cfg.perk === id ? 'sel' : ''}`, onclick: () => {
-      cfg.perk = id; sfx('click');
+      cfg.perk = id; sfx('click'); drawStats();
       perkCards.querySelectorAll('.sport-card').forEach((x) => x.classList.remove('sel')); c.classList.add('sel');
     } }, h('h4', {}, p.name), h('p', {}, p.desc));
     perkCards.appendChild(c);
   }
+  // Skill points: spend STAT_POINTS across your own sports skills.
+  const statBox = h('div', { class: 'stat-alloc' });
+  const drawStats = () => {
+    clear(statBox);
+    const used = Object.values(cfg.statPoints).reduce((a, b) => a + b, 0);
+    const left = STAT_POINTS - used;
+    const gym = cfg.perk === 'gymrat' ? 5 : 0;
+    statBox.append(h('div', { class: 'stat-left' }, h('b', {}, `${left}`), ` of ${STAT_POINTS} points left`, gym ? h('span', { class: 'muted' }, ' (Gym Rat: +5 to everything)') : null,
+      btn('Reset', () => { for (const c of STAT_CODES) cfg.statPoints[c] = 0; drawStats(); }, 'small white')));
+    const grid = h('div', { class: 'stat-grid' });
+    for (const c of STAT_CODES) {
+      const v = cfg.statPoints[c];
+      const val = PLAYER_BASE_STAT + v + gym;
+      grid.append(h('div', { class: 'stat-row' },
+        h('span', { class: 'stat-name' }, STAT_NAMES[c]),
+        btn('−', () => { if (cfg.statPoints[c] > 0) { cfg.statPoints[c]--; drawStats(); } }, 'small white', v ? {} : { disabled: true }),
+        h('div', { class: 'bar' }, h('i', { style: { width: `${val}%` } })),
+        h('b', { class: 'stat-val' }, `${val}`),
+        btn('+', () => { if (left > 0 && cfg.statPoints[c] < STAT_POINT_CAP) { cfg.statPoints[c]++; drawStats(); } }, 'small white', left > 0 && v < STAT_POINT_CAP ? {} : { disabled: true })));
+    }
+    statBox.append(grid);
+  };
+  drawStats();
   // Turn the preview: drag (mouse or touch) or the arrow buttons.
   const turn = (d) => { if (engine.cine) engine.cine.angle += d; };
   const turnBtn = (label, d, title) => btn(label, () => turn(d), 'small white', { title });
@@ -228,7 +251,8 @@ export function showCreator(engine, onDone) {
         h('div', { class: 'field-row' }, h('label', {}, 'Shoe color'), swatchRow(SHOE_COLORS, 'shoeColor')),
         h('div', { class: 'field-row' }, h('label', {}, 'Hat'), chipRow(HATS, () => hatPick, (v) => { hatPick = v; syncAcc(); })),
         h('div', { class: 'field-row' }, h('label', {}, 'Signature look'), chipRow(ACCESSORIES, () => sigPick, (v) => { sigPick = v; syncAcc(); })),
-        h('div', { class: 'field-row' }, h('label', {}, 'Your thing'), perkCards),
+        h('div', { class: 'field-row' }, h('label', {}, 'Your trait'), perkCards),
+        h('div', { class: 'field-row' }, h('label', {}, 'Your skills'), statBox),
         h('div', { class: 'field-row' }, h('label', {}, 'Home neighborhood'), chipRow(NEIGHBORHOODS.filter((n) => n.id !== 'riverside').map((n) => n.name), () => NEIGHBORHOODS.find((n) => n.id === cfg.hood).name, (v) => { cfg.hood = NEIGHBORHOODS.find((n) => n.name === v).id; })),
         h('hr'),
         h('h2', { style: { fontSize: '30px' } }, 'Your team'),
@@ -242,7 +266,7 @@ export function showCreator(engine, onDone) {
             cfg.teamName = teamIn.value.trim() || randomTeamName();
             engine.follow();
             engine.setViewCenter(null);
-            onDone({ ...cfg, look: { ...look } });
+            onDone({ ...cfg, statPoints: { ...cfg.statPoints }, look: { ...look } });
           }, 'big green')),
       ),
       preview,

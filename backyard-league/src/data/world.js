@@ -423,9 +423,14 @@ export const RIVAL_COLORS = {
 };
 
 export const PERKS = {
-  smooth: { name: 'Smooth Talker', desc: '+Charisma. Kids warm up to you faster.' },
-  teacherskid: { name: "Teacher's Kid", desc: 'Quizzes are easier, but troublemakers trust you less.' },
-  hustler: { name: 'Born Hustler', desc: 'Jobs pay 25% more.' },
-  gymrat: { name: 'Gym Rat', desc: 'You are a better player yourself.' },
-  sneaky: { name: 'Sneaky Pete', desc: '+Sneakiness. Notes, dares and hall sneaking are safer.' },
+  none: { name: 'No trait', desc: 'Just a regular kid. No bonuses, no drawbacks.' },
+  smooth: { name: 'Smooth Talker', desc: 'Start with more charisma: chats go better, friendships grow faster and more kids say yes to hanging out.' },
+  teacherskid: { name: "Teacher's Kid", desc: 'Quizzes come with an extra hint, but troublemakers and pranksters warm up to you more slowly.' },
+  hustler: { name: 'Born Hustler', desc: 'Every job (lemonade, mowing, paper route) pays 25% more.' },
+  gymrat: { name: 'Gym Rat', desc: '+5 to every one of your own sports skills.' },
+  sneaky: { name: 'Sneaky Pete', desc: 'Start with more sneakiness: notes, dares and hall sneaking get caught less.' },
 };
+/** Skill points to spend in the character creator (each skill can go up to +STAT_POINT_CAP). */
+export const STAT_POINTS = 50;
+export const STAT_POINT_CAP = 15;
+export const PLAYER_BASE_STAT = 50;

@@ -113,7 +113,10 @@ export function chat(state, id, topic = 'smalltalk') {
   const q = chatQuality(state, kid, topic, rng);
   const res = CHAT_RESULT[q];
   const gained = q === 0 ? 0 : Math.max(1, Math.round(res.gain + rng() * 2 + (state.player.charisma - 40) / 15 + (first ? 3 : 0))); // awkward chats earn nothing
-  addFriendship(state, id, gained);
+  // Teacher's Kid: troublemakers and pranksters don't trust a teacher's pet.
+  const wary = state.player.perk === 'teacherskid' && ['Troublemaker', 'Prankster'].includes(kid.personality);
+  const finalGain = wary ? Math.floor(gained / 2) : gained;
+  addFriendship(state, id, finalGain);
   // A good chat reveals one routine fact they mention.
   let revealed = null;
   const unknown = routineSlots(kid).filter((s) => !ks.known.includes(s));
@@ -123,7 +126,7 @@ export function chat(state, id, topic = 'smalltalk') {
   }
   state.player.charisma = Math.min(100, state.player.charisma + (q >= 2 ? 0.3 : 0.1));
   const line = q === 0 ? pick(rng, [`Uh... okay?`, `...Cool. I guess.`, `Why would you say that?`, `*blinks slowly*`]) : say(state, kid, first ? 'greet' : 'chat');
-  return { text: line, gained, quality: q, result: res, revealed, revealedText: revealed ? describeSlot(kid, revealed, kidGrade(state, id)) : null };
+  return { text: line, gained: finalGain, quality: q, result: res, revealed, revealedText: revealed ? describeSlot(kid, revealed, kidGrade(state, id)) : null };
 }
 
 // ------------------------------------------------------- hangouts -------

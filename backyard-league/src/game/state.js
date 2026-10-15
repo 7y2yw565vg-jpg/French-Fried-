@@ -1,6 +1,6 @@
 // Save state: creation, lookups, persistence.
 import { KIDS, KID_BY_ID } from '../data/kids.js';
-import { SPORTS, UPGRADE_IDS, STAT_CODES, GEAR, GEAR_IDS } from '../data/world.js';
+import { SPORTS, UPGRADE_IDS, STAT_CODES, GEAR, GEAR_IDS, STAT_POINT_CAP, PLAYER_BASE_STAT } from '../data/world.js';
 import { kidGradeNow, kidStats, kidHeight } from './stats.js';
 import { DAY_START } from './time.js';
 import { hashString } from './rng.js';
@@ -17,15 +17,19 @@ export function newGame(opts) {
       hook: false, hookAsked: false, chatDay: 0, giftDay: 0, playDay: 0, train: {}, favor: null, tutor: 0, ringer: false,
     };
   }
-  const base = opts.perk === 'gymrat' ? 64 : 54;
+  // Your skills: a flat base, the points you spent in the creator, and +5 for Gym Rats.
+  // (Old configs without a point spread get a little random variety instead.)
   const pstats = {};
-  for (const code of STAT_CODES) pstats[code] = base + (hashString(`${seed}${code}`) % 13) - 6;
+  for (const code of STAT_CODES) {
+    const spent = opts.statPoints ? Math.min(STAT_POINT_CAP, Math.max(0, opts.statPoints[code] || 0)) : (hashString(`${seed}${code}`) % 8);
+    pstats[code] = PLAYER_BASE_STAT + spent + (opts.perk === 'gymrat' ? 5 : 0);
+  }
   const upgrades = Object.fromEntries(UPGRADE_IDS.map((u) => [u, 0]));
   return {
     v: SAVE_VERSION,
     seed,
     player: {
-      name: opts.name || 'Rookie', look: opts.look, perk: opts.perk || 'smooth', hood: opts.hood || 'maple',
+      name: opts.name || 'Rookie', look: opts.look, perk: opts.perk || 'none', hood: opts.hood || 'maple',
       section: seed % 2, stats: pstats,
       charisma: opts.perk === 'smooth' ? 60 : 45, sneak: opts.perk === 'sneaky' ? 60 : 40,
       smarts: opts.perk === 'teacherskid' ? 60 : 45, rep: 0,
