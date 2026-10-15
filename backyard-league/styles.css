@@ -391,3 +391,9 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .price-label .muted { font-weight: 700; font-size: 12px; }
 .price-val { text-align: right; font-family: var(--font-display); font-size: 18px; }
 .price-est { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #eef8ee; border: 2px solid #b7e4c7; display: grid; gap: 2px; }
+/* creator: rotate the character preview */
+.creator-preview { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; }
+.creator-preview.dragging { cursor: grabbing; }
+.preview-controls { display: flex; align-items: center; gap: 8px; background: rgba(255,250,240,0.85); border: 2px solid var(--ink); border-radius: 999px; padding: 4px 8px; }
+.preview-controls .btn { min-width: 0; padding: 4px 10px; }
+.preview-hint { font-size: 12px; font-weight: 900; color: var(--muted); padding: 0 4px; }

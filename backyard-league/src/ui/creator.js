@@ -136,7 +136,7 @@ export function showCreator(engine, onDone) {
     engine.player.root.visible = true;
   };
   refresh();
-  engine.cinematic({ x: 0, z: 0 }, 4.4, { height: 1.45, spin: 0.25 });
+  engine.cinematic({ x: 0, z: 0 }, 4.4, { height: 1.45, spin: 0, angle: 0 }); // faces you; the player turns it
   engine.cine.look.y = 0.68;
 
   const ov = $('#overlay');
@@ -194,7 +194,21 @@ export function showCreator(engine, onDone) {
     } }, h('h4', {}, p.name), h('p', {}, p.desc));
     perkCards.appendChild(c);
   }
-  const preview = h('div', { class: 'creator-preview' });
+  // Turn the preview: drag (mouse or touch) or the arrow buttons.
+  const turn = (d) => { if (engine.cine) engine.cine.angle += d; };
+  const turnBtn = (label, d, title) => btn(label, () => turn(d), 'small white', { title });
+  const preview = h('div', { class: 'creator-preview' },
+    h('div', { class: 'preview-controls' },
+      turnBtn('⟲', -Math.PI / 4, 'Turn left'),
+      h('span', { class: 'preview-hint' }, 'Drag to turn'),
+      turnBtn('⟳', Math.PI / 4, 'Turn right'),
+      btn('Front', () => { if (engine.cine) engine.cine.angle = 0; }, 'small white', { title: 'Face front' })));
+  let dragX = null;
+  preview.addEventListener('pointerdown', (e) => { if (e.target.closest('.btn')) return; dragX = e.clientX; preview.setPointerCapture(e.pointerId); preview.classList.add('dragging'); });
+  preview.addEventListener('pointermove', (e) => { if (dragX == null) return; turn(-(e.clientX - dragX) * 0.012); dragX = e.clientX; });
+  const endDrag = () => { dragX = null; preview.classList.remove('dragging'); };
+  preview.addEventListener('pointerup', endDrag);
+  preview.addEventListener('pointercancel', endDrag);
   ov.appendChild(h('div', { class: 'screen' },
     h('div', { class: 'creator' },
       h('div', { class: 'card' },
