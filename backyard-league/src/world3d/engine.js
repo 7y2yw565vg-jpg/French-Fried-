@@ -147,6 +147,20 @@ export class Engine {
     this.camera.updateProjectionMatrix();
   }
 
+  /**
+   * Crisp close-up mode for the character creator: full-resolution rendering
+   * and no bloom haze. Restores the normal quality settings when turned off.
+   */
+  setPreviewMode(on) {
+    this.previewMode = on;
+    const r = this.renderer;
+    const dpr = window.devicePixelRatio || 1;
+    if (on) r.setPixelRatio(Math.min(2, Math.max(dpr, 1.5)));
+    else r.setPixelRatio(this.quality === 'low' ? 1 : Math.min(dpr, this.quality === 'high' ? 2 : 1.5));
+    if (this.bloom) this.bloom.enabled = !on;
+    this.resize();
+  }
+
   /** Render as if the screen's center were at pixel x (used to frame a preview box). */
   setViewCenter(px) {
     this.viewCenterX = px;

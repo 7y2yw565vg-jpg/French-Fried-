@@ -136,8 +136,9 @@ export function showCreator(engine, onDone) {
     engine.player.root.visible = true;
   };
   refresh();
-  engine.cinematic({ x: 0, z: 0 }, 4.4, { height: 1.45, spin: 0, angle: 0 }); // faces you; the player turns it
-  engine.cine.look.y = 0.68;
+  engine.cinematic({ x: 0, z: 0 }, 3.3, { height: 1.2, spin: 0, angle: 0 }); // faces you; the player turns it
+  engine.cine.look.y = 0.72;
+  engine.setPreviewMode(true);
 
   const ov = $('#overlay');
   clear(ov);
@@ -265,6 +266,7 @@ export function showCreator(engine, onDone) {
             cfg.name = nameIn.value.trim() || 'Rookie';
             cfg.teamName = teamIn.value.trim() || randomTeamName();
             engine.follow();
+            engine.setPreviewMode(false);
             engine.setViewCenter(null);
             onDone({ ...cfg, statPoints: { ...cfg.statPoints }, look: { ...look } });
           }, 'big green')),

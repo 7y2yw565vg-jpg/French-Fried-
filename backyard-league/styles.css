@@ -411,3 +411,5 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .stat-alloc .stat-row .bar { width: auto; }
 .stat-alloc .stat-grid > .stat-row { display: grid; }
 .stat-alloc .stat-row .bar { display: block; width: auto; }
+/* creator preview: a clear window onto the 3D scene (no hazy glow layer) */
+.creator-preview { background: none; }
