@@ -171,6 +171,25 @@ export function drillAvailable(state, drill) {
   return drill.needs.every((n) => hasItem(state, n));
 }
 
+/** Order drill gear from the phone (store price + a $1 delivery fee). Free finds can't be ordered. */
+export const DELIVERY_FEE = 1;
+export function orderDrillGear(state, itemId) {
+  const it = ITEMS[itemId];
+  if (!it || it.kind !== 'drill') return { ok: false, reason: 'Not drill gear.' };
+  if (hasItem(state, itemId)) return { ok: false, reason: 'You already have it.' };
+  if (!it.price) return { ok: false, reason: it.desc || "You can't order that one online." };
+  const cost = it.price + DELIVERY_FEE;
+  if (state.money + 1e-9 < cost) return { ok: false, reason: `You need $${cost}.` };
+  state.money = +(state.money - cost).toFixed(2);
+  addItem(state, itemId, 1);
+  return { ok: true, cost, name: it.name };
+}
+
+/** Skills practice can focus on: one per unlocked drill. */
+export function practiceStats(state) {
+  return [...new Set(availableDrills(state).flatMap((d) => d.stats))];
+}
+
 export function availableDrills(state) {
   return DRILLS.filter((d) => drillAvailable(state, d));
 }

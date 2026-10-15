@@ -348,3 +348,19 @@ test('recruiting: good friends join without a quest unless they play for another
   s.kids[rival.id].f = 90;
   assert.ok(inviteCheck(s, rival.id).ok, 'unless you are best friends');
 });
+
+test('training gear can be ordered from the phone and unlocks drills', async () => {
+  const { orderDrillGear, practiceStats, availableDrills, DELIVERY_FEE } = await import('../src/game/team.js');
+  const s = newGame({ name: 'T', seed: 7 });
+  s.money = 11;
+  const before = availableDrills(s).length;
+  const r = orderDrillGear(s, 'cones');
+  assert.equal(r.ok, true);
+  assert.equal(r.cost, 8 + DELIVERY_FEE);
+  assert.equal(s.money, 2);
+  assert.ok(availableDrills(s).length >= before);
+  assert.equal(orderDrillGear(s, 'cones').ok, false);
+  assert.equal(orderDrillGear(s, 'batting_tee').ok, false);
+  assert.equal(orderDrillGear(s, 'team_shirt').ok, false);
+  assert.ok(Array.isArray(practiceStats(s)));
+});
