@@ -143,7 +143,7 @@ function render(game, id, line, opts = {}) {
     game.skip(60);
     toast(`+${h1.gained} friendship with ${kid.first_name}`, 'good');
     redo(`${r.text}\n${h1.text}${h1.revealedText ? `\n📒 You learned: ${h1.revealedText}` : ''}`);
-  }, 'small');
+  });
   if (!opts.phone && canExchangeNumbers(s, id)) add('📱 Swap numbers', () => {
     exchangeNumbers(s, id);
     sfx('good');

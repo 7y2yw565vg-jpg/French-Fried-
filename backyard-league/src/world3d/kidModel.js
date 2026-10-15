@@ -362,6 +362,9 @@ function hairCap(theta, lumps = 7, depth = 0.08) {
  * Build a character. Returns { root, parts, height, headY, update(dt, mode, speed), setTalking(b) }.
  * opts.uniform = [primary, secondary]; opts.number = jersey number.
  */
+// Open-ended tube for headbands and goggle straps.
+const BAND = new THREE.CylinderGeometry(1, 1, 1, 28, 1, true);
+
 export function buildCharacter(look, opts = {}) {
   const adult = !!look.adult;
   const rng = mulberry32(hashString(String(look.id || 'x')));
@@ -526,22 +529,29 @@ export function buildCharacter(look, opts = {}) {
   if (hat) addHat(hb, hat, R, hc, hat === 'bucket hat' ? '#c9b27c' : fav, hat === 'beanie' ? '#ffffff' : lightKit(fav) ? '#e63946' : '#ffffff', hair);
   const hairMesh = hairFor(look, R, hc, hair, skin, fav, hat);
   const bulk = hairBulk(look.hairStyle);
-  if (acc.has('sweatband') && hat !== 'beanie' && hat !== 'bucket hat') hb.add(TORUS, '#ffffff', [0, hc + R * 0.42, 0], [Math.PI / 2 - 0.12, 0, 0], [R * bulk * 0.97, R * bulk * 0.97, 0.32], (x, y, z) => (Math.abs(Math.atan2(z, x) + Math.PI / 2) < 0.4 ? '#e63946' : null), 'cloth');
+  if (acc.has('sweatband') && hat !== 'beanie' && hat !== 'bucket hat') {
+    // A snug band around the forehead (radius of the hair at that height).
+    const by = 0.38; const br = R * Math.sqrt(Math.max(0.5, bulk * bulk - by * by)) * 1.02;
+    hb.add(BAND, '#ffffff', [0, hc + R * by, 0], [-0.12, 0, 0], [br, R * 0.2, br], (x, y, z) => (z > 0.85 ? '#e63946' : null), 'cloth');
+  }
   if (acc.has('headphones')) {
     const hk = hat ? 1.14 : bulk + 0.03;
-    hb.add(HALF_TORUS, '#2b2b2f', [0, hc + R * 0.05, 0], [0, 0, 0], [R * hk, R * (hk + 0.03), 0.7], null, 'plastic');
+    hb.add(HALF_TORUS, '#2b2b2f', [0, hc + R * 0.05, 0], [0, 0, 0], [R * hk, R * (hk + 0.03), R * 0.45], null, 'plastic');
     for (const sd of [-1, 1]) hb.sphere(R * 0.3, '#ff4d6d', sd * R * Math.max(1.06, hk - 0.04), hc, 0, [0.5, 1, 1], { mat: 'plastic' });
   }
   if (acc.has('glasses') || acc.has('sport goggles')) {
     const goggles = acc.has('sport goggles');
+    // Thin frames lying flat on the face, with arms running back to the ears.
+    const fc = goggles ? '#1b9aaa' : '#2a2a2a';
+    const gr = R * 1.0;
     for (const sd of [-1, 1]) {
       const a = sd * 0.34;
-      const gr = R * (adult ? 0.99 : 1.03); // frames sit on the face
       const gx = Math.sin(a) * gr; const gz = Math.cos(a) * gr;
-      hb.add(TORUS, goggles ? '#1b9aaa' : '#2a2a2a', [gx, hc - R * 0.02, gz], [0, a, 0], [R * (goggles ? 0.2 : 0.17), R * (goggles ? 0.22 : 0.19), adult ? 0.1 : 0.35], null, 'plastic');
+      hb.add(TORUS, fc, [gx, hc - R * 0.02, gz], [0, a, 0], [R * (goggles ? 0.2 : 0.17), R * (goggles ? 0.22 : 0.19), R * 0.12], null, 'plastic');
+      if (!goggles) hb.box(0.008, 0.008, R * 0.62, fc, sd * R * 0.9, hc + R * 0.0, R * 0.3, { center: true, rot: [0, sd * -0.32, 0], mat: 'plastic' });
     }
-    hb.box(R * 0.24, 0.012, 0.012, goggles ? '#1b9aaa' : '#2a2a2a', 0, hc + R * 0.02, R * 1.03, { center: true, mat: 'plastic' });
-    if (goggles) hb.add(TORUS, '#222', [0, hc, 0], [Math.PI / 2, 0, 0], [R * 1.01, R * 1.0, 0.18], null, 'rubber');
+    hb.box(R * 0.2, 0.01, 0.01, fc, 0, hc + R * 0.02, gr, { center: true, mat: 'plastic' });
+    if (goggles) hb.add(BAND, '#222', [0, hc - R * 0.02, -R * 0.02], [0, 0, 0], [R * 1.05, R * 0.09, R * 1.03], null, 'rubber');
   }
   if (acc.has('star earrings')) for (const sd of [-1, 1]) hb.sphere(0.02, '#ffd60a', sd * R * 0.98, hc - R * 0.3, 0.0, [1, 1, 1], { mat: 'metal' });
   if (acc.has('hearing aids')) for (const sd of [-1, 1]) hb.sphere(0.022, '#d9b38c', sd * R * 1.02, hc + 0.0, -R * 0.12, [1, 1, 1], { mat: 'plastic' });

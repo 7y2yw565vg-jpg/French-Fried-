@@ -2,7 +2,7 @@
 import { h, modal, btn, toast, money, ask } from './dom.js';
 import { ITEMS, SHOPS, JOBS, SPORTS, FIELDS } from '../data/world.js';
 import { KID_BY_ID } from '../data/kids.js';
-import { askParents, askChance, doChore, buy, recycleCans, jobUnlocked, jobReady, mowJobs, lemonadeCheck, generosityLimit } from '../game/economy.js';
+import { askParents, askChance, doChore, buy, recycleCans, jobUnlocked, jobReady, mowJobs, lemonadeCheck, generosityLimit, PITCH_ROUNDS, pitchAvailable, teamPitch } from '../game/economy.js';
 import { addItem, hasItem, itemCount, playerGrade } from '../game/state.js';
 import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS } from '../game/team.js';
 import { askPrincipal, addPrep, SUBJECTS, makeQuiz } from '../game/school.js';
@@ -57,7 +57,8 @@ const HANDLERS = {
           modal({ title: r.ok ? `+${money(r.amount)}!` : 'Nope.', body: `"${r.text}"` });
           game.hud.render();
         } } : null,
-        { label: 'Do the dishes (+trust, +$1)', cls: 'blue', onClick: () => { const r = doChore(s, 'did the dishes'); if (r.ok) game.skip(20); toast(r.text, r.ok ? 'good' : ''); } },
+        ready && pitchAvailable(s) ? { label: '🏟️ Pitch the team (up to $20)', cls: 'purple', onClick: () => pitchTeam(game) } : null,
+        { label: 'Do the dishes (+trust, +$2)', cls: 'blue', onClick: () => { const r = doChore(s, 'did the dishes'); if (r.ok) game.skip(20); toast(r.text, r.ok ? 'good' : ''); } },
         { label: 'Bye!', cls: 'white' },
       ].filter(Boolean),
     });
@@ -315,3 +316,26 @@ export function openShop(game, shopId) {
 }
 
 export { FIELDS, playerGrade };
+
+/** Explain the team to Mom & Dad: three questions, the better the answers the more they chip in. */
+function pitchTeam(game) {
+  const s = game.state;
+  let good = 0;
+  const round = (i) => {
+    if (i >= PITCH_ROUNDS.length) {
+      const r = teamPitch(s, good);
+      sfx(r.ok ? 'coin' : 'bad');
+      modal({ title: r.ok ? `+${money(r.amount)} for the team!` : 'Not convinced.', body: `"${r.text}"` });
+      game.hud.render();
+      return;
+    }
+    const R = PITCH_ROUNDS[i];
+    modal({
+      title: `Pitch the team (${i + 1}/${PITCH_ROUNDS.length})`,
+      body: R.q,
+      dismissable: false,
+      buttons: R.options.map((o) => ({ label: o.text, cls: 'white', onClick: () => { if (o.good) good++; round(i + 1); } })),
+    });
+  };
+  round(0);
+}

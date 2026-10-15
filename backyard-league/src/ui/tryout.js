@@ -69,7 +69,7 @@ export function startTryout(game) {
             ...Object.entries(results.get(id)).filter(([c]) => STAT_NAMES[c]).map(([c, v]) => h('span', { class: 'row' }, c, gradeChip(v.label, 1))),
             on ? h('span', { class: 'pill good' }, 'On the team!') : btn('✍️ Sign', () => {
               const r = signKid(s, id);
-              if (r.ok) { addFriendship(s, id, 6); sfx('cheer'); const n = game.engine.npc(id); if (n) n.animOverride = 'cheer'; } else toast(r.reason, 'bad');
+              if (r.ok) { addFriendship(s, id, 6); sfx('cheer'); if (r.dues) toast(`${k.first_name} chipped in $${r.dues} in team dues!`, 'good'); game.hud.render(); const n = game.engine.npc(id); if (n) n.animOverride = 'cheer'; } else toast(r.reason, 'bad');
               drawPicks();
             }, 'small green'));
         }));

@@ -3,7 +3,7 @@ import { ITEMS, JOBS } from '../data/world.js';
 import { PARENT_LINES } from '../data/dialogue.js';
 import { addItem, addLog, hasItem, itemCount } from './state.js';
 import { gradeAverage } from './team.js';
-import { dayInfo } from './time.js';
+import { dayInfo, seasonId } from './time.js';
 import { seeded, pick, clamp, randInt } from './rng.js';
 import { fill } from './social.js';
 
@@ -39,13 +39,56 @@ export function askParents(state, amount) {
   return { ok: false, big, text: big ? fill(PARENT_LINES.big[0], { amount: `$${amount}` }) : pick(rng, PARENT_LINES.no) };
 }
 
+// ----------------------------------------------------- team pitch -------
+// Once a season (until the team is registered), you can explain to Mom & Dad
+// what starting a team costs. A convincing pitch gets up to $20.
+export const PITCH_ROUNDS = [
+  { q: '"Okay, what\'s the money for?"', options: [
+    { text: 'League entry fee, team shirts and field gear, so we can start a real team.', good: true },
+    { text: 'Stuff. Important stuff.', good: false },
+    { text: 'Everybody else already has a team!', good: false },
+  ] },
+  { q: '"And how is this going to work?"', options: [
+    { text: 'I\'ll figure it out later.', good: false },
+    { text: 'Kids already want to join, and they\'re chipping in dues too.', good: true },
+    { text: 'I made a plan: what it costs, practice days, and the schedule.', good: true },
+  ] },
+  { q: '"What about school?"', options: [
+    { text: 'School is kind of optional, right?', good: false },
+    { text: 'Grades come first. No homework, no practice. Deal?', good: true },
+    { text: 'I\'ll pay you back from my lemonade stand.', good: true },
+  ] },
+];
+
+export function pitchAvailable(state) {
+  const sid = seasonId(state.time.day) ?? 'summer';
+  return !state.flags[`pitch${sid}`] && !(state.team.registered && state.team.registeredSeason === seasonId(state.time.day));
+}
+
+/** `good` = how many convincing answers (0-3). */
+export function teamPitch(state, good) {
+  const sid = seasonId(state.time.day) ?? 'summer';
+  state.flags[`pitch${sid}`] = true;
+  state.parents.nextAskDay = state.time.day + 2;
+  let amount = good >= 3 ? 20 : good === 2 ? 12 : 0;
+  if (amount && state.parents.trust < 25) amount = Math.min(amount, 10); // they still have doubts
+  if (!amount) {
+    state.parents.trust = clamp(state.parents.trust - 2, 0, 100);
+    return { ok: false, amount: 0, text: 'That wasn\'t very convincing, kiddo. Show us you\'re serious first.' };
+  }
+  state.money += amount;
+  state.parents.trust = clamp(state.parents.trust + 2, 0, 100);
+  addLog(state, `Mom & Dad chipped in $${amount} for the team.`);
+  return { ok: true, amount, text: amount >= 20 ? 'We\'re proud of you. Here\'s $20 for the team. Make us proud, Coach!' : 'Sounds like you\'ve thought about it. Here\'s something to get started.' };
+}
+
 export function doChore(state, chore) {
   const key = `chore${state.time.day}`;
   if (state.flags[key]) return { ok: false, text: 'You already did a chore today. Mom says "don\'t overdo it, you\'ll pull something."' };
   state.flags[key] = true;
   state.parents.trust = clamp(state.parents.trust + 3, 0, 100);
-  state.money += 1;
-  return { ok: true, text: `You ${chore}. +$1 allowance, and Mom & Dad trust you a little more.` };
+  state.money += 2;
+  return { ok: true, text: `You ${chore}. +$2 allowance, and Mom & Dad trust you a little more.` };
 }
 
 // --------------------------------------------------------- shops --------

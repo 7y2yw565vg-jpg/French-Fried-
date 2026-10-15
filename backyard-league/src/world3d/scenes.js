@@ -93,16 +93,17 @@ export function buildHome(opts) {
 
   // ---- the house
   const house = makeArea(sc, {
-    id: 'house', x: 0, z: -8, w: 18, d: 12, wallH: 2.9, mode: 'down', floor: false,
+    id: 'house', x: 0, z: -8, w: 18, d: 12, wallH: 2.9, mode: 'cutaway', floor: false,
     ext: { color: '#bcd4e6', mat: 'siding' }, int: { color: '#f6ecd8', mat: 'paint' }, trim: '#ffffff',
     doors: [{ side: 'N', at: -4, w: 1.3, color: '#b23a48' }, { side: 'N', at: 5, w: 3.6, h: 2.4, roll: true }, { side: 'S', at: -1, w: 1.3, glass: true }],
     windows: { N: [-7.2, 1.2], S: [-6.5, 4, 7.3], W: [-3, 3], E: [-3, 3] },
     roof: { type: 'gable', color: '#5b4a42', h: 2.6, over: 0.6 },
   });
   const hb = house.b;
-  // inner walls (lower with the house)
-  const iw = new Builder();
-  const innerWall = (x1, z1, x2, z2, doorAt = null, dw = 1.2) => {
+  // Inner walls stand full height; each one drops only while it's between the
+  // camera and you (see the engine's area update), so rooms keep their walls.
+  const innerWall = (x1, z1, x2, z2, doorAt = null, dw = 1.6) => {
+    const iw = new Builder();
     const horiz = z1 === z2;
     const len = horiz ? x2 - x1 : z2 - z1;
     const parts = doorAt == null ? [[0, len]] : [[0, doorAt - dw / 2], [doorAt + dw / 2, len]];
@@ -114,16 +115,20 @@ export function buildHome(opts) {
     }
     if (doorAt != null) {
       const dx = horiz ? x1 + doorAt : x1; const dz = horiz ? z1 : z1 + doorAt;
-      iw.box(horiz ? dw : 0.16, 0.6, horiz ? 0.16 : dw, '#f6ecd8', dx, 2.3, dz, { mat: 'paint' });
+      iw.box(horiz ? dw : 0.16, 0.5, horiz ? 0.16 : dw, '#f6ecd8', dx, 2.4, dz, { mat: 'paint' });
+      // door trim so the opening reads as a doorway
+      for (const sd of [-1, 1]) iw.box(horiz ? 0.08 : 0.22, 2.4, horiz ? 0.22 : 0.08, '#ffffff', dx + (horiz ? sd * dw / 2 : 0), 0, dz + (horiz ? 0 : sd * dw / 2), { mat: 'paint' });
+      iw.box(horiz ? dw + 0.16 : 0.22, 0.08, horiz ? 0.22 : dw + 0.16, '#ffffff', dx, 2.36, dz, { mat: 'paint' });
     }
+    const m = iw.mesh();
+    sc.group.add(m);
+    sc.colliders.push(...iw.colliders);
+    house.walls.push({ obj: m, nx: 0, nz: 0, side: 'inner', inner: horiz ? { axis: 'z', at: z1, min: x1, max: x2 } : { axis: 'x', at: x1, min: z1, max: z2 } });
+    house.objs.push(m);
   };
-  innerWall(-9, -8, -3, -8, 3); innerWall(-3, -8, 1, -8, 2); innerWall(1, -8, 9, -8);
+  // Rooms: living room (NW), garage (NE), kitchen (SW), hall (S middle), bedroom (SE).
+  innerWall(-9, -8, -3, -8, 4.8); innerWall(-3, -8, 1, -8, 2); innerWall(1, -8, 9, -8);
   innerWall(1, -14, 1, -8, 3); innerWall(1, -8, 1, -2, 3); innerWall(-3, -8, -3, -2, 3);
-  const iwm = iw.mesh();
-  sc.group.add(iwm);
-  sc.colliders.push(...iw.colliders);
-  house.walls.push({ obj: iwm, nx: 0, nz: 0, side: 'inner' });
-  house.objs.push(iwm);
   // floors
   hb.box(10, 0.06, 6, '#c9935f', -4, 0, -11, { mat: 'wood' });
   hb.box(8, 0.06, 6, '#9a9a9a', 5, 0, -11, { mat: 'concrete' });
@@ -131,30 +136,33 @@ export function buildHome(opts) {
   hb.box(4, 0.06, 6, '#c9935f', -1, 0, -5, { mat: 'wood' });
   hb.box(8, 0.06, 6, '#9cc3e6', 5, 0, -5, { mat: 'carpet' });
   // kitchen
-  for (let i = 0; i < 4; i++) hb.rbox(1.3, 0.9, 0.62, '#5c8a6b', -8.3 + i * 1.32, 0, -7.55, { mat: 'wood' });
-  hb.box(5.4, 0.06, 0.7, '#f1efe9', -6.3, 0.9, -7.55, { mat: 'tile' });
-  hb.rbox(0.62, 0.05, 0.5, '#2b2b2f', -6.0, 0.95, -7.55, { mat: 'metal' });
-  for (let i = 0; i < 3; i++) hb.rbox(1.3, 0.7, 0.4, '#5c8a6b', -8.3 + i * 1.6, 1.7, -7.75, { mat: 'wood' });
+  for (let i = 0; i < 3; i++) hb.rbox(1.3, 0.9, 0.62, '#5c8a6b', -8.3 + i * 1.32, 0, -7.55, { mat: 'wood', collide: true });
+  hb.box(3.96, 0.06, 0.7, '#f1efe9', -6.98, 0.9, -7.55, { mat: 'tile' });
+  hb.rbox(0.62, 0.05, 0.5, '#2b2b2f', -6.6, 0.95, -7.55, { mat: 'metal' });
+  for (let i = 0; i < 3; i++) hb.rbox(1.2, 0.7, 0.4, '#5c8a6b', -8.3 + i * 1.3, 1.7, -7.75, { mat: 'wood' });
   hb.rbox(0.9, 2.0, 0.8, '#dfe5ea', -8.4, 0, -3.0, { mat: 'metal', collide: true });
   hb.box(0.04, 0.6, 0.04, '#9aa0a6', -8.0, 1.0, -2.6, { mat: 'metal' });
-  hb.rbox(1.7, 0.08, 1.1, '#a5673f', -5.3, 0.76, -4.4, { mat: 'wood' });
-  for (const [dx, dz] of [[-0.7, -0.45], [0.7, -0.45], [-0.7, 0.45], [0.7, 0.45]]) hb.cyl(0.04, 0.04, 0.76, '#7a4f2b', -5.3 + dx, 0, -4.4 + dz, { mat: 'wood' });
-  for (const sd of [-1, 1]) { hb.rbox(0.45, 0.06, 0.45, '#c9935f', -5.3 + sd * 1.1, 0.46, -4.4, { mat: 'wood' }); hb.rbox(0.45, 0.5, 0.06, '#c9935f', -5.3 + sd * 1.32, 0.7, -4.4, { mat: 'wood', rot: [0, Math.PI / 2, 0] }); }
-  hb.sphere(0.18, '#f4a261', -5.3, 0.9, -4.4, [1, 0.5, 1], { mat: 'plastic' });
+  const tx = -6.6;
+  hb.rbox(1.7, 0.08, 1.1, '#a5673f', tx, 0.76, -4.0, { mat: 'wood' });
+  for (const [dx, dz] of [[-0.7, -0.45], [0.7, -0.45], [-0.7, 0.45], [0.7, 0.45]]) hb.cyl(0.04, 0.04, 0.76, '#7a4f2b', tx + dx, 0, -4.0 + dz, { mat: 'wood' });
+  for (const sd of [-1, 1]) { hb.rbox(0.45, 0.06, 0.45, '#c9935f', tx + sd * 1.1, 0.46, -4.0, { mat: 'wood' }); hb.rbox(0.45, 0.5, 0.06, '#c9935f', tx + sd * 1.32, 0.7, -4.0, { mat: 'wood', rot: [0, Math.PI / 2, 0] }); }
+  sc.colliders.push({ minX: tx - 0.9, maxX: tx + 0.9, minZ: -4.6, maxZ: -3.4 });
+  hb.sphere(0.18, '#f4a261', tx, 0.9, -4.0, [1, 0.5, 1], { mat: 'plastic' });
   zone(sc, 'kitchen', -6, -5, 5, 5);
   act(sc, 'parents', -5.5, -3.4, 'Talk to Mom & Dad');
   // living room
-  hb.rbox(3.4, 0.5, 1.0, '#6c5ce7', -4, 0.0, -13.2, { mat: 'fabric', collide: true });
-  hb.rbox(3.4, 0.7, 0.3, '#5a4bd1', -4, 0.4, -13.65, { mat: 'fabric' });
-  for (const sd of [-1, 1]) hb.rbox(0.3, 0.6, 1.0, '#5a4bd1', -4 + sd * 1.6, 0.0, -13.2, { mat: 'fabric' });
-  for (const sd of [-0.8, 0.8]) hb.rbox(1.5, 0.18, 0.9, '#7d6ef0', -4 + sd, 0.5, -13.15, { mat: 'fabric' });
-  hb.box(3.2, 0.03, 2.2, '#e76f51', -4, 0.06, -11.2, { mat: 'carpet' });
-  hb.rbox(1.4, 0.4, 0.7, '#8d5a3b', -4, 0, -11.3, { mat: 'wood' });
-  hb.rbox(2.2, 0.55, 0.45, '#3d3d42', -4, 0, -8.45, { mat: 'wood' });
-  hb.rbox(1.8, 1.05, 0.08, '#111111', -4, 0.95, -8.45, { mat: 'plastic' });
-  hb.box(1.68, 0.94, 0.02, '#3a86ff', -4, 1.0, -8.5, { mat: 'glow' });
-  hb.cyl(0.25, 0.3, 0.45, '#b5651d', -8.4, 0, -13.4, { mat: 'plastic' });
-  P.bush(hb, -8.4, -13.4, 0.6, '#3f8a46');
+  const lx = -6.8;
+  hb.rbox(3.4, 0.5, 1.0, '#6c5ce7', lx, 0.0, -13.2, { mat: 'fabric', collide: true });
+  hb.rbox(3.4, 0.7, 0.3, '#5a4bd1', lx, 0.4, -13.65, { mat: 'fabric' });
+  for (const sd of [-1, 1]) hb.rbox(0.3, 0.6, 1.0, '#5a4bd1', lx + sd * 1.6, 0.0, -13.2, { mat: 'fabric' });
+  for (const sd of [-0.8, 0.8]) hb.rbox(1.5, 0.18, 0.9, '#7d6ef0', lx + sd, 0.5, -13.15, { mat: 'fabric' });
+  hb.box(3.2, 0.03, 2.2, '#e76f51', lx, 0.06, -11.2, { mat: 'carpet' });
+  hb.rbox(1.4, 0.4, 0.7, '#8d5a3b', lx, 0, -11.3, { mat: 'wood', collide: true });
+  hb.rbox(2.2, 0.55, 0.45, '#3d3d42', lx, 0, -8.45, { mat: 'wood', collide: true });
+  hb.rbox(1.8, 1.05, 0.08, '#111111', lx, 0.95, -8.45, { mat: 'plastic' });
+  hb.box(1.68, 0.94, 0.02, '#3a86ff', lx, 1.0, -8.5, { mat: 'glow' });
+  hb.cyl(0.25, 0.3, 0.45, '#b5651d', 0.3, 0, -13.4, { mat: 'plastic' });
+  P.bush(hb, 0.3, -13.4, 0.6, '#3f8a46');
   zone(sc, 'living room', -4, -11, 8, 5);
   // garage
   P.car(hb, 5, -11.2, Math.PI, '#4a7bd0');
@@ -179,9 +187,9 @@ export function buildHome(opts) {
   act(sc, 'bed', 7.8, -2.9, 'Bed (sleep)');
   act(sc, 'computer', 2.4, -3.7, 'Computer: Team HQ & homework');
   // hall stairs
-  hb.box(1.7, 0.03, 2.2, '#2b1d14', -1, 0.04, -6.4, { mat: 'wood' });
-  for (let i = 0; i < 5; i++) hb.box(1.6, 0.05, 0.32, '#7a5c45', -1, 0.06, -7.3 + i * 0.42, { mat: 'wood' });
-  act(sc, 'basement', -1, -6.3, 'Stairs to the basement (trophy room)');
+  hb.box(1.3, 0.03, 2.0, '#2b1d14', -2.2, 0.04, -7.0, { mat: 'wood' });
+  for (let i = 0; i < 5; i++) hb.box(1.2, 0.05, 0.3, '#7a5c45', -2.2, 0.06, -7.8 + i * 0.38, { mat: 'wood' });
+  act(sc, 'basement', -2.2, -6.6, 'Stairs to the basement (trophy room)');
   finishArea(house);
 
   // ---- backyard
@@ -237,7 +245,7 @@ export function buildHome(opts) {
   sc.spawn = { x: 0, z: -21, rot: 0 };
   sc.spawnBed = { x: 6.4, z: -3.2, rot: Math.PI };
   sc.spawnBasement = { x: 46, z: -8, rot: Math.PI };
-  sc.spawnUpstairs = { x: -1, z: -5, rot: 0 };
+  sc.spawnUpstairs = { x: -1.6, z: -5.4, rot: 0 };
   return finish(sc, [{ minX: -13, maxX: 13, minZ: 8, maxZ: 26 }]);
 }
 

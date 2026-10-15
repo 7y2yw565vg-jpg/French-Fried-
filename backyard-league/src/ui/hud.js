@@ -36,15 +36,16 @@ export class Hud {
       h('div', { class: 'hud-chip' }, h('span', {}, `${w.icon}`), h('div', {}, h('div', { style: { fontSize: '12px' } }, info.dateLabel), this.timeEl)),
       h('div', { class: 'hud-chip money' }, '💰', this.moneyEl),
       h('div', { class: 'hud-chip', title: 'Your grade average (last 6 quizzes)' }, '📝', h('span', { class: 'big', style: { color: avg < 70 ? '#e63946' : avg >= 85 ? '#2d6a4f' : '#2a1e1a' } }, letterFor(avg)), s.school.sportsBan ? h('span', { class: 'pill bad' }, 'GROUNDED') : null),
-      h('div', { class: 'hud-chip', title: 'How much Mom & Dad trust you' }, '👪', h('div', { class: 'bar' }, h('i', { style: { width: `${s.parents.trust}%`, background: s.parents.trust < 35 ? '#e63946' : '#52b788' } }))),
+      h('div', { class: 'hud-chip', title: 'How much Mom & Dad trust you' }, '👪', h('div', { class: 'hud-label' }, 'Trust'), h('div', { class: 'bar' }, h('i', { style: { width: `${s.parents.trust}%`, background: s.parents.trust < 35 ? '#e63946' : '#52b788' } }))),
     );
     this.blockEl = h('div', { class: 'hud-chip hud-block' });
     this.root.append(this.blockEl);
     this.goalEl = h('div', { class: 'hud-chip hud-goal' });
     this.root.append(this.goalEl);
     this.root.append(h('div', { class: 'hud-spacer' }));
-    this.root.append(btn('🗺️ Map (M)', () => { if (g.mode === 'free') openMap(g); }, 'small white'));
-    this.root.append(btn('📱 Phone (Tab)', () => { if (g.mode === 'free' || g.mode === 'class') openPhone(g); }, 'small white'));
+    this.root.append(h('div', { class: 'hud-btns' },
+      btn('🗺️ Map (M)', () => { if (g.mode === 'free') openMap(g); }, 'small white'),
+      btn('📱 Phone (Tab)', () => { if (g.mode === 'free' || g.mode === 'class') openPhone(g); }, 'small white')));
     this.update();
   }
 

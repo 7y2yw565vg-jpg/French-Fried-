@@ -248,7 +248,8 @@ export class Game {
     if (s.team.roster.includes(kid.id)) t = `★ ${t}`;
     else if (s.team.invites.includes(kid.id)) t = `✉ ${t}`;
     if (s.tasks.some((x) => x.kidId === kid.id) || (ks.favor && ks.favor.done)) t += ' !';
-    const color = ks.f >= 65 ? '#b7e4c7' : ks.f >= 35 ? '#fff3b0' : 'rgba(255,250,235,0.92)';
+    // Status dot: gold = your team, green = good friends, yellow = friendly, gray = not yet.
+    const color = s.team.roster.includes(kid.id) ? '#ffb703' : ks.f >= 65 ? '#52d273' : ks.f >= 35 ? '#ffe066' : ks.f >= 10 ? '#a5d8ff' : '#adb5bd';
     return { t, color };
   }
 
@@ -291,7 +292,7 @@ export class Game {
   addAdults() {
     const s = this.state;
     const d = this.desc;
-    const add = (id, name, x, z, opts = {}) => this.engine.addNPC({ id: `ADULT-${id}`, look: adultLook(name, opts.look || {}), tag: name, tagColor: '#d0e7ff', x, z, rot: opts.rot || 0, mode: opts.mode || 'idle', area: opts.area, interact: `Talk to ${name}`, data: { name, role: opts.role || id } });
+    const add = (id, name, x, z, opts = {}) => this.engine.addNPC({ id: `ADULT-${id}`, look: adultLook(name, opts.look || {}), tag: name, tagColor: '#4dabf7', x, z, rot: opts.rot || 0, mode: opts.mode || 'idle', area: opts.area, interact: `Talk to ${name}`, data: { name, role: opts.role || id } });
     if (s.loc === 'home') {
       add('mom', 'Mom', -6.6, -5.2, { look: { shirt: 'purple', hair: 'bob' }, role: 'parents' });
       add('dad', 'Dad', -4.8, -5.8, { look: { shirt: 'navy', hair: 'side part', accessories: ['glasses'] }, role: 'parents' });

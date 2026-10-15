@@ -55,6 +55,7 @@ export function modal({ title, body, buttons = [{ label: 'OK' }], wide = false, 
   for (const b of buttons) {
     row.appendChild(btn(b.label, () => { if (!b.keep) handle.close(); b.onClick && b.onClick(); }, b.cls || '', b.disabled ? { disabled: true } : {}));
   }
+  if (buttons.some((b) => (b.label || '').length > 30)) row.classList.add('stack'); // long answers read better as a list
   if (buttons.length) card.appendChild(row);
   const bg = h('div', { class: 'screen-bg', onclick: () => { if (dismissable) handle.close(); } });
   const wrap = h('div', {}, bg, card);

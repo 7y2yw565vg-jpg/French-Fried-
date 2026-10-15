@@ -13,7 +13,7 @@ const HOURS = { mall: [9, 21], library: [9, 20], museum: [9, 18], grocery: [7, 2
 export function mapPos(state, loc) {
   if (loc === 'home') {
     const p = LOCATIONS[state.player.hood].map;
-    return { x: p.x + 5, y: p.y + 6 };
+    return { x: p.x - 7.5, y: p.y - 6.5 }; // a small badge up-left of your neighborhood
   }
   if (loc === 'venue') return LOCATIONS.oldtown.map;
   return LOCATIONS[loc].map;
@@ -102,12 +102,13 @@ export function openMap(game) {
   const pin = (loc, label, icon) => {
     const p = mapPos(s, loc);
     const c = canGo(game, loc);
-    const g = el('g', { class: `map-pin ${c.ok ? '' : 'disabled'}`, transform: `translate(${p.x} ${p.y})` });
+    const small = loc === 'home';
+    const g = el('g', { class: `map-pin ${c.ok ? '' : 'disabled'}`, transform: `translate(${p.x} ${p.y})${small ? ' scale(0.72)' : ''}` });
     el('circle', { r: 4.2, fill: loc === s.loc ? '#ffd23f' : '#fff8e7', stroke: '#2a1e1a', 'stroke-width': 0.6, class: 'bg' }, g);
     const t = el('text', { y: 1.6, 'text-anchor': 'middle', 'font-size': 4.4 }, g); t.textContent = icon;
-    const lb = el('text', { y: 7.6, 'text-anchor': 'middle', 'font-size': 2.6, fill: '#2a1e1a' }, g); lb.textContent = label;
+    const lb = el('text', { y: small ? -5.6 : 7.6, 'text-anchor': 'middle', 'font-size': 2.6, fill: '#2a1e1a' }, g); lb.textContent = s.loc === loc && small ? 'Home (here)' : label;
     const mins = s.loc === loc ? 'You are here' : c.ok ? `${travelMinutes(s, s.loc, loc)} min` : c.reason;
-    const sub = el('text', { y: 10.4, 'text-anchor': 'middle', 'font-size': 2.1, fill: c.ok ? '#2d6a4f' : '#9d0208' }, g); sub.textContent = mins;
+    if (!small) { const sub = el('text', { y: 10.4, 'text-anchor': 'middle', 'font-size': 2.1, fill: c.ok ? '#2d6a4f' : '#9d0208' }, g); sub.textContent = mins; }
     const who = here[loc] || [];
     if (who.length) { const w = el('text', { y: -5.6, 'text-anchor': 'middle', 'font-size': 2.1, fill: '#3a0ca3' }, g); w.textContent = `${who.slice(0, 3).join(', ')}${who.length > 3 ? ` +${who.length - 3}` : ''}`; }
     g.addEventListener('click', async () => {

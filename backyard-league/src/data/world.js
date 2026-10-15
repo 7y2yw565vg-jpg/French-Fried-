@@ -2,22 +2,22 @@
 
 export const SPORTS = {
   soccer: {
-    id: 'soccer', name: 'Soccer', icon: '⚽', minRoster: 7, recRoster: 10, setupCost: 15, entryFee: 40, shirtCost: 6,
+    id: 'soccer', name: 'Soccer', icon: '⚽', minRoster: 7, recRoster: 10, setupCost: 15, entryFee: 40, shirtCost: 4,
     lineup: ['GK', 'DEF', 'DEF', 'MID', 'MID', 'FWD', 'FWD'],
     blurb: '7v7 on the lawn. Crooked wooden goals, no nets, lots of running after the ball.',
   },
   baseball: {
-    id: 'baseball', name: 'Baseball', icon: '⚾', minRoster: 9, recRoster: 12, setupCost: 20, entryFee: 50, shirtCost: 6,
+    id: 'baseball', name: 'Baseball', icon: '⚾', minRoster: 9, recRoster: 12, setupCost: 20, entryFee: 50, shirtCost: 4,
     lineup: ['P', 'C', 'IF', 'IF', 'IF', 'IF', 'OF', 'OF', 'OF'],
     blurb: 'Hardest to start: you need 9 kids. Cardboard bases and a backstop made of a mattress.',
   },
   basketball: {
-    id: 'basketball', name: 'Basketball', icon: '🏀', minRoster: 5, recRoster: 8, setupCost: 0, entryFee: 30, shirtCost: 6,
+    id: 'basketball', name: 'Basketball', icon: '🏀', minRoster: 5, recRoster: 8, setupCost: 0, entryFee: 30, shirtCost: 4,
     lineup: ['PG', 'SG', 'SF', 'PF', 'C'],
     blurb: 'Cheapest start: the driveway hoop is already there. Only 5 kids needed.',
   },
   football: {
-    id: 'football', name: 'Flag Football', icon: '🏈', minRoster: 7, recRoster: 10, setupCost: 12, entryFee: 40, shirtCost: 6,
+    id: 'football', name: 'Flag Football', icon: '🏈', minRoster: 7, recRoster: 10, setupCost: 12, entryFee: 40, shirtCost: 4,
     lineup: ['QB', 'RB', 'WR', 'WR', 'DB', 'DB', 'LB'],
     blurb: '7v7 flag football in the Jr League. Cones for end zones, dish towels for flags.',
   },

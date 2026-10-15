@@ -9,10 +9,10 @@ import { whereIsKid, kidClass, sectionOf } from '../src/game/routines.js';
 import { playerClass } from '../src/game/school.js';
 import { CORE_SUBJECTS, SUBJECT_TEACHERS } from '../src/data/world.js';
 import { simulateMatch } from '../src/game/sim.js';
-import { askParents, askChance, buy, recycleCans, lemonadeBuyChance, weatherFor } from '../src/game/economy.js';
+import { askParents, askChance, buy, recycleCans, lemonadeBuyChance, weatherFor, teamPitch, pitchAvailable } from '../src/game/economy.js';
 import { makeQuiz, seatChart, classmates, weeklyGradeCheck, passNote } from '../src/game/school.js';
 import { chat, inviteCheck, invite, parseHook, inviteHangout, doHangout, exchangeNumbers, canExchangeNumbers, callCheck, routineKey, PHONE_FRIENDSHIP } from '../src/game/social.js';
-import { bestLineup, registrationChecklist, register, signKid, runDrill, attraction, buySetup } from '../src/game/team.js';
+import { bestLineup, registrationChecklist, register, signKid, runDrill, attraction, buySetup, TEAM_DUES } from '../src/game/team.js';
 import { ensureSeason, matchSide, standings } from '../src/game/league.js';
 import { sleep, advance } from '../src/game/clock.js';
 
@@ -281,4 +281,19 @@ test('paper route needs a bike', async () => {
   assert.equal(jobReady(s, 'paper'), false);
   s.inv.items.bike = 1;
   assert.equal(jobReady(s, 'paper'), true);
+});
+
+test('money: a good team pitch gets $20 once a season; teammates pay dues once', () => {
+  const s = newGame(opts());
+  s.money = 0;
+  assert.ok(pitchAvailable(s));
+  assert.equal(teamPitch(s, 3).amount, 20);
+  assert.equal(s.money, 20);
+  assert.equal(pitchAvailable(s), false);
+  const s2 = newGame(opts());
+  assert.equal(teamPitch(s2, 1).amount, 0);
+  const kid = KIDS.find((k) => !s.team.roster.includes(k.id));
+  const before = s.money;
+  assert.equal(signKid(s, kid.id).dues, TEAM_DUES);
+  assert.equal(s.money, before + TEAM_DUES);
 });

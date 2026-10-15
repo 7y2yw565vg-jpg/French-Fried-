@@ -359,3 +359,29 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .title-screen .logo-art { width: min(780px, 90vw, 72vh); margin: 0 auto; }
 .title-screen .title-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; }
 .title-screen .title-buttons .btn { min-width: 220px; }
+
+/* ---- UI cleanup pass ---- */
+.hud-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.btn-row.stack { flex-direction: column; align-items: stretch; }
+.btn-row.stack .btn { text-align: left; justify-content: flex-start; }
+/* phone tabs: one tidy row that scrolls instead of wrapping */
+.tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.tab { white-space: nowrap; padding: 6px 11px; font-size: 13px; flex: 0 0 auto; }
+/* talk panel: consistent button sizing, roomier speech */
+.dialog .btn-row { gap: 6px; }
+.dialog .btn-row .btn { min-width: 0; }
+.dialog .say { font-weight: 700; }
+.map-svg { background: #a7e08f; }
+/* HUD stays on one row: the goal card shrinks first, map/phone stay pinned right */
+@media (min-width: 761px) {
+  #hud { flex-wrap: nowrap; }
+  .hud-goal { flex: 0 1 340px; min-width: 0; }
+  #hud > .btn { flex: 0 0 auto; }
+}
+@media (min-width: 761px) and (max-width: 1240px) {
+  #hud { flex-wrap: wrap; }
+  .hud-goal { order: 10; flex: 0 1 auto; max-width: 440px; }
+}
+.hud-btns { display: flex; gap: 8px; flex: 0 0 auto; }
+.hud-btns { margin-left: auto; }
+@media (max-width: 1240px) { .hud-label { display: none; } .hud-spacer { display: none; } }

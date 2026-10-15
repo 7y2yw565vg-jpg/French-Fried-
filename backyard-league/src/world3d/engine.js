@@ -11,7 +11,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { buildCharacter } from './kidModel.js';
-import { sprite, Builder } from './toon.js';
+import { sprite, nameplate, Builder } from './toon.js';
 import { mulberry32, hashString } from '../game/rng.js';
 import { wind } from './props.js';
 
@@ -259,8 +259,8 @@ export class Engine {
     const rng = mulberry32(hashString(npc.id));
     const entry = { ...npc, char, rng, tx: npc.x, tz: npc.z, wait: rng() * 3, tagSprite: null, anim: npc.mode === 'sit' ? 'sit' : 'idle' };
     if (npc.tag) {
-      entry.tagSprite = sprite(npc.tag, 0.24, { bg: npc.tagColor });
-      entry.tagSprite.position.set(0, char.height + 0.3, 0);
+      entry.tagSprite = nameplate(npc.tag, npc.tagColor);
+      entry.tagSprite.position.set(0, char.height + 0.34, 0);
       entry.tagSprite.visible = false;
       char.root.add(entry.tagSprite);
     }
@@ -417,7 +417,14 @@ export class Engine {
       let lidY = 0;
       for (const wl of a.walls || []) {
         let target = 1;
-        if (ins) {
+        if (ins && wl.inner) {
+          // Inner walls drop only while they stand between the camera and you.
+          const c = this.camera.position; const iw = wl.inner;
+          const pa = iw.axis === 'z' ? p.z : p.x; const ca = iw.axis === 'z' ? c.z : c.x;
+          const pb = iw.axis === 'z' ? p.x : p.z;
+          const between = (ca - iw.at) * (pa - iw.at) < 0 && Math.abs(pa - iw.at) < 7 && pb > iw.min - 2.5 && pb < iw.max + 2.5;
+          target = between ? 0.1 : 1;
+        } else if (ins) {
           const faces = (wl.nx * camDir.x + wl.nz * camDir.z) > 0.25;
           target = a.mode === 'down' ? 0.14 : (faces ? 0.1 : 1);
         } else if (parentIn) target = a.lid ? 0.8 : 1;

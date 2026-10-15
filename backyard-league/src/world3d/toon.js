@@ -272,6 +272,36 @@ export function signMesh(text, width, opts = {}) {
 }
 
 /** Floating name tag. */
+/**
+ * A readable name plate: dark pill, bold white name, white rim, and a colored
+ * status dot on the left (friendship / role). Drawn at 2x for crisp text.
+ */
+export function nameplate(text, accent = '#adb5bd', height = 0.32) {
+  const font = '900 64px "Nunito", "Trebuchet MS", sans-serif';
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d');
+  ctx.font = font;
+  const H = 108; const dot = 22; const padL = 30 + dot * 2; const padR = 34;
+  cv.width = Math.ceil(ctx.measureText(text).width) + padL + padR; cv.height = H;
+  ctx.font = font;
+  ctx.fillStyle = 'rgba(22,26,36,0.92)';
+  roundRect(ctx, 5, 5, cv.width - 10, H - 10, (H - 10) / 2);
+  ctx.fill();
+  ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(26 + dot, H / 2, dot, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, padL, H / 2 + 4);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  sp.scale.set(height * (cv.width / H), height, 1);
+  sp.renderOrder = 10;
+  return sp;
+}
+
 export function sprite(text, height = 0.4, opts = {}) {
   const { tex, aspect } = textTexture(text, { bg: opts.bg || 'rgba(20,24,34,0.72)', color: opts.color || '#ffffff', font: opts.font || '800 44px "Nunito", "Trebuchet MS", sans-serif', height: 72, radius: 34 });
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));

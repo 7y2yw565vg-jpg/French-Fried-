@@ -143,6 +143,7 @@ export function buySetup(state) {
 
 // --------------------------------------------------------- roster -------
 export const MAX_ROSTER = 14;
+export const TEAM_DUES = 3;
 
 export function signKid(state, id) {
   if (state.team.roster.includes(id)) return { ok: false, reason: 'Already on the team.' };
@@ -151,7 +152,10 @@ export function signKid(state, id) {
   state.team.invites = state.team.invites.filter((x) => x !== id);
   state.kids[id].team = state.team.name;
   addLog(state, `${shortName(KID_BY_ID.get(id))} joined the ${state.team.name}!`);
-  return { ok: true };
+  // New teammates chip in team dues once.
+  let dues = 0;
+  if (!state.kids[id].duesPaid) { state.kids[id].duesPaid = true; dues = TEAM_DUES; state.money += dues; addLog(state, `${shortName(KID_BY_ID.get(id))} chipped in $${dues} in team dues.`); }
+  return { ok: true, dues };
 }
 
 export function releaseKid(state, id) {
