@@ -375,13 +375,13 @@ export function buildCharacter(look, opts = {}) {
   const grade = look.grade ?? 3;
   // Grown-ups: about 1.4x a kid's height with the same chunky cartoon style
   // (big head, sturdy limbs) rather than a stretched-out kid.
-  const R = adult ? 0.225 : grade <= 5 ? 0.265 : grade <= 8 ? 0.24 : 0.215;
+  const R = adult ? 0.215 : grade <= 5 ? 0.25 : grade <= 8 ? 0.225 : 0.2;
   const w = BUILD_W[look.build] ?? 1;
-  const legLen = (adult ? 0.5 : 0.34) * H * (look.build === 'lanky' ? 1.08 : 1);
-  const torsoLen = (adult ? 0.38 : 0.29) * H;
-  const rc = (adult ? 0.2 : 0.168) * w;
-  const lk = adult ? 1.45 : 1.2; // limb thickness (chubby cartoon arms and legs)
-  const fk = adult ? 1.22 : 1.15; // hands and chunky sneakers
+  const legLen = (adult ? 0.52 : 0.4) * H * (look.build === 'lanky' ? 1.08 : 1);
+  const torsoLen = (adult ? 0.4 : 0.32) * H;
+  const rc = (adult ? 0.2 : 0.15) * w;
+  const lk = adult ? 1.45 : 1.05; // limb thickness
+  const fk = adult ? 1.22 : 1.05; // hands and sneakers
   const skin = SKIN[look.skin] || SKIN.tan;
   const hair = HAIR[look.hairColor] || HAIR.brown;
   const acc = new Set(look.accessories || []);
@@ -573,7 +573,7 @@ export function buildCharacter(look, opts = {}) {
 
   // ---- arms
   const shoulderY = torsoLen * (adult ? 0.8 : 0.84);
-  const armLen = (adult ? 0.4 : 0.25) * H;
+  const armLen = (adult ? 0.4 : 0.27) * H;
   const sleevePattern = top === 'flannel' || (pattern && pattern !== 'tie-dye') ? (x, y, z) => patternShade(x * 0.4, y * 0.3, z * 0.4) : null;
   const mkArm = (sd) => {
     const ab = new Builder();
