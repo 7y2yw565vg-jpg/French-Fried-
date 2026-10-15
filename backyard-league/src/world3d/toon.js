@@ -31,6 +31,7 @@ const MAT_DEFS = {
   hair: { rough: 0.45 },
   cloth: { tex: 'fabric', rough: 0.88 },
   shoe: { rough: 0.4 },
+  leather: { rough: 0.3 },
   rubber: { rough: 0.8 },
   glass: { glass: true },
   glow: { glow: true },

@@ -4,7 +4,7 @@ import { h, btn, clear, $, modal } from './dom.js';
 import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world3d/toon.js';
 import { buildArena } from '../world3d/arenas.js';
 import { buildLogo } from './logo.js';
-import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS } from '../world3d/kidModel.js';
+import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, SHOE_COLORS } from '../world3d/kidModel.js';
 import { HAIR_STYLES } from '../world3d/hair.js';
 import { SPORTS, PERKS, NEIGHBORHOODS } from '../data/world.js';
 import { KIDS } from '../data/kids.js';
@@ -118,7 +118,7 @@ export function showTitle(engine, onNew, onContinue, current = null) {
 }
 
 export function showCreator(engine, onDone) {
-  const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: ['backwards cap'], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim' };
+  const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: ['backwards cap'], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim', shoes: 'sneakers', shoeColor: 'white' };
   let hatPick = 'backwards cap'; let sigPick = 'none';
   const syncAcc = () => { look.accessories = [hatPick, sigPick].filter((v) => v !== 'none'); };
   const cfg = { name: '', perk: 'smooth', hood: 'maple', sport: 'soccer', teamName: randomTeamName(), colors: ['#e63946', '#ffffff'] };
@@ -224,6 +224,8 @@ export function showCreator(engine, onDone) {
         h('div', { class: 'field-row' }, h('label', {}, 'Shirt color'), swatchRow(OUTFIT, 'shirt')),
         h('div', { class: 'field-row' }, h('label', {}, 'Bottoms'), chipRow(BOTTOMS, () => look.bottom, (v) => { look.bottom = v; })),
         h('div', { class: 'field-row' }, h('label', {}, 'Pants color'), swatchRow(PANTS_COLORS, 'pants')),
+        h('div', { class: 'field-row' }, h('label', {}, 'Shoes'), chipRow(SHOE_TYPES, () => look.shoes, (v) => { look.shoes = v; })),
+        h('div', { class: 'field-row' }, h('label', {}, 'Shoe color'), swatchRow(SHOE_COLORS, 'shoeColor')),
         h('div', { class: 'field-row' }, h('label', {}, 'Hat'), chipRow(HATS, () => hatPick, (v) => { hatPick = v; syncAcc(); })),
         h('div', { class: 'field-row' }, h('label', {}, 'Signature look'), chipRow(ACCESSORIES, () => sigPick, (v) => { sigPick = v; syncAcc(); })),
         h('div', { class: 'field-row' }, h('label', {}, 'Your thing'), perkCards),

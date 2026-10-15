@@ -11,6 +11,10 @@ const BUILD_W = { skinny: 0.84, lanky: 0.86, average: 1, stocky: 1.14, sturdy: 1
 // ------------------------------------------------------------ outfits ---
 export const TOPS = ['tee', 'graphic tee', 'polo', 'raglan', 'hoodie', 'sweater', 'flannel', 'jacket', 'jersey', 'tank', 'overalls'];
 export const BOTTOMS = ['shorts', 'cargo shorts', 'jeans', 'joggers', 'khakis', 'leggings', 'skirt'];
+/** Footwear styles. Kids pick from the first list; grown-ups mostly from the second. */
+export const SHOE_TYPES = ['sneakers', 'high-tops', 'slip-ons', 'cleats', 'boots', 'rain boots', 'sandals'];
+export const ADULT_SHOES = ['dress shoes', 'loafers', 'boots', 'sneakers', 'flats'];
+export const SHOE_COLORS = { white: '#ffffff', black: '#222222', red: '#e63946', blue: '#3a86ff', yellow: '#ffb703', purple: '#8338ec', green: '#06d6a0', brown: '#7a4a2a', pink: '#f27eb5', gray: '#8d939a' };
 export const PANTS_COLORS = {
   denim: '#3d5f8f', 'dark denim': '#2a3d5e', 'light denim': '#7d9cc4', khaki: '#c8b37a', black: '#2b2b2f', gray: '#7d8188',
   navy: '#2f3e66', olive: '#6b7445', maroon: '#7a2f3a', purple: '#5a4a8a', pink: '#e58fb5', white: '#ecebe6', red: '#c0392b',
@@ -35,7 +39,9 @@ export function outfitFor(look, adult = false) {
   const fav = OUTFIT[look.shirt] || '#3a7bd5';
   if (adult) {
     const top = look.top || pick(['polo', 'sweater', 'jacket', 'tee']);
-    return { top, bottom: 'khakis', shirt: fav, trim: shade(fav, 0.72), under: '#f4f4f0', sleeve: fav, pants: pick(['#2f3e66', '#3d3d42', '#6b5b4b', '#4a4f57', '#c8b37a']), denim: '#3d5f8f', shoe: pick(['#3a2a20', '#222222', '#ffffff']), shoeAccent: '#888888', number: 1, graphic: 'star', graphicColor: '#ffffff' };
+    const shoes = look.shoes || pick(ADULT_SHOES);
+    const shoe = look.shoeColor ? SHOE_COLORS[look.shoeColor] || look.shoeColor : shoes === 'sneakers' ? pick(['#ffffff', '#222222', '#8d939a']) : shoes === 'boots' ? pick(['#6b4226', '#3a2a20']) : pick(['#3a2a20', '#222222', '#5a3a24']);
+    return { top, bottom: 'khakis', shirt: fav, trim: shade(fav, 0.72), under: '#f4f4f0', sleeve: fav, pants: pick(['#2f3e66', '#3d3d42', '#6b5b4b', '#4a4f57', '#c8b37a']), denim: '#3d5f8f', shoes, shoe, shoeAccent: '#888888', number: 1, graphic: 'star', graphicColor: '#ffffff' };
   }
   const tops = PERSONA_TOPS[look.personality] || TOPS.slice(0, 6);
   const top = look.top || (r() < 0.3 ? 'tee' : pick(tops));
@@ -58,11 +64,13 @@ export function outfitFor(look, adult = false) {
     else pants = pick([P.navy, P.gray, P.black, P.red, P.denim, P.khaki, shade(fav, 0.55)]);
   }
   const contrast = ['#ffffff', '#2b2b2f', '#f9d342', '#e63946', '#1fb5a8'].find((c) => c !== fav) || '#ffffff';
+  // Mostly sneakers, with a mix of everything else.
+  const kidShoes = look.shoes || (() => { const x = r(); return x < 0.45 ? 'sneakers' : x < 0.6 ? 'high-tops' : x < 0.7 ? 'slip-ons' : x < 0.78 ? 'cleats' : x < 0.86 ? 'boots' : x < 0.93 ? 'rain boots' : 'sandals'; })();
   return {
     top, bottom, shirt: top === 'raglan' ? pick(['#f4f4f0', '#9aa0a6', '#2b2b2f']) : fav, sleeve: fav,
     trim: top === 'jersey' || top === 'jacket' || top === 'sweater' ? contrast : shade(fav, 0.72),
     under: top === 'overalls' ? fav : pick(['#f4f4f0', '#2b2b2f', '#9aa0a6']), denim: pick([P.denim, P['light denim']]),
-    pants, stripe: r() < 0.5 ? '#ffffff' : null, shoe: pick(SHOES), shoeAccent: pick(SHOES), kneeSocks: r() < 0.2, sockStripe: r() < 0.3 ? fav : null,
+    pants, stripe: r() < 0.5 ? '#ffffff' : null, shoes: kidShoes, shoe: look.shoeColor ? SHOE_COLORS[look.shoeColor] || look.shoeColor : kidShoes === 'rain boots' ? pick(['#ffb703', '#e63946', '#3a86ff', '#06d6a0']) : kidShoes === 'boots' ? pick(['#7a4a2a', '#5a3a24']) : pick(SHOES), shoeAccent: pick(SHOES), kneeSocks: r() < 0.2, sockStripe: r() < 0.3 ? fav : null,
     number: 1 + Math.floor(r() * 99), graphic: pick(GRAPHICS), graphicColor: contrast === '#2b2b2f' ? '#ffffff' : contrast, skirtPleats: r() < 0.5,
   };
 }
@@ -363,6 +371,76 @@ function hairCap(theta, lumps = 7, depth = 0.08) {
   return g;
 }
 
+/** Footwear on one leg (sole at y = sy, toe toward +z). */
+function buildShoe(lb, type, f, sy, c, accent, skin, lr, shin, glow) {
+  const sole = (h = 0.045, color = '#f2f2f2', len = 0.27, w = 0.13) => {
+    lb.rbox(w * f, h * f, len * f, color, 0, sy, 0.045 * f, { mat: 'rubber' });
+    lb.rbox((w + 0.005) * f, 0.02 * f, (len + 0.005) * f, shade(color, 0.8), 0, sy, 0.045 * f, { mat: 'rubber' });
+  };
+  const upper = (h = 0.09, color = c, mat = 'shoe') => {
+    lb.rbox(0.12 * f, h * f, 0.2 * f, color, 0, sy + 0.04 * f, 0.02 * f, { mat });
+    lb.sphere(0.062 * f, color, 0, sy + 0.06 * f, 0.11 * f, [0.98, 0.72, 1.1], { mat });
+  };
+  const laces = (color = '#ffffff') => {
+    lb.rbox(0.07 * f, 0.06 * f, 0.08 * f, shade(c, 0.9), 0, sy + 0.1 * f, 0.07 * f, { mat: 'shoe', rot: [-0.5, 0, 0] });
+    for (let k = 0; k < 3; k++) lb.box(0.07 * f, 0.012, 0.012, color, 0, sy + (0.115 - k * 0.012) * f, (0.035 + k * 0.03) * f, { center: true, rot: [-0.5, 0, 0], mat: 'cloth' });
+  };
+  const stripe = () => { for (const side of [-1, 1]) lb.box(0.004, 0.025 * f, 0.12 * f, accent, side * 0.061 * f, sy + 0.055 * f, 0.02 * f, { center: true, rot: [0.25, 0, 0], mat: 'shoe' }); };
+  const shaft = (h, color, mat = 'shoe', top = null) => {
+    // wide enough to go over pant legs (pants tucked in)
+    lb.cyl(lr * 1.3, lr * 1.22, h, color, 0, sy + 0.06 * f, -0.005, { mat });
+    if (top) lb.cyl(lr * 1.38, lr * 1.36, 0.035, top, 0, sy + 0.06 * f + h - 0.035, -0.005, { mat: 'cloth' });
+  };
+  switch (type) {
+    case 'high-tops':
+      sole(); upper(); laces(); stripe();
+      shaft(shin * 0.55, c, 'shoe', '#ffffff');
+      lb.sphere(0.03 * f, accent, 0.068 * f, sy + 0.13 * f, -0.03 * f, [0.4, 1, 1], { mat: 'plastic' }); // ankle patch
+      break;
+    case 'slip-ons':
+      sole(0.04);
+      upper(0.075);
+      lb.box(0.1 * f, 0.008, 0.08 * f, shade(c, 0.85), 0, sy + 0.11 * f, 0.05 * f, { center: true, rot: [-0.35, 0, 0], mat: 'cloth' }); // elastic panel
+      break;
+    case 'cleats':
+      sole(0.035, '#2b2b2f');
+      upper(0.085); laces(); stripe();
+      for (const [x, z] of [[-0.035, 0.12], [0.035, 0.12], [-0.035, 0.03], [0.035, 0.03], [0, -0.07]]) lb.cyl(0.012 * f, 0.016 * f, 0.022 * f, '#d9d9d9', x * f, sy - 0.02 * f, z * f, { mat: 'metal' });
+      break;
+    case 'boots':
+      sole(0.05, '#3b2a1e');
+      upper(0.1, c, 'leather');
+      shaft(shin * 0.8, c, 'leather', shade(c, 1.3));
+      laces('#d9c8a9');
+      break;
+    case 'rain boots':
+      sole(0.04, shade(c, 0.7));
+      upper(0.1, c, 'plastic');
+      shaft(shin * 1.35, c, 'plastic');
+      break;
+    case 'sandals':
+      sole(0.035, shade(c, 0.85));
+      lb.sphere(0.055 * f, skin, 0, sy + 0.05 * f, 0.07 * f, [1, 0.6, 1.9], { mat: 'skin' }); // foot
+      for (const z of [0.1, 0.0]) lb.box(0.125 * f, 0.025 * f, 0.03 * f, c, 0, sy + 0.06 * f, z * f, { center: true, mat: 'cloth' });
+      lb.box(0.125 * f, 0.025 * f, 0.03 * f, c, 0, sy + 0.08 * f, -0.06 * f, { center: true, rot: [0.6, 0, 0], mat: 'cloth' });
+      break;
+    case 'dress shoes': case 'loafers':
+      sole(0.03, '#2a1d14', 0.28, 0.12);
+      lb.rbox(0.11 * f, 0.07 * f, 0.2 * f, c, 0, sy + 0.03 * f, 0.02 * f, { mat: 'leather' });
+      lb.sphere(0.056 * f, c, 0, sy + 0.05 * f, 0.11 * f, [0.98, 0.62, 1.25], { mat: 'leather' });
+      if (type === 'dress shoes') lb.box(0.05 * f, 0.008, 0.05 * f, shade(c, 0.7), 0, sy + 0.1 * f, 0.06 * f, { center: true, rot: [-0.3, 0, 0], mat: 'cloth' });
+      else lb.box(0.07 * f, 0.012, 0.02 * f, shade(c, 0.75), 0, sy + 0.09 * f, 0.07 * f, { center: true, rot: [-0.3, 0, 0], mat: 'leather' }); // penny strap
+      break;
+    case 'flats':
+      sole(0.025, shade(c, 0.8), 0.26, 0.115);
+      lb.rbox(0.11 * f, 0.055 * f, 0.19 * f, c, 0, sy + 0.025 * f, 0.03 * f, { mat: 'leather' });
+      lb.sphere(0.026 * f, shade(c, 1.2), 0, sy + 0.075 * f, 0.1 * f, [1.6, 0.6, 0.6], { mat: 'cloth' }); // little bow
+      break;
+    default: // sneakers
+      sole(); upper(0.09, c, glow ? 'glow' : 'shoe'); laces(); stripe();
+  }
+}
+
 // Open-ended tube for headbands and goggle straps.
 const BAND = new THREE.CylinderGeometry(1, 1, 1, 28, 1, true);
 
@@ -407,6 +485,7 @@ export function buildCharacter(look, opts = {}) {
   const bareLegs = ['shorts', 'cargo shorts', 'skirt'].includes(bottom);
   const wheelchair = [...acc].some((a) => a.startsWith('wheelchair'));
   const shoeC = acc.has('light-up sneakers') ? '#4cc9f0' : uniform ? '#1d1d1f' : fit.shoe;
+  const shoeType = acc.has('light-up sneakers') ? 'sneakers' : uniform ? 'cleats' : fit.shoes || 'sneakers';
   const shoeAccent = uniform ? uniform[0] : fit.shoeAccent;
   const sock = acc.has('lucky socks') ? '#ff006e' : uniform && kitPants ? uniform[0] : '#f4f4f4';
   const pattern = !uniform && ['tee', 'hoodie', 'sweater', 'polo', 'flannel'].includes(top) ? look.shirt : top === 'flannel' ? 'plaid' : null;
@@ -636,20 +715,12 @@ export function buildCharacter(look, opts = {}) {
       if (bottom === 'jeans') lb.cyl(lr * 1.12, lr * 1.12, 0.035, mix(pants, '#ffffff', 0.25), 0, ankle - 0.005, 0, { mat: 'cloth' });
       if (bottom === 'uniform pants') lb.cyl(lr * 0.86, lr * 0.84, shin * 0.42, sock, 0, ankle - 0.02, 0, { mat: 'cloth' });
     }
-    if (bareLegs) {
+    if (bareLegs && shoeType !== 'sandals') {
       const knee = bottom === 'skirt' || fit.kneeSocks;
       lb.cyl(lr * 0.88, lr * 0.85, knee ? shin * 0.85 : shin * 0.55, sock, 0, ankle - 0.02, 0, { mat: 'cloth', shade: uniform ? (x, y) => (Math.abs(y - 0.25) < 0.07 ? uniform[0] : null) : fit.sockStripe ? (x, y) => (Math.abs(y - 0.3) < 0.05 ? fit.sockStripe : null) : null });
     }
-    // sneaker: sole, upper, toe, tongue, laces, stripe
     const sy = -legLen + 0.0;
-    const f = fk;
-    lb.rbox(0.13 * f, 0.045 * f, 0.27 * f, '#f2f2f2', 0, sy, 0.045 * f, { mat: 'rubber' });
-    lb.rbox(0.135 * f, 0.02 * f, 0.275 * f, '#c9c9c9', 0, sy, 0.045 * f, { mat: 'rubber' });
-    lb.rbox(0.12 * f, 0.09 * f, 0.2 * f, shoeC, 0, sy + 0.04 * f, 0.02 * f, { mat: acc.has('light-up sneakers') ? 'glow' : 'shoe' });
-    lb.sphere(0.062 * f, shoeC, 0, sy + 0.06 * f, 0.11 * f, [0.98, 0.72, 1.1], { mat: 'shoe' });
-    lb.rbox(0.07 * f, 0.06 * f, 0.08 * f, shade(shoeC, 0.9), 0, sy + 0.1 * f, 0.07 * f, { mat: 'shoe', rot: [-0.5, 0, 0] });
-    for (let k = 0; k < 3; k++) lb.box(0.07 * f, 0.012, 0.012, '#ffffff', 0, sy + (0.115 - k * 0.012) * f, (0.035 + k * 0.03) * f, { center: true, rot: [-0.5, 0, 0], mat: 'cloth' });
-    for (const side of [-1, 1]) lb.box(0.004, 0.025 * f, 0.12 * f, shoeAccent, side * 0.061 * f, sy + 0.055 * f, 0.02 * f, { center: true, rot: [0.25, 0, 0], mat: 'shoe' });
+    buildShoe(lb, shoeType, fk, sy, shoeC, shoeAccent, skin, lr, shin, acc.has('light-up sneakers'));
     if (acc.has('knee pads')) lb.rbox(lr * 2.3, 0.08, lr * 1.4, '#222', 0, kneeY - 0.04, lr * 0.5, { mat: 'rubber' });
     if (sd > 0 && acc.has('band-aid on knee') && bareLegs) lb.box(lr * 1.0, 0.03, 0.01, '#e9c49a', 0, kneeY - 0.02, lr * 0.85, { center: true });
     const m = lb.mesh();
