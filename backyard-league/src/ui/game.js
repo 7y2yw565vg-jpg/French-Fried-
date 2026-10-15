@@ -604,7 +604,6 @@ export class Game {
         modal({ title: 'Detention', body: 'You spend an hour in detention copying "I will not goof around in class" 50 times. Your hand hurts.' });
         this.skip(60);
       } else {
-        s.parents.trust = Math.max(0, s.parents.trust - 8);
         toast('You skipped detention! The school called your parents. Again.', 'bad');
       }
       s.school.detentionDay = 0;
@@ -670,13 +669,12 @@ export class Game {
     const s = this.state;
     exitClass(this);
     if (forced && s.loc !== 'home') {
-      s.parents.trust = Math.max(0, s.parents.trust - 5);
       addLog(s, 'Out past curfew. Mom & Dad had to come pick you up.');
     }
     if (this.mode === 'stand' || this.mode === 'paper' || this.mode === 'mow') this.mode = 'free';
     const msgs = sleep(s);
     sfx('sleep');
-    if (forced && s.loc !== 'home') msgs.unshift('😬 You stayed out past curfew. Mom & Dad had to come get you (trust went down).');
+    if (forced && s.loc !== 'home') msgs.unshift('😬 You stayed out past curfew. Mom & Dad had to come get you. Embarrassing.');
     s.loc = 'home';
     this.period = null;
     this.passing = null;

@@ -264,13 +264,12 @@ export function weeklyGradeCheck(state) {
 export function markTardy(state) {
   const s = state.school;
   s.tardies += 1;
-  if (s.tardies === 3) { state.parents.trust = clamp(state.parents.trust - 6, 0, 100); return 'Third tardy! The teacher sent a note home. Mom & Dad are not thrilled.'; }
+  if (s.tardies === 3) { return 'Third tardy! The teacher sent a note home. Mom & Dad are not thrilled.'; }
   if (s.tardies >= 5 && s.tardies % 5 === 0) { s.detentionDay = state.time.day + 1; return `Tardy #${s.tardies}! Detention tomorrow after school.`; }
   return `Tardy! (${s.tardies} this season)`;
 }
 
 export function markAbsent(state, subject) {
-  state.parents.trust = clamp(state.parents.trust - 8, 0, 100);
   state.school.scores.push(55);
   if (state.school.scores.length > 12) state.school.scores.shift();
   state.school.trouble.push(state.time.day);
@@ -354,10 +353,8 @@ export function applyPunishment(state, kind) {
   const s = state.school;
   s.trouble.push(state.time.day);
   if (kind === 'recess') s.noRecessUntil = state.time.day + 3;
-  if (kind === 'note') state.parents.trust = clamp(state.parents.trust - 6, 0, 100);
   if (kind === 'office') {
     s.detentionDay = state.time.day + 1;
-    state.parents.trust = clamp(state.parents.trust - 10, 0, 100);
     state.parents.groundedUntil = state.time.day + 2;
   }
   if (kind === 'disappoint') s.prep = {};

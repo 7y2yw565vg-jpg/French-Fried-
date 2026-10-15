@@ -305,11 +305,16 @@ export const UPGRADES = {
   seating: { label: 'Fan Seating', names: ['The grass', 'Lawn chairs', '3-row bleachers', 'Grandstand', 'Stadium bowl'], costs: [0, 15, 80, 400, 2000], capacity: [12, 25, 60, 200, 1000], facility: [0, 3, 7, 14, 25] },
   scoreboard: { label: 'Scoreboard', names: ['Kid holding a whiteboard', 'Flip-number board', 'Electronic scoreboard', 'Video board', 'Jumbotron'], costs: [0, 8, 60, 300, 1500], facility: [0, 2, 5, 10, 18] },
   announcer: { label: 'Announcer Gear', names: ['You, yelling', 'Toy megaphone', 'PA system', 'Play-by-play booth', 'Broadcast duo'], costs: [0, 5, 40, 150, 500], facility: [0, 1, 4, 8, 14] },
-  concessions: { label: 'Concessions', names: ['Juice boxes from the fridge', 'Lemonade stand', 'Snack shack', 'Grill & nachos', 'Food court'], costs: [0, 10, 40, 150, 600], perFan: [0.15, 0.35, 0.7, 1.1, 2], facility: [0, 2, 5, 9, 15] },
+  concessions: { label: 'Concessions', names: ['Nothing yet', 'Lemonade stand', 'Snack shack', 'Grill & nachos', 'Food court'], costs: [0, 10, 40, 150, 600], fair: [0, 1, 1.5, 2.5, 4], buyRate: [0, 0.45, 0.55, 0.65, 0.75], facility: [0, 2, 5, 9, 15] },
+  // Merch: unlock it, then set prices once the team is official. fair = the price fans think is normal.
+  merch: { label: 'Team Merch', names: ['Nothing to sell', 'Homemade buttons', 'T-shirt table', 'Merch tent', 'Team store'], costs: [0, 15, 50, 150, 500], fair: [0, 1, 5, 8, 12], buyRate: [0, 0.12, 0.16, 0.2, 0.25], facility: [0, 1, 3, 6, 10] },
   uniforms: { label: 'Uniforms', names: ['Plain T-shirts', 'Iron-on numbers', 'Real jerseys', 'Home & away kits', 'Pro kits'], costs: [0, 20, 60, 150, 400], facility: [0, 3, 6, 10, 15] },
   training: { label: 'Training Facility', names: ['Nothing', 'Equipment shed', 'Garage gym', 'Training barn', 'Training center'], costs: [0, 30, 100, 400, 1500], growth: [1, 1.1, 1.25, 1.4, 1.6], facility: [0, 2, 5, 9, 14] },
 };
 export const UPGRADE_IDS = Object.keys(UPGRADES);
+
+// League prize money (paid for home AND away games).
+export const PRIZES = { win: 8, tie: 3, semifinal: 10, runnerUp: 30, champion: 75 };
 
 // Team gear: equipment that makes every kid on your roster better on game day.
 // boosts[sport][stat] = bonus at each tier.
@@ -379,7 +384,7 @@ export const FIELDS = {
 // ------------------------------------------------------------- jobs ----
 export const JOBS = {
   lemonade: { name: 'Lemonade Stand', needs: ['pitcher'], unlock: { earned: 0 }, desc: 'Buy a pitcher, cups and ingredients at the grocery store, then set up your stand on any street.' },
-  paper: { name: 'Paper Route', needs: ['bike', 'paper_bag'], unlock: { earned: 50, trust: 55 }, desc: 'Needs a bike. Mornings in your neighborhood: every house on your street (10+) gets a paper. Hit porches, not windows. $0.50 per paper.' },
+  paper: { name: 'Paper Route', needs: ['bike', 'paper_bag'], unlock: { earned: 50 }, desc: 'Needs a bike. Mornings in your neighborhood: every house on your street (10+) gets a paper. Hit porches, not windows. $0.50 per paper.' },
   mowing: { name: 'Lawn Mowing', needs: ['push_mower'], unlock: { earned: 150 }, desc: 'Customers post on the grocery store bulletin board. Neat stripes earn tips.' },
 };
 

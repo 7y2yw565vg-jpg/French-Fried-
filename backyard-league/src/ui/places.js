@@ -2,13 +2,13 @@
 import { h, modal, btn, toast, money, ask } from './dom.js';
 import { ITEMS, SHOPS, JOBS, SPORTS, FIELDS } from '../data/world.js';
 import { KID_BY_ID } from '../data/kids.js';
-import { askParents, askChance, doChore, buy, recycleCans, jobUnlocked, jobReady, mowJobs, lemonadeCheck, generosityLimit, PITCH_ROUNDS, pitchAvailable, teamPitch } from '../game/economy.js';
+import { askParents, askChance, askQuestions, doChore, choresLeft, buy, recycleCans, jobUnlocked, jobReady, mowJobs, lemonadeCheck, generosityLimit, PITCH_ROUNDS, ASK_MAX, ASK_REASON_MIN, ASK_BIG_MAX } from '../game/economy.js';
 import { addItem, hasItem, itemCount, playerGrade } from '../game/state.js';
 import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS } from '../game/team.js';
 import { askPrincipal, addPrep, SUBJECTS, makeQuiz } from '../game/school.js';
 import { doTask } from '../game/social.js';
 import { dayInfo, schoolBlockAt } from '../game/time.js';
-import { standings } from '../game/league.js';
+import { standings, joinLeague } from '../game/league.js';
 import { SCIENCE } from '../data/questions.js';
 import { openPhone } from './phone.js';
 import { openMap } from './mapview.js';
@@ -33,32 +33,49 @@ const HANDLERS = {
   parents(game) {
     const s = game.state;
     const lim = generosityLimit(s);
-    const amt = h('input', { type: 'range', min: 1, max: 25, step: 1, value: Math.min(5, Math.round(lim)) });
+    const amt = h('input', { type: 'range', min: 0, max: ASK_MAX, step: 1, value: Math.min(5, Math.round(lim)) });
     const label = h('div', { class: 'quiz-q' });
     const odds = h('div', { class: 'muted' });
     const upd = () => {
-      label.textContent = `Ask for ${money(+amt.value)}`;
-      const c = askChance(s, +amt.value);
-      odds.textContent = c > 0.85 ? 'They\'ll probably say yes.' : c > 0.5 ? 'Could go either way.' : c > 0.15 ? 'That\'s a lot to ask...' : 'They are DEFINITELY going to say no.';
+      const v = +amt.value;
+      label.textContent = `Ask for ${money(v)}`;
+      const c = askChance(s, v);
+      odds.textContent = v === 0 ? 'Slide to pick an amount.'
+        : v > ASK_BIG_MAX ? 'Way too much. They\'re going to say no.'
+          : v >= ASK_REASON_MIN ? `They'll want to know what it's for (${askQuestions(v)} question${askQuestions(v) > 1 ? 's' : ''}).`
+            : c > 0.85 ? 'They\'ll probably say yes.' : c > 0.5 ? 'Could go either way.' : c > 0.15 ? 'That\'s a lot to ask...' : 'They\'re probably going to say no.';
     };
     amt.addEventListener('input', upd);
     upd();
     const ready = s.time.day >= s.parents.nextAskDay;
+    const left = choresLeft(s);
     const body = h('div', {},
-      h('p', {}, `Mom & Dad trust you ${s.parents.trust >= 70 ? 'a lot' : s.parents.trust >= 45 ? 'okay' : 'not very much right now'}. Good grades and chores help. Asking too often (or for too much) doesn't.`),
-      ready ? h('div', {}, label, amt, odds) : h('p', {}, `"You JUST asked us! Give it a couple days." (Ask again on day ${s.parents.nextAskDay}.)`));
+      h('p', {}, 'Under $20 is a coin flip that good grades help. From $20 to $100 they\'ll ask what it\'s for, so have good answers ready.'),
+      ready ? h('div', {}, label, amt, odds) : h('p', {}, `"You JUST asked us! Give it a few days." (Ask again on day ${s.parents.nextAskDay}.)`));
+    const done = (r) => {
+      sfx(r.ok ? 'coin' : 'bad');
+      modal({ title: r.ok ? `+${money(r.amount)}!` : 'Nope.', body: `"${r.text}"` });
+      game.hud.render();
+    };
     modal({
       title: 'Mom & Dad',
       body,
       buttons: [
         ready ? { label: 'Ask for money', cls: 'green', onClick: () => {
-          const r = askParents(s, +amt.value);
-          sfx(r.ok ? 'coin' : 'bad');
-          modal({ title: r.ok ? `+${money(r.amount)}!` : 'Nope.', body: `"${r.text}"` });
-          game.hud.render();
+          const v = +amt.value;
+          const n = askQuestions(v);
+          if (!n) { done(askParents(s, v)); return; }
+          // $20-$100: answer their questions first.
+          let good = 0;
+          const round = (i) => {
+            if (i >= n) { done(askParents(s, v, good)); return; }
+            const R = PITCH_ROUNDS[i];
+            modal({ title: `Asking for ${money(v)}${n > 1 ? ` (${i + 1}/${n})` : ''}`, body: R.q, dismissable: false,
+              buttons: R.options.map((o) => ({ label: o.text, cls: 'white', onClick: () => { if (o.good) good++; round(i + 1); } })) });
+          };
+          round(0);
         } } : null,
-        ready && pitchAvailable(s) ? { label: '🏟️ Pitch the team (up to $20)', cls: 'purple', onClick: () => pitchTeam(game) } : null,
-        { label: 'Do the dishes (+trust, +$2)', cls: 'blue', onClick: () => { const r = doChore(s, 'did the dishes'); if (r.ok) game.skip(20); toast(r.text, r.ok ? 'good' : ''); } },
+        { label: left ? `Do a chore (+$1, ${left} left today)` : 'Chores all done today', cls: 'blue', disabled: !left, onClick: () => { const r = doChore(s); if (r.ok) game.skip(20); toast(r.text, r.ok ? 'good' : ''); game.hud.render(); } },
         { label: 'Bye!', cls: 'white' },
       ].filter(Boolean),
     });
@@ -85,7 +102,6 @@ const HANDLERS = {
         { label: s.flags[hwKey] ? 'Homework done ✓' : '📝 Do homework (45 min)', cls: 'purple', disabled: !!s.flags[hwKey] || s.time.minute < 14 * 60, onClick: () => {
           s.flags[hwKey] = true;
           for (const sub of SUBJECTS) addPrep(s, sub, 1);
-          s.parents.trust = Math.min(100, s.parents.trust + 1);
           game.skip(45);
           toast('Homework done! +1 quiz prep in every subject.', 'good');
         } },
@@ -149,7 +165,7 @@ const HANDLERS = {
     s.flags[key] = true;
     const r = Math.random();
     if (r < 0.35) { s.money += 0.75; sfx('coin'); toast('You fished out 75¢ in wishing-fountain coins. Sorry, wishers.', 'money'); }
-    else if (r < 0.6) { s.parents.trust = Math.max(0, s.parents.trust - 2); toast('"HEY! Out of the fountain!" Mall Cop Randy told your mom.', 'bad'); }
+    else if (r < 0.6) { toast('"HEY! Out of the fountain!" Mall Cop Randy told your mom.', 'bad'); }
     else toast('Just pennies glued to the bottom. Somebody pranked the fountain.');
   },
 
@@ -175,7 +191,7 @@ const HANDLERS = {
     modal({
       title: 'League Desk', body, wide: true,
       buttons: [
-        !isRegistered(s) ? { label: `Register (${money(sp.entryFee)})`, cls: 'green', disabled: !reg.ok, onClick: () => { const r = register(s); if (r.ok) { sfx('good'); toast(`The ${s.team.name} are registered! 🎉`, 'good'); } else toast(r.reason, 'bad'); } } : null,
+        !isRegistered(s) ? { label: `Register (${money(sp.entryFee)})`, cls: 'green', disabled: !reg.ok, onClick: () => { const r = register(s); if (r.ok) { sfx('good'); toast(`The ${s.team.name} are registered! 🎉`, 'good'); for (const m of joinLeague(s)) toast(m, 'good'); toast('Set ticket, snack and merch prices in Phone > Field & Staff.', ''); game.hud.render(); } else toast(r.reason, 'bad'); } } : null,
         !s.team.permit ? { label: 'Buy park permit ($15)', cls: 'blue', onClick: () => { if (s.money < 15) { toast('Need $15.', 'bad'); return; } s.money -= 15; s.team.permit = true; toast('You can now rent Old Town Park (Phone > Field).', 'good'); } } : null,
         { label: 'Close', cls: 'white' },
       ].filter(Boolean),
@@ -227,7 +243,7 @@ const HANDLERS = {
       for (const j of jobs) lines.appendChild(h('div', { class: 'row', style: { margin: '6px 0' } }, h('span', { style: { flex: 1 } }, `🌱 Mow ${j.who}'s lawn in ${j.hood} - $${j.pay}`),
         s.jobs.activeMow && s.jobs.activeMow.id === j.id ? h('span', { class: 'pill good' }, 'Accepted') : btn('Take it', () => { s.jobs.activeMow = j; toast(`Job accepted! Go to ${j.hood} (marked on the lawn).`, 'good'); m.close(); }, 'small green')));
     }
-    if (!jobUnlocked(s, 'paper')) lines.appendChild(h('p', { class: 'muted' }, `📰 PAPER ROUTE: needs $${JOBS.paper.unlock.earned} earned and Mom & Dad's trust (55+).`));
+    if (!jobUnlocked(s, 'paper')) lines.appendChild(h('p', { class: 'muted' }, `📰 PAPER ROUTE: needs $${JOBS.paper.unlock.earned} earned.`));
     else lines.appendChild(h('p', {}, `📰 PAPER ROUTE: ${jobReady(s, 'paper') ? 'You\'re all set! Start it from your neighborhood street before school.' : 'You need a bike ($45) and a newspaper bag ($10) from Sporting Goods.'}`));
     const m = modal({ title: 'Community Bulletin Board', body: lines, wide: true });
   },
@@ -317,25 +333,3 @@ export function openShop(game, shopId) {
 
 export { FIELDS, playerGrade };
 
-/** Explain the team to Mom & Dad: three questions, the better the answers the more they chip in. */
-function pitchTeam(game) {
-  const s = game.state;
-  let good = 0;
-  const round = (i) => {
-    if (i >= PITCH_ROUNDS.length) {
-      const r = teamPitch(s, good);
-      sfx(r.ok ? 'coin' : 'bad');
-      modal({ title: r.ok ? `+${money(r.amount)} for the team!` : 'Not convinced.', body: `"${r.text}"` });
-      game.hud.render();
-      return;
-    }
-    const R = PITCH_ROUNDS[i];
-    modal({
-      title: `Pitch the team (${i + 1}/${PITCH_ROUNDS.length})`,
-      body: R.q,
-      dismissable: false,
-      buttons: R.options.map((o) => ({ label: o.text, cls: 'white', onClick: () => { if (o.good) good++; round(i + 1); } })),
-    });
-  };
-  round(0);
-}

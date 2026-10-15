@@ -75,7 +75,7 @@ export function sleep(state) {
       if (offer) msgs.push(`📝 A crumpled note in your backpack: "Psst. Want a ringer? Meet me. -${KID_BY_ID.get(offer.fixer).first_name}" (Check your phone.)`);
     }
     if (info.season.week === 3 && info.dow === 3) msgs.push(...aiRecruit(state, 0.6));
-    if (info.season.week === 4 && info.dow === 0) msgs.push(...finalizeSchedule(state));
+    msgs.push(...finalizeSchedule(state)); // joins your team once it's registered (any week)
   } else if (info.weekOfYear === 46 && info.dow === 0) {
     msgs.push('SUMMER VACATION! No school, no league games. Jobs pay the same, but you have all day to hustle and recruit.');
   }

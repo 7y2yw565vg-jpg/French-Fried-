@@ -1,6 +1,6 @@
 // League seasons: rival teams, AI recruiting, schedule, games, playoffs, scandals.
 import { KIDS, KID_BY_ID, KIDS_META, shortName } from '../data/kids.js';
-import { RIVAL_COLORS, SPORTS, FIELDS } from '../data/world.js';
+import { RIVAL_COLORS, SPORTS, FIELDS, PRIZES } from '../data/world.js';
 import { addLog, addNews, getKid, kidGrade, playerGrade, statsOf, yearOf } from './state.js';
 import { bestLineup, eligibility, isRegistered, leagueBand, playerBand, homeGameRevenue, giveTrophy, attraction } from './team.js';
 import { simulateMatch } from './sim.js';
@@ -55,9 +55,10 @@ export function ensureSeason(state) {
     teams: rivals.map((name) => ({ name, w: 0, l: 0, t: 0, pf: 0, pa: 0 })),
     schedule: null, playoffs: null, done: false, ringerGames: [],
   };
-  const msgs = aiRecruit(state, 0.5);
+  const msgs = aiRecruit(state, 1);
+  buildSchedule(state, 1); // games start right away; you can join any time up to week 11
   const info = dayInfo(state.time.day);
-  addNews(state, `${info.season.name} season is here! ${band.name} registration is open for 3 weeks.`);
+  addNews(state, `${info.season.name} season is here! The ${band.name} kicks off this Saturday. Teams can join any time up to week 11.`);
   return msgs;
 }
 
@@ -111,24 +112,39 @@ function roundRobin(ids, seed) {
   return rounds;
 }
 
-/** Week 4: lock the schedule (your team is in only if registered). */
+export const LAST_REGULAR_WEEK = 13;
+
+/** (Re)build the regular-season schedule from `fromWeek` on; earlier weeks keep their games. */
+export function buildSchedule(state, fromWeek) {
+  const lg = state.league;
+  const names = lg.teams.map((t) => t.name);
+  const first = roundRobin(names, `${state.seed}${lg.sid}${fromWeek}`);
+  const second = first.map((g) => g.map((x) => ({ home: x.away, away: x.home })));
+  const rounds = [...first, ...second, ...first];
+  const kept = (lg.schedule || []).filter((r) => r.week < fromWeek);
+  const fresh = [];
+  for (let w = fromWeek, i = 0; w <= LAST_REGULAR_WEEK; w++, i++) fresh.push({ week: w, games: rounds[i % rounds.length].map((g) => ({ ...g, result: null })) });
+  lg.schedule = [...kept, ...fresh];
+}
+
+/** Put your registered team into this season's league (mid-season joins are fine). */
+export function joinLeague(state) {
+  const lg = state.league;
+  if (!lg || !isRegistered(state) || lg.teams.some((t) => t.player)) return [];
+  const info = dayInfo(state.time.day);
+  lg.teams.push({ name: state.team.name, w: 0, l: 0, t: 0, pf: 0, pa: 0, player: true });
+  // This week's games are already set once Saturday arrives; start from the next open week.
+  const fromWeek = info.season.week + (info.dow >= 5 ? 1 : 0);
+  buildSchedule(state, fromWeek);
+  return [`The ${state.team.name} are officially in the ${lg.bandName}! ${fromWeek <= LAST_REGULAR_WEEK ? `First game: week ${fromWeek}.` : ''}`];
+}
+
+/** Old saves: the schedule used to be made in week 4. */
 export function finalizeSchedule(state) {
   const lg = state.league;
-  if (!lg || lg.schedule) return [];
-  const msgs = aiRecruit(state, 1);
-  const names = lg.teams.map((t) => t.name);
-  if (isRegistered(state)) {
-    lg.teams.push({ name: state.team.name, w: 0, l: 0, t: 0, pf: 0, pa: 0, player: true });
-    names.push(state.team.name);
-    msgs.push(`The ${state.team.name} are officially in the ${lg.bandName}! First game is this Saturday.`);
-  } else {
-    msgs.push(`Registration closed. The ${state.team.name} missed the ${lg.bandName} this season. Keep recruiting for next season!`);
-  }
-  const first = roundRobin(names, `${state.seed}${lg.sid}`);
-  const second = first.map((g) => g.map((x) => ({ home: x.away, away: x.home })));
-  const rounds = [...first, ...second].slice(0, 10);
-  lg.schedule = rounds.map((games, i) => ({ week: 4 + i, games: games.map((g) => ({ ...g, result: null })) }));
-  return msgs;
+  if (!lg) return [];
+  if (!lg.schedule) buildSchedule(state, 1);
+  return joinLeague(state);
 }
 
 export function weekGames(state, week) {
@@ -243,8 +259,14 @@ export function recordResult(state, game, result, week) {
       state.money = +(state.money + rev.net).toFixed(2);
       state.team.fansLast = rev.fans;
       game.result.revenue = rev;
-      msgs.push(`Home game: ${rev.fans} fans. Admission $${rev.admission.toFixed(2)} + concessions $${rev.concessions.toFixed(2)}${rev.parents ? ` - Mom & Dad's cut $${rev.parents.toFixed(2)}` : ''}${rev.rent ? ` - rent $${rev.rent}` : ''}${rev.staffPay ? ` - staff $${rev.staffPay}` : ''} = $${rev.net.toFixed(2)}`);
+      const parts = [`tickets $${rev.tickets.toFixed(2)}`];
+      if (rev.snackBuyers) parts.push(`concessions $${rev.concessions.toFixed(2)}`);
+      if (rev.merchBuyers) parts.push(`merch $${rev.merch.toFixed(2)}`);
+      msgs.push(`Home game: ${rev.fans} fans. ${parts.join(' + ')}${rev.parents ? ` - Mom & Dad's cut $${rev.parents.toFixed(2)}` : ''}${rev.rent ? ` - rent $${rev.rent}` : ''}${rev.staffPay ? ` - staff $${rev.staffPay}` : ''} = $${rev.net.toFixed(2)}`);
     }
+    // League prize money for results, home or away.
+    const prize = result.forfeit ? 0 : won ? PRIZES.win : tie ? PRIZES.tie : 0;
+    if (prize) { state.money = +(state.money + prize).toFixed(2); msgs.push(`League ${won ? 'win' : 'tie'} bonus: +$${prize}`); }
     state.player.rep += won ? 2 : 0.5;
     const ringers = state.team.roster.filter((id) => id !== 'PLAYER' && state.kids[id].ringer);
     if (ringers.length && !result.forfeit) {
@@ -267,7 +289,9 @@ export function simOtherGames(state, week) {
 export function standings(state) {
   const lg = state.league;
   if (!lg) return [];
-  return lg.teams.slice().sort((a, b) => (b.w * 2 + b.t) - (a.w * 2 + a.t) || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf);
+  // Win percentage first, so a team that joined mid-season isn't punished for games it never played.
+  const pct = (t) => { const gp = t.w + t.l + t.t; return gp ? (t.w + t.t / 2) / gp : 0; };
+  return lg.teams.slice().sort((a, b) => pct(b) - pct(a) || (b.w * 2 + b.t) - (a.w * 2 + a.t) || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf);
 }
 
 export function startPlayoffs(state) {
@@ -315,6 +339,8 @@ export function endSeason(state) {
     const place = standings(state).findIndex((t) => t.player) + 1;
     const playoffs = !!(lg.playoffs && lg.playoffs.some((r) => r.games.some((g) => g.home === state.team.name || g.away === state.team.name)));
     state.team.history.push({ sid: lg.sid, label, w: mine.w, l: mine.l, t: mine.t, place, playoffs, champion: champ === state.team.name });
+    const purse = champ === state.team.name ? PRIZES.champion : runner === state.team.name ? PRIZES.runnerUp : playoffs ? PRIZES.semifinal : 0;
+    if (purse) { state.money = +(state.money + purse).toFixed(2); msgs.push(`League prize money: +$${purse}!`); }
     if (champ === state.team.name) {
       state.team.championships += 1;
       giveTrophy(state, `${lg.bandName} Champions - ${label}`, lg.sid);
@@ -428,7 +454,6 @@ function busted(state, id) {
   state.scandal.points += 25;
   if (state.scandal.caught >= 2) state.scandal.expelledUntil = sid + 3;
   state.money = Math.max(0, state.money - 20);
-  state.parents.trust = clamp(state.parents.trust - 15, 0, 100);
   state.parents.groundedUntil = state.time.day + 3;
   addNews(state, `SCANDAL! The ${state.team.name} used a ${kidGrade(state, id)}th grader (${shortName(kid)}) with FAKE paperwork!`);
   return [

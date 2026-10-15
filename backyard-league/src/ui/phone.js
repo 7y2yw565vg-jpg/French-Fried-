@@ -1,9 +1,9 @@
 // The phone: team management, kid notebook, field & staff, league, school, money, settings.
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
-import { SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR } from '../data/world.js';
+import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
-import { registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
+import { prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
 import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
@@ -238,6 +238,41 @@ function notebookEntry(game, id) {
 }
 
 // ----------------------------------------------------------- field & staff --
+/** Home-game prices (once the team is official). Higher prices = fewer buyers. */
+const buyers = (n) => `${n} buyer${n === 1 ? '' : 's'}`;
+
+function pricesBox(s) {
+  const box = h('div', { class: 'box' }, h('h3', {}, '💵 Home game prices'));
+  if (!isRegistered(s)) {
+    box.appendChild(h('p', { class: 'muted' }, 'Once your team is official (registered with the league), you set ticket, concession and merch prices here. Home games, win bonuses and playoff prize money become your team\'s income.'));
+    return box;
+  }
+  const est = h('div', { class: 'price-est' });
+  const showEst = () => {
+    const r = homeGameRevenue(s);
+    clear(est).append(
+      h('div', {}, h('b', {}, `${r.fans}`), ` fans expected (of ${r.cap} seats)`),
+      h('div', {}, `Tickets ${money(r.tickets)}`, r.snackBuyers ? ` · Snacks ${money(r.concessions)} (${buyers(r.snackBuyers)})` : '', r.merchBuyers ? ` · Merch ${money(r.merch)} (${buyers(r.merchBuyers)})` : ''),
+      h('div', {}, h('b', {}, `About ${money(r.net)} per home game`), r.parents || r.rent || r.staffPay ? h('span', { class: 'muted' }, ` after ${[r.parents ? 'Mom & Dad\'s cut' : '', r.rent ? 'rent' : '', r.staffPay ? 'staff' : ''].filter(Boolean).join(', ')}`) : null));
+  };
+  const slider = (kind, label, fair, note) => {
+    const pr = prices(s);
+    const inp = h('input', { type: 'range', min: 0, max: PRICE_MAX[kind], step: 0.25, value: pr[kind] });
+    const val = h('b', { class: 'price-val' }, money(pr[kind]));
+    inp.addEventListener('input', () => { setPrice(s, kind, +inp.value); val.textContent = money(+inp.value); showEst(); });
+    box.appendChild(h('div', { class: 'price-row' }, h('div', { class: 'price-label' }, label, h('div', { class: 'muted' }, note || `Fair price: ${money(fair)}`)), inp, val));
+  };
+  slider('ticket', '🎟️ Tickets', ticketFair(s));
+  if (sellsConcessions(s)) slider('concession', `🌭 ${upgradeName(s, 'concessions')}`, UPGRADES.concessions.fair[s.team.upgrades.concessions]);
+  else box.appendChild(h('p', { class: 'muted' }, '🌭 Concessions: unlock a lemonade stand in Upgrades to sell snacks.'));
+  if (sellsMerch(s)) slider('merch', `🧢 ${upgradeName(s, 'merch')}`, UPGRADES.merch.fair[s.team.upgrades.merch]);
+  else box.appendChild(h('p', { class: 'muted' }, '🧢 Merch: unlock it in Upgrades (Team Merch) to sell to fans.'));
+  box.appendChild(est);
+  box.appendChild(h('p', { class: 'muted' }, `Win bonus ${money(PRIZES.win)}, tie ${money(PRIZES.tie)} (home or away). Playoffs ${money(PRIZES.semifinal)}, runner-up ${money(PRIZES.runnerUp)}, champions ${money(PRIZES.champion)}.`));
+  showEst();
+  return box;
+}
+
 function fieldTab(game, root, redraw) {
   const s = game.state;
   const f = FIELDS[s.team.field];
@@ -247,10 +282,7 @@ function fieldTab(game, root, redraw) {
       h('div', { style: { flex: 1 } }, h('b', {}, fd.name), h('div', { class: 'muted' }, fd.blurb)),
       s.team.field === id ? h('span', { class: 'pill good' }, 'Current') : btn('Use this field', () => { const r = setField(s, id); toast(r.ok ? `Home games are now at ${fd.name}.` : r.reason, r.ok ? 'good' : 'bad'); redraw(); }, 'small')));
   }
-  const adm = h('input', { type: 'range', min: 0, max: f.maxAdmission, step: 0.25, value: Math.min(s.team.admission, f.maxAdmission) });
-  const admL = h('b', {}, money(+adm.value));
-  adm.addEventListener('input', () => { s.team.admission = +adm.value; admL.textContent = money(+adm.value); });
-  fields.appendChild(h('div', { class: 'row' }, 'Admission:', adm, admL, h('span', { class: 'muted' }, `(max ${money(f.maxAdmission)} here, ${seatingCapacity(s)} seats)`)));
+  fields.appendChild(h('p', { class: 'muted' }, `${seatingCapacity(s)} seats. Fans think about ${money(ticketFair(s))} is a fair ticket here.`));
   fields.appendChild(h('p', { class: 'muted' }, `Facility score: ${facilityScore(s)}/100. Upgrades come with you if you move fields, but small fields can't use the fancy stuff.`));
 
   const ups = h('div', { class: 'box' }, h('h3', {}, '🔧 Upgrades (order online)'), h('p', {}, `You have ${money(s.money)}`));
@@ -293,7 +325,7 @@ function fieldTab(game, root, redraw) {
     staff.appendChild(h('div', { class: 'row', style: { margin: '6px 0' } }, h('div', { style: { flex: 1 } }, h('b', {}, r.name), ': ', name, h('div', { class: 'muted' }, r.effect)),
       who ? btn('Let go', () => { delete s.team.staff[role]; toast(`${name} is no longer your ${r.name.toLowerCase()}.`); redraw(); }, 'small red') : null));
   }
-  root.append(h('div', { class: 'grid2' }, h('div', {}, fields, h('div', { style: { height: '10px' } }), gear, h('div', { style: { height: '10px' } }), staff), ups));
+  root.append(h('div', { class: 'grid2' }, h('div', {}, pricesBox(s), h('div', { style: { height: '10px' } }), fields, h('div', { style: { height: '10px' } }), gear, h('div', { style: { height: '10px' } }), staff), ups));
 }
 
 // ---------------------------------------------------------------- league --
@@ -358,9 +390,9 @@ function moneyTab(game, root) {
   const jobs = h('div', { class: 'box' }, h('h3', {}, '💼 Jobs'), h('p', {}, `Total earned from work: ${money(s.jobs.earned)}`));
   for (const [id, j] of Object.entries(JOBS)) {
     const un = jobUnlocked(s, id);
-    jobs.appendChild(h('div', { style: { margin: '6px 0' } }, h('b', {}, j.name), ' ', un ? (jobReady(s, id) ? h('span', { class: 'pill good' }, 'Ready') : h('span', { class: 'pill warn' }, `Need: ${j.needs.filter((n) => !(s.inv.items[n] > 0)).map((n) => ITEMS[n].name).join(', ')}`)) : h('span', { class: 'pill bad' }, `Locked: earn $${j.unlock.earned}${j.unlock.trust ? ` + trust ${j.unlock.trust}` : ''}`), h('div', { class: 'muted' }, j.desc)));
+    jobs.appendChild(h('div', { style: { margin: '6px 0' } }, h('b', {}, j.name), ' ', un ? (jobReady(s, id) ? h('span', { class: 'pill good' }, 'Ready') : h('span', { class: 'pill warn' }, `Need: ${j.needs.filter((n) => !(s.inv.items[n] > 0)).map((n) => ITEMS[n].name).join(', ')}`)) : h('span', { class: 'pill bad' }, `Locked: earn $${j.unlock.earned}`), h('div', { class: 'muted' }, j.desc)));
   }
-  jobs.appendChild(h('p', { class: 'muted' }, 'Other ways to make money: ask Mom & Dad, do chores, pick up cans (5¢ each at the grocery store bottle return), find coins on the ground, do favors for kids, and home games (admission + concessions).'));
+  jobs.appendChild(h('p', { class: 'muted' }, 'Other ways to make money: ask Mom & Dad, do chores (3 a day), pick up cans (5¢ each at the grocery store bottle return), find coins on the ground and do favors for kids. Once your team is official it earns from home games (tickets, concessions, merch), league win bonuses and playoff prize money.'));
   const inv = h('div', { class: 'box' }, h('h3', {}, '🎒 Backpack'));
   const items = Object.entries(s.inv.items).filter(([id, n]) => n > 0 && id !== 'trophy');
   inv.appendChild(items.length ? h('div', {}, ...items.map(([id, n]) => h('div', {}, `${ITEMS[id] ? ITEMS[id].icon : id === 'cans' ? '🥫' : id === 'lemonade' ? '🍋' : '📦'} ${ITEMS[id] ? ITEMS[id].name : id === 'cans' ? 'Cans & bottles' : id === 'lemonade' ? 'Cups of lemonade mix' : id} x${n}`))) : h('p', { class: 'muted' }, 'Empty! (Except for a mystery granola bar from last year.)'));

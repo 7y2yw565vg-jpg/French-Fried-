@@ -3,92 +3,94 @@ import { ITEMS, JOBS } from '../data/world.js';
 import { PARENT_LINES } from '../data/dialogue.js';
 import { addItem, addLog, hasItem, itemCount } from './state.js';
 import { gradeAverage } from './team.js';
-import { dayInfo, seasonId } from './time.js';
+import { dayInfo } from './time.js';
 import { seeded, pick, clamp, randInt } from './rng.js';
 import { fill } from './social.js';
 
 // --------------------------------------------------------- parents ------
+// Small asks (under $20) are a gamble that good grades help. From $20 up they
+// want to know what it's for: $20 takes one good answer, $21-$100 takes all
+// three. More than $100 is always a no.
+export const ASK_MAX = 200;
+export const ASK_REASON_MIN = 20;
+export const ASK_BIG_MAX = 100;
+
 export function generosityLimit(state) {
   const avg = gradeAverage(state);
   const gradeBonus = avg >= 90 ? 3 : avg >= 80 ? 1.5 : avg >= 70 ? 0 : -2;
-  return Math.max(1, 3 + state.parents.trust * 0.1 + gradeBonus);
+  return Math.max(1, 8 + gradeBonus);
 }
 
 export function askChance(state, amount) {
+  if (amount >= ASK_REASON_MIN) return amount > ASK_BIG_MAX ? 0 : 1; // decided by your answers
   return clamp(1.35 - amount / generosityLimit(state), 0, 1);
 }
 
-export function askParents(state, amount) {
-  amount = Math.round(amount * 100) / 100;
-  const p = state.parents;
-  if (state.time.day < p.nextAskDay) {
-    return { ok: false, text: PARENT_LINES.cooldown[0], cooldown: true };
-  }
-  const rng = seeded(state.seed, 'ask', state.time.day, amount);
-  const chance = askChance(state, amount);
-  if (rng() < chance) {
-    state.money += amount;
-    p.trust = clamp(p.trust - 1, 0, 100);
-    p.nextAskDay = state.time.day + 2;
-    addLog(state, `Mom & Dad gave you $${amount.toFixed(2)}.`);
-    return { ok: true, amount, text: pick(rng, PARENT_LINES.yes) };
-  }
-  const big = amount > generosityLimit(state) * 1.5;
-  p.trust = clamp(p.trust - (big ? 8 : 4), 0, 100);
-  p.nextAskDay = state.time.day + 3;
-  return { ok: false, big, text: big ? fill(PARENT_LINES.big[0], { amount: `$${amount}` }) : pick(rng, PARENT_LINES.no) };
+/** How many questions they'll ask before handing over this much (0 = none). */
+export function askQuestions(amount) {
+  if (amount < ASK_REASON_MIN || amount > ASK_BIG_MAX) return 0;
+  return amount === ASK_REASON_MIN ? 1 : PITCH_ROUNDS.length;
 }
 
-// ----------------------------------------------------- team pitch -------
-// Once a season (until the team is registered), you can explain to Mom & Dad
-// what starting a team costs. A convincing pitch gets up to $20.
 export const PITCH_ROUNDS = [
-  { q: '"Okay, what\'s the money for?"', options: [
+  { q: '"That\'s a lot of money. What\'s it for?"', options: [
     { text: 'League entry fee, team shirts and field gear, so we can start a real team.', good: true },
     { text: 'Stuff. Important stuff.', good: false },
     { text: 'Everybody else already has a team!', good: false },
   ] },
   { q: '"And how is this going to work?"', options: [
     { text: 'I\'ll figure it out later.', good: false },
-    { text: 'Kids already want to join, and they\'re chipping in dues too.', good: true },
     { text: 'I made a plan: what it costs, practice days, and the schedule.', good: true },
+    { text: 'Can\'t you just trust me?', good: false },
   ] },
   { q: '"What about school?"', options: [
     { text: 'School is kind of optional, right?', good: false },
+    { text: 'I\'ll skip homework on game days. Just those days.', good: false },
     { text: 'Grades come first. No homework, no practice. Deal?', good: true },
-    { text: 'I\'ll pay you back from my lemonade stand.', good: true },
   ] },
 ];
 
-export function pitchAvailable(state) {
-  const sid = seasonId(state.time.day) ?? 'summer';
-  return !state.flags[`pitch${sid}`] && !(state.team.registered && state.team.registeredSeason === seasonId(state.time.day));
-}
-
-/** `good` = how many convincing answers (0-3). */
-export function teamPitch(state, good) {
-  const sid = seasonId(state.time.day) ?? 'summer';
-  state.flags[`pitch${sid}`] = true;
-  state.parents.nextAskDay = state.time.day + 2;
-  let amount = good >= 3 ? 20 : good === 2 ? 12 : 0;
-  if (amount && state.parents.trust < 25) amount = Math.min(amount, 10); // they still have doubts
-  if (!amount) {
-    state.parents.trust = clamp(state.parents.trust - 2, 0, 100);
-    return { ok: false, amount: 0, text: 'That wasn\'t very convincing, kiddo. Show us you\'re serious first.' };
+/**
+ * Ask Mom & Dad for money. For $20-$100, pass `answers` = how many of their
+ * questions you answered well (all of them, or the one question for $20).
+ */
+export function askParents(state, amount, answers = 0) {
+  amount = Math.round(amount * 100) / 100;
+  const p = state.parents;
+  if (state.time.day < p.nextAskDay) return { ok: false, text: PARENT_LINES.cooldown[0], cooldown: true };
+  if (amount <= 0) return { ok: false, text: 'Ask for... nothing? Okay. Here\'s nothing.' };
+  const rng = seeded(state.seed, 'ask', state.time.day, amount);
+  if (amount > ASK_BIG_MAX) {
+    p.nextAskDay = state.time.day + 2;
+    return { ok: false, big: true, text: fill(PARENT_LINES.big[0], { amount: `$${amount}` }) };
+  }
+  const needed = askQuestions(amount);
+  const ok = needed ? answers >= needed : rng() < askChance(state, amount);
+  if (!ok) {
+    p.nextAskDay = state.time.day + 2;
+    return { ok: false, text: needed ? 'Hmm. That wasn\'t very convincing, kiddo. Show us you\'re serious first.' : pick(rng, PARENT_LINES.no) };
   }
   state.money += amount;
-  state.parents.trust = clamp(state.parents.trust + 2, 0, 100);
-  addLog(state, `Mom & Dad chipped in $${amount} for the team.`);
-  return { ok: true, amount, text: amount >= 20 ? 'We\'re proud of you. Here\'s $20 for the team. Make us proud, Coach!' : 'Sounds like you\'ve thought about it. Here\'s something to get started.' };
+  p.nextAskDay = state.time.day + (needed ? 7 : 2); // big asks: once a week at most
+  addLog(state, `Mom & Dad gave you $${amount.toFixed(2)}.`);
+  return { ok: true, amount, text: needed ? 'Okay. We\'re proud of you. Make it count, Coach!' : pick(rng, PARENT_LINES.yes) };
 }
 
-export function doChore(state, chore) {
-  const key = `chore${state.time.day}`;
-  if (state.flags[key]) return { ok: false, text: 'You already did a chore today. Mom says "don\'t overdo it, you\'ll pull something."' };
-  state.flags[key] = true;
-  state.parents.trust = clamp(state.parents.trust + 3, 0, 100);
-  state.money += 2;
-  return { ok: true, text: `You ${chore}. +$2 allowance, and Mom & Dad trust you a little more.` };
+// Up to three chores a day, $1 each.
+export const CHORES = ['did the dishes', 'took out the trash', 'folded the laundry'];
+export const CHORES_PER_DAY = 3;
+
+export function choresLeft(state) {
+  return CHORES_PER_DAY - (state.flags[`chores${state.time.day}`] || 0);
+}
+
+export function doChore(state) {
+  const key = `chores${state.time.day}`;
+  const done = state.flags[key] || 0;
+  if (done >= CHORES_PER_DAY) return { ok: false, text: 'You did all your chores today. Mom says "don\'t overdo it, you\'ll pull something."' };
+  state.flags[key] = done + 1;
+  state.money += 1;
+  return { ok: true, text: `You ${CHORES[done]}. +$1! (${CHORES_PER_DAY - done - 1} chore${CHORES_PER_DAY - done - 1 === 1 ? '' : 's'} left today)` };
 }
 
 // --------------------------------------------------------- shops --------
@@ -131,7 +133,7 @@ export function weatherFor(state, day = state.time.day) {
 // --------------------------------------------------------- jobs ---------
 export function jobUnlocked(state, jobId) {
   const u = JOBS[jobId].unlock;
-  return state.jobs.earned >= (u.earned || 0) && state.parents.trust >= (u.trust || 0);
+  return state.jobs.earned >= (u.earned || 0);
 }
 
 export function jobReady(state, jobId) {

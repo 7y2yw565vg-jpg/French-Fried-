@@ -105,9 +105,11 @@ export function registrationChecklist(state) {
     { id: 'shirts', label: `${sp.minRoster} team shirts ($${sp.shirtCost} each at Sporting Goods)`, done: state.team.shirts >= Math.max(sp.minRoster, state.team.roster.length), detail: `${state.team.shirts}/${Math.max(sp.minRoster, state.team.roster.length)}` },
     { id: 'setup', label: `Field setup: ${UPGRADES.goals.names[state.team.sport][0]} ($${sp.setupCost})`, done: state.team.setup, cost: sp.setupCost },
     { id: 'fee', label: `League entry fee ($${sp.entryFee}) at the Library league desk`, done: isRegistered(state), cost: sp.entryFee },
-    { id: 'window', label: 'Register during preseason (weeks 1-3 of a season)', done: isRegistered(state) || (info.season && info.season.week <= 3), detail: info.season ? `${info.season.name} week ${info.season.week}` : 'Summer break' },
+    { id: 'window', label: 'A league season with games left (join any time up to week 11)', done: isRegistered(state) || (!!info.season && info.season.week <= REGISTER_LAST_WEEK), detail: info.season ? `${info.season.name} week ${info.season.week}` : 'Summer break' },
   ];
 }
+
+export const REGISTER_LAST_WEEK = 11;
 
 export function isRegistered(state) {
   return state.team.registered && state.team.registeredSeason === seasonId(state.time.day);
@@ -143,7 +145,6 @@ export function buySetup(state) {
 
 // --------------------------------------------------------- roster -------
 export const MAX_ROSTER = 14;
-export const TEAM_DUES = 3;
 
 export function signKid(state, id) {
   if (state.team.roster.includes(id)) return { ok: false, reason: 'Already on the team.' };
@@ -152,10 +153,7 @@ export function signKid(state, id) {
   state.team.invites = state.team.invites.filter((x) => x !== id);
   state.kids[id].team = state.team.name;
   addLog(state, `${shortName(KID_BY_ID.get(id))} joined the ${state.team.name}!`);
-  // New teammates chip in team dues once.
-  let dues = 0;
-  if (!state.kids[id].duesPaid) { state.kids[id].duesPaid = true; dues = TEAM_DUES; state.money += dues; addLog(state, `${shortName(KID_BY_ID.get(id))} chipped in $${dues} in team dues.`); }
-  return { ok: true, dues };
+  return { ok: true };
 }
 
 export function releaseKid(state, id) {
@@ -299,23 +297,57 @@ export function attraction(state) {
 }
 
 // --------------------------------------------------------- game money ---
+// Home games earn from tickets, concessions and merch. You set the prices once
+// the team is official; higher prices mean fewer buyers (and fewer fans).
+export const PRICE_MAX = { ticket: 10, concession: 8, merch: 30 };
+
+export function ticketFair(state) { return FIELDS[state.team.field].maxAdmission; }
+export function sellsConcessions(state) { return concessionTier(state) > 0; }
+export function sellsMerch(state) { return merchTier(state) > 0; }
+function concessionTier(state) { return Math.min(state.team.upgrades.concessions || 0, upgradeCap(state, 'concessions')); }
+function merchTier(state) { return Math.min(state.team.upgrades.merch || 0, upgradeCap(state, 'merch')); }
+
+/** Current prices, with sensible defaults (the "fair" price) for anything not set yet. */
+export function prices(state) {
+  const p = state.team.prices || {};
+  return {
+    ticket: p.ticket ?? state.team.admission ?? ticketFair(state),
+    concession: p.concession ?? UPGRADES.concessions.fair[Math.max(1, concessionTier(state))],
+    merch: p.merch ?? UPGRADES.merch.fair[Math.max(1, merchTier(state))],
+  };
+}
+
+export function setPrice(state, kind, value) {
+  state.team.prices = { ...prices(state), ...(state.team.prices || {}), [kind]: clamp(Math.round(value * 4) / 4, 0, PRICE_MAX[kind]) };
+}
+
+/** Share of people who buy at a price, relative to the fair price (r = price / fair). */
+const demand = (r, slope, max) => clamp(1 + slope * 0.5 - slope * r, 0.03, max);
+
 export function homeGameRevenue(state, weatherFactor = 1) {
   const t = state.team;
   const field = FIELDS[t.field];
   const cap = seatingCapacity(state);
   const att = attraction(state);
+  const pr = prices(state);
   const families = t.roster.length * 1.5;
   const announcer = t.staff.announcer ? 4 : 0;
-  const fans = Math.max(2, Math.min(cap, Math.round((4 + att * 0.35 + families + announcer + t.upgrades.announcer * 2) * weatherFactor)));
-  const price = Math.min(t.admission, field.maxAdmission);
-  const payRate = t.staff.gate ? 1 : 0.7;
-  const admission = +(fans * payRate * price).toFixed(2);
-  const concessions = +(fans * UPGRADES.concessions.perFan[Math.min(t.upgrades.concessions, upgradeCap(state, 'concessions'))]).toFixed(2);
-  const gross = admission + concessions;
+  const interest = (4 + att * 0.35 + families + announcer + t.upgrades.announcer * 2) * weatherFactor;
+  // Ticket price changes how many people show up.
+  const fans = Math.max(1, Math.min(cap, Math.round(interest * demand(pr.ticket / ticketFair(state), 0.45, 1.3))));
+  const payRate = t.staff.gate ? 1 : 0.85; // without a gate crew some kids sneak in
+  const tickets = +(fans * payRate * pr.ticket).toFixed(2);
+  const ct = concessionTier(state);
+  const snackBuyers = ct ? Math.round(fans * UPGRADES.concessions.buyRate[ct] * demand(pr.concession / UPGRADES.concessions.fair[ct], 0.6, 1.4)) : 0;
+  const concessions = +(snackBuyers * pr.concession).toFixed(2);
+  const mt = merchTier(state);
+  const merchBuyers = mt ? Math.round(fans * UPGRADES.merch.buyRate[mt] * demand(pr.merch / UPGRADES.merch.fair[mt], 0.65, 1.4) * (0.8 + att / 250)) : 0;
+  const merch = +(merchBuyers * pr.merch).toFixed(2);
+  const gross = +(tickets + concessions + merch).toFixed(2);
   const parents = +(gross * field.parentCut).toFixed(2);
   const staffPay = Object.entries(t.staff).reduce((a, [role, who]) => a + (who ? (who.startsWith('adult') ? ((t.staffPay || {})[role] || 0) : ({ announcer: 2, gate: 1, coach: 2, scout: 3 }[role] || 0)) : 0), 0);
   const net = +(gross - parents - field.rent - staffPay).toFixed(2);
-  return { fans, cap, admission, concessions, gross, parents, rent: field.rent, staffPay, net };
+  return { fans, cap, interest: Math.round(interest), tickets, admission: tickets, snackBuyers, concessions, merchBuyers, merch, gross, parents, rent: field.rent, staffPay, net };
 }
 
 export function giveTrophy(state, name, season) {

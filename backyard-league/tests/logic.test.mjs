@@ -9,11 +9,11 @@ import { whereIsKid, kidClass, sectionOf } from '../src/game/routines.js';
 import { playerClass } from '../src/game/school.js';
 import { CORE_SUBJECTS, SUBJECT_TEACHERS } from '../src/data/world.js';
 import { simulateMatch } from '../src/game/sim.js';
-import { askParents, askChance, buy, recycleCans, lemonadeBuyChance, weatherFor, teamPitch, pitchAvailable } from '../src/game/economy.js';
+import { askParents, askChance, buy, recycleCans, lemonadeBuyChance, weatherFor, doChore, PITCH_ROUNDS } from '../src/game/economy.js';
 import { makeQuiz, seatChart, classmates, weeklyGradeCheck, passNote } from '../src/game/school.js';
 import { chat, inviteCheck, invite, parseHook, inviteHangout, doHangout, exchangeNumbers, canExchangeNumbers, callCheck, routineKey, PHONE_FRIENDSHIP } from '../src/game/social.js';
-import { bestLineup, registrationChecklist, register, signKid, runDrill, attraction, buySetup, TEAM_DUES } from '../src/game/team.js';
-import { ensureSeason, matchSide, standings } from '../src/game/league.js';
+import { bestLineup, registrationChecklist, register, signKid, runDrill, attraction, buySetup, homeGameRevenue, setPrice, isRegistered } from '../src/game/team.js';
+import { ensureSeason, matchSide, standings, finalizeSchedule } from '../src/game/league.js';
 import { sleep, advance } from '../src/game/clock.js';
 
 const opts = (sport = 'soccer') => ({ name: 'Tess', sport, teamName: 'Test Tigers', seed: 1234, look: { skin: 'tan', hair: 'spiky', hairColor: 'brown', shirt: 'red' } });
@@ -62,14 +62,23 @@ test('stats grow with age and stay in range', () => {
   }
 });
 
-test('parents: small asks usually work, huge asks fail', () => {
+test('parents: small asks are a gamble, $20-$100 need good answers, over $100 is a no', () => {
   const s = newGame(opts());
   assert.ok(askChance(s, 3) > 0.9);
-  assert.equal(askChance(s, 40), 0);
-  const r = askParents(s, 40);
-  assert.equal(r.ok, false);
-  assert.ok(r.big);
+  const big = askParents(s, 150);
+  assert.equal(big.ok, false); assert.ok(big.big);
   assert.ok(askParents(s, 2).cooldown);
+  const a = newGame(opts()); a.money = 0;
+  assert.ok(askParents(a, 20, 1).ok); // one good answer is enough for $20
+  assert.equal(a.money, 20);
+  const b = newGame(opts());
+  assert.equal(askParents(b, 60, 2).ok, false); // needs all three
+  const c = newGame(opts()); c.money = 0;
+  assert.ok(askParents(c, 100, PITCH_ROUNDS.length).ok);
+  assert.equal(c.money, 100);
+  const d = newGame(opts()); d.money = 0;
+  for (let i = 0; i < 4; i++) doChore(d);
+  assert.equal(d.money, 3); // three chores a day, $1 each
 });
 
 test('shopping and recycling', () => {
@@ -226,6 +235,7 @@ test('full season: register, play through, get standings and a history entry', (
   s.team.shirts = 10;
   assert.equal(buySetup(s).ok, false); // basketball needs no setup
   assert.ok(register(s).ok, JSON.stringify(registrationChecklist(s)));
+  const startMoney = s.money;
   for (let d = 0; d < 7 * 15 - 1; d++) { // stop before next season starts
     advance(s, 60 * 14);
     sleep(s);
@@ -234,7 +244,8 @@ test('full season: register, play through, get standings and a history entry', (
   assert.equal(st.length, 8);
   assert.equal(s.team.history.length, 1);
   const me = st.find((t) => t.player);
-  assert.equal(me.w + me.l + me.t, 10);
+  assert.equal(me.w + me.l + me.t, 13); // joined in week 1: every regular-season week
+  if (me.w) assert.ok(s.money > startMoney); // win bonuses paid out
   assert.ok(attraction(s) >= 0);
   const back = deserialize(serialize(s));
   assert.equal(back.team.name, 'Test Tigers');
@@ -277,23 +288,32 @@ test('team gear boosts your roster in games, and only your roster', async () => 
 test('paper route needs a bike', async () => {
   const { jobReady } = await import('../src/game/economy.js');
   const s = newGame({ name: 'Bike', seed: 3 });
-  s.jobs.earned = 100; s.parents.trust = 70; s.inv.items.paper_bag = 1;
+  s.jobs.earned = 100; s.inv.items.paper_bag = 1;
   assert.equal(jobReady(s, 'paper'), false);
   s.inv.items.bike = 1;
   assert.equal(jobReady(s, 'paper'), true);
 });
 
-test('money: a good team pitch gets $20 once a season; teammates pay dues once', () => {
+test('money: prices change how many people buy; teams can join mid-season', () => {
   const s = newGame(opts());
-  s.money = 0;
-  assert.ok(pitchAvailable(s));
-  assert.equal(teamPitch(s, 3).amount, 20);
-  assert.equal(s.money, 20);
-  assert.equal(pitchAvailable(s), false);
-  const s2 = newGame(opts());
-  assert.equal(teamPitch(s2, 1).amount, 0);
-  const kid = KIDS.find((k) => !s.team.roster.includes(k.id));
-  const before = s.money;
-  assert.equal(signKid(s, kid.id).dues, TEAM_DUES);
-  assert.equal(s.money, before + TEAM_DUES);
+  s.team.upgrades.concessions = 1; s.team.upgrades.merch = 1;
+  s.team.registered = true; s.team.registeredSeason = 1;
+  setPrice(s, 'ticket', 0.25); const cheap = homeGameRevenue(s);
+  setPrice(s, 'ticket', 4); const pricey = homeGameRevenue(s);
+  assert.ok(cheap.fans > pricey.fans, `${cheap.fans} vs ${pricey.fans}`);
+  setPrice(s, 'ticket', 0.5);
+  setPrice(s, 'concession', 0.5); const lowSnack = homeGameRevenue(s);
+  setPrice(s, 'concession', 5); const highSnack = homeGameRevenue(s);
+  assert.ok(lowSnack.snackBuyers > highSnack.snackBuyers);
+  assert.ok(homeGameRevenue(s).merchBuyers >= 0);
+  // Join in week 6: games from week 6 (or 7) to 13, none before.
+  const m = newGame(opts('basketball'));
+  ensureSeason(m);
+  m.time.day = 1 + 7 * 5; // Monday of week 6
+  ensureSeason(m);
+  m.team.registered = true; m.team.registeredSeason = 1;
+  assert.ok(isRegistered(m));
+  finalizeSchedule(m);
+  const mine = m.league.schedule.filter((r) => r.games.some((g) => g.home === m.team.name || g.away === m.team.name)).map((r) => r.week);
+  assert.ok(mine.length >= 7 && Math.min(...mine) >= 6, JSON.stringify(mine));
 });
