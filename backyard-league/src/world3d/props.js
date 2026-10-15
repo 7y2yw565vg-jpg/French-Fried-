@@ -593,14 +593,25 @@ export function table(b, x, z, w, d, h = 0.75, color = '#a5673f', rot = 0, mat =
   return f;
 }
 
-export function plant(b, x, z, s = 1, pot = '#c8693c', leaf = '#3f8a46') {
-  b.cyl(0.2 * s, 0.15 * s, 0.36 * s, pot, x, 0, z, { mat: 'plastic' });
-  b.cyl(0.18 * s, 0.18 * s, 0.02, '#4a3426', x, 0.35 * s, z, { mat: 'dirt' });
+export function plant(b, x, z, s = 1, pot = '#c8693c', leaf = '#3f8a46', y0 = 0) {
+  b.cyl(0.2 * s, 0.15 * s, 0.36 * s, pot, x, y0, z, { mat: 'plastic' });
+  b.cyl(0.18 * s, 0.18 * s, 0.02, '#4a3426', x, y0 + 0.35 * s, z, { mat: 'dirt' });
   for (let i = 0; i < 5; i++) {
     const a = i * 1.26;
     const r = i ? 0.13 * s : 0;
-    b.add(ICO, i % 2 ? shade(leaf, 1.15) : leaf, [x + Math.cos(a) * r, (0.55 + (i ? 0 : 0.18)) * s, z + Math.sin(a) * r], [0, a, 0], [0.19 * s, 0.26 * s, 0.19 * s], null, 'leaves');
+    b.add(ICO, i % 2 ? shade(leaf, 1.15) : leaf, [x + Math.cos(a) * r, y0 + (0.55 + (i ? 0 : 0.18)) * s, z + Math.sin(a) * r], [0, a, 0], [0.19 * s, 0.26 * s, 0.19 * s], null, 'leaves');
   }
+}
+
+/** Store mannequin on a stand, facing local +z. */
+export function mannequin(b, x, z, rot = 0, shirt = '#e63946', pants = '#264653') {
+  const f = frame(b, x, z, rot);
+  f.cyl(0.22, 0.24, 0.04, '#2b2b2f', 0, 0, 0, 'metal').cyl(0.02, 0.02, 0.5, '#9aa0a6', 0, 0, 0, 'metal');
+  for (const sd of [-0.09, 0.09]) f.rbox(0.13, 0.5, 0.14, pants, sd, 0.42, 0, 'fabric');
+  f.rbox(0.42, 0.55, 0.24, shirt, 0, 0.9, 0, 'fabric');
+  for (const sd of [-1, 1]) f.rbox(0.1, 0.45, 0.12, shirt, sd * 0.26, 1.0, 0, 'fabric', { rz: sd * 0.12 });
+  f.cyl(0.05, 0.05, 0.08, '#e9e4dc', 0, 1.45, 0, 'plastic');
+  f.ball(0.14, '#e9e4dc', 0, 1.64, 0, 'plastic', [0.9, 1.1, 1]);
 }
 
 export function trashCan(b, x, z, color = '#5c6670', s = 1, recycle = false) {
