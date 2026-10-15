@@ -155,7 +155,7 @@ export class Engine {
     this.previewMode = on;
     const r = this.renderer;
     const dpr = window.devicePixelRatio || 1;
-    if (on) r.setPixelRatio(Math.min(2, Math.max(dpr, 1.5)));
+    if (on) r.setPixelRatio(Math.min(2, dpr)); // the screen's own sharpness (no costly supersampling)
     else r.setPixelRatio(this.quality === 'low' ? 1 : Math.min(dpr, this.quality === 'high' ? 2 : 1.5));
     if (this.bloom) this.bloom.enabled = !on;
     this.resize();
