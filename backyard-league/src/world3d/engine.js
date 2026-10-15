@@ -184,7 +184,9 @@ export class Engine {
     // One pointer drags the camera around; two fingers pinch to zoom.
     const pts = new Map();
     let drag = null; let pinch = null;
+    let tap = null; // a quick click/tap with almost no movement = select what's under it
     el.addEventListener('pointerdown', (e) => {
+      tap = pts.size === 0 ? { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() } : null;
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pts.size === 1) drag = { id: e.pointerId, x: e.clientX, y: e.clientY, yaw: this.cam.yaw, pitch: this.cam.pitch };
       else if (pts.size === 2) {
@@ -193,11 +195,24 @@ export class Engine {
         pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: this.cam.dist };
       }
     });
-    const up = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (drag && drag.id === e.pointerId) drag = null; };
+    const up = (e) => {
+      if (tap && tap.id === e.pointerId && e.type === 'pointerup' && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) < 8 && performance.now() - tap.t < 450) {
+        const hit = this.pickNPC(e.clientX, e.clientY);
+        if (hit) { this.cam.yaw = drag ? drag.yaw : this.cam.yaw; this.clickNPC(hit); }
+      }
+      tap = null;
+      pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (drag && drag.id === e.pointerId) drag = null;
+    };
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
+    let hoverT = 0;
     window.addEventListener('pointermove', (e) => {
       if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      // Desktop: a pointer cursor over anyone you can talk to.
+      if (!pts.size && e.pointerType === 'mouse' && e.target === el && performance.now() - hoverT > 90) {
+        hoverT = performance.now();
+        el.style.cursor = this.pickNPC(e.clientX, e.clientY) ? 'pointer' : '';
+      }
       if (pinch && pts.size === 2) {
         const [a, b] = [...pts.values()];
         const d = Math.hypot(a.x - b.x, a.y - b.y);
@@ -589,13 +604,20 @@ export class Engine {
       if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) mx += 1;
       if (!mx && !mz && a && Math.hypot(a.x, a.y) > 0.18) { mx = a.x; mz = a.y; push = Math.min(1, Math.hypot(a.x, a.y)); }
     }
-    if (mx || mz) {
-      const len = Math.hypot(mx, mz);
-      mx /= len; mz /= len;
-      const yaw = this.cam.yaw;
-      const fx = -Math.sin(yaw); const fz = -Math.cos(yaw);
-      const rx = Math.cos(yaw); const rz = -Math.sin(yaw);
-      const dx = rx * mx + fx * -mz; const dz = rz * mx + fz * -mz;
+    let auto = null;
+    if (mx || mz) this.autoWalk = null; // your own steering always wins
+    else auto = this._autoWalkStep(dt);
+    if (mx || mz || auto) {
+      let dx; let dz;
+      if (auto) [dx, dz] = auto;
+      else {
+        const len = Math.hypot(mx, mz);
+        mx /= len; mz /= len;
+        const yaw = this.cam.yaw;
+        const fx = -Math.sin(yaw); const fz = -Math.cos(yaw);
+        const rx = Math.cos(yaw); const rz = -Math.sin(yaw);
+        dx = rx * mx + fx * -mz; dz = rz * mx + fz * -mz;
+      }
       const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || (a && a.run) || (push > 0.92 && a && a.autoRun);
       const sp = (run ? 5.6 : 3.3 * Math.max(0.45, push)) * this.speedMult;
       const [nx, nz] = this._collide(p.x + dx * sp * dt, p.z + dz * sp * dt);
@@ -655,6 +677,69 @@ export class Engine {
       if (n.tagSprite) n.tagSprite.visible = pd < 7 && this.camMode === 'follow' && root.visible;
       if (root.visible && pd < 70) n.char.update(dt, anim, n.animSpeed || 1);
     }
+  }
+
+  /** The interactable NPC under a screen point (or null). */
+  pickNPC(cx, cy) {
+    if (this.paused || this.camMode !== 'follow' || !this.npcs.size) return null;
+    const r = this.renderer.domElement.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    this._ray = this._ray || new THREE.Raycaster();
+    this._ray.setFromCamera(ndc, this.camera);
+    const roots = [];
+    for (const n of this.npcs.values()) if (n.interact && n.char.root.visible) roots.push(n.char.root);
+    if (!roots.length) return null;
+    for (const h of this._ray.intersectObjects(roots, true)) {
+      if (h.object.isSprite) continue;
+      let o = h.object;
+      while (o && !roots.includes(o)) o = o.parent;
+      if (!o) continue;
+      for (const n of this.npcs.values()) if (n.char.root === o) return n;
+    }
+    // Small or far-off kids: also accept a click near their body on screen.
+    let best = null; let bestD = 26;
+    for (const n of this.npcs.values()) {
+      if (!n.interact || !n.char.root.visible) continue;
+      const pos = n.char.root.position;
+      const sc = this.toScreen(pos.x, pos.y + (n.char.height || 1.2) * 0.55, pos.z);
+      if (!sc.visible) continue;
+      const d = Math.hypot(sc.x - (cx - r.left), sc.y - (cy - r.top));
+      if (d < bestD) { bestD = d; best = n; }
+    }
+    return best;
+  }
+
+  /** Clicked a character: talk now if close, otherwise walk over first. */
+  clickNPC(n) {
+    const p = this.playerState;
+    const pos = n.char.root.position;
+    const d = Math.hypot(pos.x - p.x, pos.z - p.z);
+    if (d <= 2.2) { this.autoWalk = null; this._faceAndTalk(n); return; }
+    this.autoWalk = { id: n.id, t: 0, last: d, stuck: 0 };
+  }
+
+  _faceAndTalk(n) {
+    const p = this.playerState;
+    const pos = n.char.root.position;
+    p.rot = Math.atan2(pos.x - p.x, pos.z - p.z);
+    this.onInteract({ type: 'npc', id: n.id, label: n.interact, npc: n });
+  }
+
+  /** World-space direction toward the auto-walk target (null when there's nothing to do). */
+  _autoWalkStep(dt) {
+    const w = this.autoWalk;
+    if (!w) return null;
+    const n = this.npcs.get(w.id);
+    const p = this.playerState;
+    if (!n || this.paused || this.camMode !== 'follow' || p.sitting) { this.autoWalk = null; return null; }
+    const pos = n.char.root.position;
+    const dx = pos.x - p.x; const dz = pos.z - p.z; const d = Math.hypot(dx, dz);
+    if (d <= 1.7) { this.autoWalk = null; this._faceAndTalk(n); return null; }
+    w.t += dt;
+    if (w.last - d < 0.02 * 60 * dt) w.stuck += dt; else w.stuck = 0;
+    w.last = d;
+    if (w.t > 12 || w.stuck > 1.2) { this.autoWalk = null; return null; } // blocked: give up quietly
+    return [dx / d, dz / d];
   }
 
   _updateFocus() {
