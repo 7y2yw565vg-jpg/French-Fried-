@@ -613,9 +613,20 @@ export class Game {
 
   onDismissal() {
     const s = this.state;
+    // Where were you when the last bell rang? (Leave the classroom for the hallway.)
+    const room = this.period && this.period.room;
+    const inRoom = s.loc === 'school' && (this.mode === 'class' || (room && this.inZone(room)));
     this.passing = null;
     this.closePeriod();
     exitClass(this);
+    if (inRoom && room) {
+      const spot = this.doorSpot(room);
+      if (spot) {
+        this.engine.teleport(spot.x, spot.z, spot.rot ?? 0);
+        this.engine.cam.pitch = 0.95;
+        this.engine.cam.dist = 13;
+      }
+    }
     if (s.school.detentionDay === s.time.day) {
       if (s.loc === 'school') {
         modal({ title: 'Detention', body: 'You spend an hour in detention copying "I will not goof around in class" 50 times. Your hand hurts.' });
@@ -624,6 +635,9 @@ export class Game {
         toast('You skipped detention! The school called your parents. Again.', 'bad');
       }
       s.school.detentionDay = 0;
+    } else if (s.loc === 'school') {
+      sfx('bell');
+      modal({ title: '🔔 The school day is over!', body: 'The final bell rang. The afternoon is yours: practice, jobs, hanging out with friends, or recruiting for your team.', buttons: [{ label: 'Let\'s go!', cls: 'green' }] });
     } else toast('🔔 School\'s out! The afternoon is yours.', 'good');
     this.hud.render();
   }
