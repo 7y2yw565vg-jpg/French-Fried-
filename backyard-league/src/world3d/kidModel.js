@@ -177,9 +177,9 @@ function paintFace(look, variant) {
   const dark = new THREE.Color(skin).getHSL({ h: 0, s: 0, l: 0 }).l < 0.35;
   // blush
   for (const side of [-1, 1]) {
-    const g = c.createRadialGradient(side * 0.5, 0.26, 0, side * 0.5, 0.26, 0.2);
-    g.addColorStop(0, dark ? 'rgba(255,110,110,0.25)' : 'rgba(255,105,105,0.38)'); g.addColorStop(1, 'rgba(255,105,105,0)');
-    c.fillStyle = g; c.fillRect(side * 0.5 - 0.22, 0.04, 0.44, 0.44);
+    const g = c.createRadialGradient(side * 0.52, 0.3, 0, side * 0.52, 0.3, 0.22);
+    g.addColorStop(0, dark ? 'rgba(255,105,105,0.32)' : 'rgba(255,95,100,0.5)'); g.addColorStop(1, 'rgba(255,105,105,0)');
+    c.fillStyle = g; c.fillRect(side * 0.52 - 0.24, 0.06, 0.48, 0.48);
   }
   if (acc.has('freckles')) {
     c.fillStyle = 'rgba(120,60,30,0.55)';
@@ -190,7 +190,8 @@ function paintFace(look, variant) {
   // eyes
   const lashes = !look.adult && (hashString(String(look.id) + 'l') % 2 === 0);
   const eyeC = EYES[look.eyeColor] || EYES.brown;
-  const ey = -0.02; const ex = 0.34; const rx = look.adult ? 0.12 : 0.15; const ry = look.adult ? 0.14 : 0.19;
+  // Big, glossy, mostly-iris cartoon eyes.
+  const ey = 0.01; const ex = 0.37; const rx = look.adult ? 0.145 : 0.19; const ry = look.adult ? 0.165 : 0.235;
   const blink = variant === 'blink';
   for (const side of [-1, 1]) {
     const cx = side * ex;
@@ -210,32 +211,34 @@ function paintFace(look, variant) {
     sg.addColorStop(0, '#e8e4e0'); sg.addColorStop(0.35, '#ffffff'); sg.addColorStop(1, '#f6f6f6');
     c.fillStyle = sg; c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.fill();
     // iris + pupil (look slightly inward and down: friendly, focused)
-    const ix = cx - side * 0.015; const iy = ey + ry * 0.12;
-    const ir = rx * 0.72;
-    const ig = c.createRadialGradient(ix, iy - ir * 0.3, ir * 0.1, ix, iy, ir);
-    ig.addColorStop(0, mix(eyeC, '#ffffff', 0.35)); ig.addColorStop(0.7, eyeC); ig.addColorStop(1, shade(eyeC, 0.55));
+    const ix = cx - side * 0.01; const iy = ey + ry * 0.06;
+    const ir = rx * 0.94;
+    const deep = shade(eyeC, 0.45);
+    const ig = c.createRadialGradient(ix, iy + ir * 0.35, ir * 0.05, ix, iy, ir * 1.1);
+    ig.addColorStop(0, mix(eyeC, '#ffffff', 0.15)); ig.addColorStop(0.55, eyeC); ig.addColorStop(1, deep);
     c.save(); c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.clip();
-    c.fillStyle = ig; c.beginPath(); c.ellipse(ix, iy, ir, ir * 1.15, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#0d0907'; c.beginPath(); c.ellipse(ix, iy + 0.005, ir * 0.48, ir * 0.55, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(255,255,255,0.95)'; c.beginPath(); c.ellipse(ix - ir * 0.35, iy - ir * 0.45, ir * 0.32, ir * 0.36, 0, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.ellipse(ix + ir * 0.35, iy + ir * 0.4, ir * 0.13, ir * 0.15, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = ig; c.beginPath(); c.ellipse(ix, iy, ir, ir * 1.18, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#120a06'; c.beginPath(); c.ellipse(ix, iy, ir * 0.55, ir * 0.64, 0, 0, Math.PI * 2); c.fill();
+    // two sparkles: a big one up-left, a small one down-right
+    c.fillStyle = 'rgba(255,255,255,0.97)'; c.beginPath(); c.ellipse(ix - ir * 0.32, iy - ir * 0.42, ir * 0.36, ir * 0.4, -0.3, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(ix + ir * 0.4, iy + ir * 0.42, ir * 0.15, ir * 0.17, 0, 0, Math.PI * 2); c.fill();
     // upper lid shadow
     c.fillStyle = 'rgba(60,30,20,0.18)'; c.beginPath(); c.ellipse(cx, ey - ry * 0.95, rx * 1.1, ry * 0.35, 0, 0, Math.PI * 2); c.fill();
     c.restore();
     // outline + thick upper lid
-    c.strokeStyle = ink; c.lineWidth = 0.018; c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.stroke();
-    c.lineWidth = 0.04; c.lineCap = 'round';
-    c.beginPath(); c.ellipse(cx, ey, rx * 1.02, ry * 1.02, 0, 1.08 * Math.PI, 1.92 * Math.PI); c.stroke();
+    c.strokeStyle = 'rgba(59,31,20,0.55)'; c.lineWidth = 0.012; c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = ink; c.lineWidth = 0.045; c.lineCap = 'round';
+    c.beginPath(); c.ellipse(cx, ey, rx * 1.02, ry * 1.02, 0, 1.1 * Math.PI, 1.9 * Math.PI); c.stroke();
     if (lashes) {
       c.lineWidth = 0.025;
       for (let k = 0; k < 2; k++) { c.beginPath(); const a = side > 0 ? -0.15 - k * 0.3 : Math.PI + 0.15 + k * 0.3; c.moveTo(cx + Math.cos(a) * rx, ey + Math.sin(a) * ry); c.lineTo(cx + Math.cos(a) * rx * 1.4, ey + Math.sin(a) * ry * 1.3 - 0.02); c.stroke(); }
     }
   }
   // brows
-  const browC = shade(HAIR[look.hairColor] || '#5c3a21', 0.75);
-  c.strokeStyle = browC; c.lineCap = 'round'; c.lineWidth = 0.055;
+  const browC = shade(HAIR[look.hairColor] || '#5c3a21', 0.55);
+  c.strokeStyle = browC; c.lineCap = 'round'; c.lineWidth = 0.075;
   for (const side of [-1, 1]) {
-    const cx = side * ex; const by = ey - ry - 0.09;
+    const cx = side * ex; const by = ey - ry - 0.1;
     let inner = 0; let outer = 0;
     if (look.mood === 'grump') { inner = 0.06; outer = -0.04; }
     if (look.mood === 'shy') { inner = -0.05; outer = 0.02; }
@@ -358,13 +361,13 @@ function hairCap(theta, lumps = 7, depth = 0.08) {
   return g;
 }
 
+// Open-ended tube for headbands and goggle straps.
+const BAND = new THREE.CylinderGeometry(1, 1, 1, 28, 1, true);
+
 /**
  * Build a character. Returns { root, parts, height, headY, update(dt, mode, speed), setTalking(b) }.
  * opts.uniform = [primary, secondary]; opts.number = jersey number.
  */
-// Open-ended tube for headbands and goggle straps.
-const BAND = new THREE.CylinderGeometry(1, 1, 1, 28, 1, true);
-
 export function buildCharacter(look, opts = {}) {
   const adult = !!look.adult;
   const rng = mulberry32(hashString(String(look.id || 'x')));
@@ -372,13 +375,13 @@ export function buildCharacter(look, opts = {}) {
   const grade = look.grade ?? 3;
   // Grown-ups: about 1.4x a kid's height with the same chunky cartoon style
   // (big head, sturdy limbs) rather than a stretched-out kid.
-  const R = adult ? 0.205 : grade <= 5 ? 0.235 : grade <= 8 ? 0.215 : 0.195;
+  const R = adult ? 0.225 : grade <= 5 ? 0.265 : grade <= 8 ? 0.24 : 0.215;
   const w = BUILD_W[look.build] ?? 1;
-  const legLen = (adult ? 0.52 : 0.4) * H * (look.build === 'lanky' ? 1.08 : 1);
-  const torsoLen = (adult ? 0.4 : 0.32) * H;
-  const rc = (adult ? 0.2 : 0.15) * w;
-  const lk = adult ? 1.45 : 1; // limb thickness
-  const fk = adult ? 1.22 : 1; // hands and shoes
+  const legLen = (adult ? 0.5 : 0.34) * H * (look.build === 'lanky' ? 1.08 : 1);
+  const torsoLen = (adult ? 0.38 : 0.29) * H;
+  const rc = (adult ? 0.2 : 0.168) * w;
+  const lk = adult ? 1.45 : 1.2; // limb thickness (chubby cartoon arms and legs)
+  const fk = adult ? 1.22 : 1.15; // hands and chunky sneakers
   const skin = SKIN[look.skin] || SKIN.tan;
   const hair = HAIR[look.hairColor] || HAIR.brown;
   const acc = new Set(look.accessories || []);
@@ -520,8 +523,8 @@ export function buildCharacter(look, opts = {}) {
   hb.sphere(R, skin, 0, hc, 0, [1, 0.97, 0.96], { mat: 'skin' });
   hb.sphere(R * 0.84, skin, 0, hc - R * 0.24, -R * 0.06, [1.1, 0.84, 0.94], { mat: 'skin' }); // chubby cheeks, kept inside the face
   for (const sd of [-1, 1]) {
-    hb.sphere(R * 0.21, skin, sd * R * 0.97, hc - R * 0.06, -R * 0.02, [0.55, 1, 0.78], { mat: 'skin' });
-    hb.sphere(R * 0.12, shade(skin, 0.82), sd * R * 1.03, hc - R * 0.06, -R * 0.0, [0.3, 0.75, 0.55], { mat: 'skin' });
+    hb.sphere(R * 0.27, skin, sd * R * 0.98, hc - R * 0.04, -R * 0.03, [0.5, 1, 0.82], { mat: 'skin' });
+    hb.sphere(R * 0.16, mix(skin, '#e07a6a', 0.22), sd * R * 1.07, hc - R * 0.04, 0.0, [0.28, 0.78, 0.6], { mat: 'skin' });
   }
   hb.sphere(R * 0.11, mix(skin, '#e07a6a', 0.18), 0, hc - R * 0.13, R * 0.98, [1.15, 0.92, 0.95], { mat: 'skin' });
   // headwear (one hat at a time) + hair tucked under it
@@ -570,7 +573,7 @@ export function buildCharacter(look, opts = {}) {
 
   // ---- arms
   const shoulderY = torsoLen * (adult ? 0.8 : 0.84);
-  const armLen = (adult ? 0.4 : 0.27) * H;
+  const armLen = (adult ? 0.4 : 0.25) * H;
   const sleevePattern = top === 'flannel' || (pattern && pattern !== 'tie-dye') ? (x, y, z) => patternShade(x * 0.4, y * 0.3, z * 0.4) : null;
   const mkArm = (sd) => {
     const ab = new Builder();
@@ -579,7 +582,7 @@ export function buildCharacter(look, opts = {}) {
     if (noSleeve) ab.sphere(0.046 * sw, skin, -sd * 0.008, -0.01, 0, [1, 1, 1], { mat: 'skin' });
     else {
       ab.sphere(0.052 * sw * (adult ? 0.85 : 1), sleeveC, -sd * 0.012, -0.005, 0, [1, 1, 1], { mat: 'cloth', shade: sleevePattern });
-      if (!longSleeve) ab.add(SLEEVE, sleeveC, [0, -ua * 0.72, 0], [0, 0, 0], [0.058 * sw, ua * 0.74, 0.056 * sw], sleevePattern, 'cloth');
+      if (!longSleeve) ab.add(CAPSULE, sleeveC, [0, -ua * 0.32, 0], [0, 0, 0], [0.057 * sw, ua * 0.42, 0.055 * sw], sleevePattern, 'cloth'); // puffy closed short sleeve
     }
     if (uniform) ab.add(TORUS, trim, [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.058, 0.058, 0.25], null, 'cloth');
     if (top === 'raglan' && !uniform) ab.add(TORUS, shade(sleeveC, 0.8), [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.057, 0.057, 0.22], null, 'cloth');

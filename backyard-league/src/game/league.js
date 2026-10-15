@@ -265,7 +265,8 @@ export function recordResult(state, game, result, week) {
       msgs.push(`Home game: ${rev.fans} fans. ${parts.join(' + ')}${rev.parents ? ` - Mom & Dad's cut $${rev.parents.toFixed(2)}` : ''}${rev.rent ? ` - rent $${rev.rent}` : ''}${rev.staffPay ? ` - staff $${rev.staffPay}` : ''} = $${rev.net.toFixed(2)}`);
     }
     // League prize money for results, home or away.
-    const prize = result.forfeit ? 0 : won ? PRIZES.win : tie ? PRIZES.tie : 0;
+    const pz = PRIZES[lg.band] || PRIZES.jr;
+    const prize = result.forfeit ? 0 : won ? pz.win : tie ? pz.tie : 0;
     if (prize) { state.money = +(state.money + prize).toFixed(2); msgs.push(`League ${won ? 'win' : 'tie'} bonus: +$${prize}`); }
     state.player.rep += won ? 2 : 0.5;
     const ringers = state.team.roster.filter((id) => id !== 'PLAYER' && state.kids[id].ringer);
@@ -289,9 +290,8 @@ export function simOtherGames(state, week) {
 export function standings(state) {
   const lg = state.league;
   if (!lg) return [];
-  // Win percentage first, so a team that joined mid-season isn't punished for games it never played.
-  const pct = (t) => { const gp = t.w + t.l + t.t; return gp ? (t.w + t.t / 2) / gp : 0; };
-  return lg.teams.slice().sort((a, b) => pct(b) - pct(a) || (b.w * 2 + b.t) - (a.w * 2 + a.t) || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf);
+  // Points (2 per win, 1 per tie). Joining late means fewer games to earn them.
+  return lg.teams.slice().sort((a, b) => (b.w * 2 + b.t) - (a.w * 2 + a.t) || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf);
 }
 
 export function startPlayoffs(state) {
@@ -339,7 +339,8 @@ export function endSeason(state) {
     const place = standings(state).findIndex((t) => t.player) + 1;
     const playoffs = !!(lg.playoffs && lg.playoffs.some((r) => r.games.some((g) => g.home === state.team.name || g.away === state.team.name)));
     state.team.history.push({ sid: lg.sid, label, w: mine.w, l: mine.l, t: mine.t, place, playoffs, champion: champ === state.team.name });
-    const purse = champ === state.team.name ? PRIZES.champion : runner === state.team.name ? PRIZES.runnerUp : playoffs ? PRIZES.semifinal : 0;
+    const pz = PRIZES[lg.band] || PRIZES.jr;
+    const purse = champ === state.team.name ? pz.champion : runner === state.team.name ? pz.runnerUp : playoffs ? pz.semifinal : 0;
     if (purse) { state.money = +(state.money + purse).toFixed(2); msgs.push(`League prize money: +$${purse}!`); }
     if (champ === state.team.name) {
       state.team.championships += 1;

@@ -76,6 +76,8 @@ test('parents: small asks are a gamble, $20-$100 need good answers, over $100 is
   const c = newGame(opts()); c.money = 0;
   assert.ok(askParents(c, 100, PITCH_ROUNDS.length).ok);
   assert.equal(c.money, 100);
+  c.time.day += 30;
+  assert.equal(askParents(c, 50, PITCH_ROUNDS.length).ok, false); // only once for the team
   const d = newGame(opts()); d.money = 0;
   for (let i = 0; i < 4; i++) doChore(d);
   assert.equal(d.money, 3); // three chores a day, $1 each

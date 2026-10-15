@@ -8,9 +8,10 @@ import { seeded, pick, clamp, randInt } from './rng.js';
 import { fill } from './social.js';
 
 // --------------------------------------------------------- parents ------
-// Small asks (under $20) are a gamble that good grades help. From $20 up they
-// want to know what it's for: $20 takes one good answer, $21-$100 takes all
-// three. More than $100 is always a no.
+// Hidden rules (players discover them): small asks (under $20) are a gamble
+// that good grades help. From $20 up they want to know what it's for: $20
+// takes one good answer, $21-$100 takes all three. More than $100 is always a
+// no. Once they've funded the team, big asks are over for good.
 export const ASK_MAX = 200;
 export const ASK_REASON_MIN = 20;
 export const ASK_BIG_MAX = 100;
@@ -27,8 +28,8 @@ export function askChance(state, amount) {
 }
 
 /** How many questions they'll ask before handing over this much (0 = none). */
-export function askQuestions(amount) {
-  if (amount < ASK_REASON_MIN || amount > ASK_BIG_MAX) return 0;
+export function askQuestions(amount, state = null) {
+  if (amount < ASK_REASON_MIN || amount > ASK_BIG_MAX || (state && state.parents.teamFunded)) return 0;
   return amount === ASK_REASON_MIN ? 1 : PITCH_ROUNDS.length;
 }
 
@@ -64,6 +65,10 @@ export function askParents(state, amount, answers = 0) {
     p.nextAskDay = state.time.day + 2;
     return { ok: false, big: true, text: fill(PARENT_LINES.big[0], { amount: `$${amount}` }) };
   }
+  if (amount >= ASK_REASON_MIN && p.teamFunded) {
+    p.nextAskDay = state.time.day + 2;
+    return { ok: false, text: 'We already helped with your team, Coach. You\'re on your own from here!' };
+  }
   const needed = askQuestions(amount);
   const ok = needed ? answers >= needed : rng() < askChance(state, amount);
   if (!ok) {
@@ -71,7 +76,8 @@ export function askParents(state, amount, answers = 0) {
     return { ok: false, text: needed ? 'Hmm. That wasn\'t very convincing, kiddo. Show us you\'re serious first.' : pick(rng, PARENT_LINES.no) };
   }
   state.money += amount;
-  p.nextAskDay = state.time.day + (needed ? 7 : 2); // big asks: once a week at most
+  p.nextAskDay = state.time.day + 2;
+  if (needed) p.teamFunded = true; // they only do this once
   addLog(state, `Mom & Dad gave you $${amount.toFixed(2)}.`);
   return { ok: true, amount, text: needed ? 'Okay. We\'re proud of you. Make it count, Coach!' : pick(rng, PARENT_LINES.yes) };
 }

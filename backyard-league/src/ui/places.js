@@ -35,23 +35,14 @@ const HANDLERS = {
     const lim = generosityLimit(s);
     const amt = h('input', { type: 'range', min: 0, max: ASK_MAX, step: 1, value: Math.min(5, Math.round(lim)) });
     const label = h('div', { class: 'quiz-q' });
-    const odds = h('div', { class: 'muted' });
-    const upd = () => {
-      const v = +amt.value;
-      label.textContent = `Ask for ${money(v)}`;
-      const c = askChance(s, v);
-      odds.textContent = v === 0 ? 'Slide to pick an amount.'
-        : v > ASK_BIG_MAX ? 'Way too much. They\'re going to say no.'
-          : v >= ASK_REASON_MIN ? `They'll want to know what it's for (${askQuestions(v)} question${askQuestions(v) > 1 ? 's' : ''}).`
-            : c > 0.85 ? 'They\'ll probably say yes.' : c > 0.5 ? 'Could go either way.' : c > 0.15 ? 'That\'s a lot to ask...' : 'They\'re probably going to say no.';
-    };
+    const upd = () => { label.textContent = `Ask for ${money(+amt.value)}`; };
     amt.addEventListener('input', upd);
     upd();
     const ready = s.time.day >= s.parents.nextAskDay;
     const left = choresLeft(s);
     const body = h('div', {},
-      h('p', {}, 'Under $20 is a coin flip that good grades help. From $20 to $100 they\'ll ask what it\'s for, so have good answers ready.'),
-      ready ? h('div', {}, label, amt, odds) : h('p', {}, `"You JUST asked us! Give it a few days." (Ask again on day ${s.parents.nextAskDay}.)`));
+      h('p', {}, 'Need some money? You can always ask...'),
+      ready ? h('div', {}, label, amt) : h('p', {}, `"You JUST asked us! Give it a few days." (Ask again on day ${s.parents.nextAskDay}.)`));
     const done = (r) => {
       sfx(r.ok ? 'coin' : 'bad');
       modal({ title: r.ok ? `+${money(r.amount)}!` : 'Nope.', body: `"${r.text}"` });
@@ -63,7 +54,7 @@ const HANDLERS = {
       buttons: [
         ready ? { label: 'Ask for money', cls: 'green', onClick: () => {
           const v = +amt.value;
-          const n = askQuestions(v);
+          const n = askQuestions(v, s);
           if (!n) { done(askParents(s, v)); return; }
           // $20-$100: answer their questions first.
           let good = 0;

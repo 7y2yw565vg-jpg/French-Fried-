@@ -314,7 +314,11 @@ export const UPGRADES = {
 export const UPGRADE_IDS = Object.keys(UPGRADES);
 
 // League prize money (paid for home AND away games).
-export const PRIZES = { win: 8, tie: 3, semifinal: 10, runnerUp: 30, champion: 75 };
+export const PRIZES = {
+  jr: { win: 20, tie: 5, semifinal: 100, runnerUp: 500, champion: 1000 },
+  middle: { win: 50, tie: 12, semifinal: 250, runnerUp: 1250, champion: 2500 },
+  hs: { win: 100, tie: 25, semifinal: 500, runnerUp: 2500, champion: 5000 },
+};
 
 // Team gear: equipment that makes every kid on your roster better on game day.
 // boosts[sport][stat] = bonus at each tier.

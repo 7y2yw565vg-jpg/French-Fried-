@@ -268,7 +268,8 @@ function pricesBox(s) {
   if (sellsMerch(s)) slider('merch', `🧢 ${upgradeName(s, 'merch')}`, UPGRADES.merch.fair[s.team.upgrades.merch]);
   else box.appendChild(h('p', { class: 'muted' }, '🧢 Merch: unlock it in Upgrades (Team Merch) to sell to fans.'));
   box.appendChild(est);
-  box.appendChild(h('p', { class: 'muted' }, `Win bonus ${money(PRIZES.win)}, tie ${money(PRIZES.tie)} (home or away). Playoffs ${money(PRIZES.semifinal)}, runner-up ${money(PRIZES.runnerUp)}, champions ${money(PRIZES.champion)}.`));
+  const pz = PRIZES[playerBand(s).id] || PRIZES.jr;
+  box.appendChild(h('p', { class: 'muted' }, `${playerBand(s).name} prize money: win ${money(pz.win)}, tie ${money(pz.tie)} (home or away). Make the playoffs ${money(pz.semifinal)}, runner-up ${money(pz.runnerUp)}, champions ${money(pz.champion)}.`));
   showEst();
   return box;
 }
