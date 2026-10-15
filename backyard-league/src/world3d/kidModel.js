@@ -213,12 +213,13 @@ function paintFace(look, variant) {
     // iris + pupil (look slightly inward and down: friendly, focused)
     const ix = cx - side * 0.01; const iy = ey + ry * 0.06;
     const ir = rx * 0.94;
-    const deep = shade(eyeC, 0.45);
+    const irisC = mix(eyeC, '#3a2414', 0.45); // warm, dark cartoon irises
+    const deep = shade(irisC, 0.4);
     const ig = c.createRadialGradient(ix, iy + ir * 0.35, ir * 0.05, ix, iy, ir * 1.1);
-    ig.addColorStop(0, mix(eyeC, '#ffffff', 0.15)); ig.addColorStop(0.55, eyeC); ig.addColorStop(1, deep);
+    ig.addColorStop(0, mix(irisC, '#ffffff', 0.2)); ig.addColorStop(0.55, irisC); ig.addColorStop(1, deep);
     c.save(); c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.clip();
     c.fillStyle = ig; c.beginPath(); c.ellipse(ix, iy, ir, ir * 1.18, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#120a06'; c.beginPath(); c.ellipse(ix, iy, ir * 0.55, ir * 0.64, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#100805'; c.beginPath(); c.ellipse(ix, iy, ir * 0.62, ir * 0.72, 0, 0, Math.PI * 2); c.fill();
     // two sparkles: a big one up-left, a small one down-right
     c.fillStyle = 'rgba(255,255,255,0.97)'; c.beginPath(); c.ellipse(ix - ir * 0.32, iy - ir * 0.42, ir * 0.36, ir * 0.4, -0.3, 0, Math.PI * 2); c.fill();
     c.beginPath(); c.ellipse(ix + ir * 0.4, iy + ir * 0.42, ir * 0.15, ir * 0.17, 0, 0, Math.PI * 2); c.fill();
@@ -267,13 +268,14 @@ function paintFace(look, variant) {
   };
   c.strokeStyle = ink; c.lineWidth = 0.032;
   switch (mood) {
-    case 'grin': case 'talk': openMouth(mood === 'talk' ? 0.16 : 0.22, mood === 'talk' ? 0.13 : 0.12); break;
+    case 'grin': case 'talk': openMouth(mood === 'talk' ? 0.16 : 0.22, mood === 'talk' ? 0.13 : 0.13); break;
+    case 'smile': openMouth(0.18, 0.09); break;
     case 'smirk':
       c.beginPath(); c.moveTo(-0.16, my + 0.02); c.quadraticCurveTo(0.02, my + 0.1, 0.19, my - 0.06); c.stroke();
       c.beginPath(); c.moveTo(0.17, my - 0.09); c.lineTo(0.21, my - 0.03); c.stroke();
       break;
     case 'shy':
-      c.beginPath(); c.moveTo(-0.08, my + 0.03); c.quadraticCurveTo(0, my + 0.07, 0.08, my + 0.03); c.stroke();
+      c.beginPath(); c.moveTo(-0.12, my + 0.01); c.quadraticCurveTo(0, my + 0.1, 0.12, my + 0.01); c.stroke();
       break;
     case 'grump':
       c.beginPath(); c.moveTo(-0.12, my + 0.06); c.quadraticCurveTo(0, my - 0.0, 0.12, my + 0.06); c.stroke();
@@ -526,7 +528,7 @@ export function buildCharacter(look, opts = {}) {
     hb.sphere(R * 0.27, skin, sd * R * 0.98, hc - R * 0.04, -R * 0.03, [0.5, 1, 0.82], { mat: 'skin' });
     hb.sphere(R * 0.16, mix(skin, '#e07a6a', 0.22), sd * R * 1.07, hc - R * 0.04, 0.0, [0.28, 0.78, 0.6], { mat: 'skin' });
   }
-  hb.sphere(R * 0.11, mix(skin, '#e07a6a', 0.18), 0, hc - R * 0.13, R * 0.98, [1.15, 0.92, 0.95], { mat: 'skin' });
+  hb.sphere(R * 0.135, mix(skin, '#e07a6a', 0.22), 0, hc - R * 0.17, R * 0.97, [1.2, 0.95, 0.9], { mat: 'skin' });
   // headwear (one hat at a time) + hair tucked under it
   const hat = acc.has('baseball cap') ? 'cap' : acc.has('backwards cap') ? 'backwards cap' : acc.has('beanie') ? 'beanie' : acc.has('bucket hat') ? 'bucket hat' : null;
   if (hat) addHat(hb, hat, R, hc, hat === 'bucket hat' ? '#c9b27c' : fav, hat === 'beanie' ? '#ffffff' : lightKit(fav) ? '#e63946' : '#ffffff', hair);
@@ -582,7 +584,7 @@ export function buildCharacter(look, opts = {}) {
     if (noSleeve) ab.sphere(0.046 * sw, skin, -sd * 0.008, -0.01, 0, [1, 1, 1], { mat: 'skin' });
     else {
       ab.sphere(0.052 * sw * (adult ? 0.85 : 1), sleeveC, -sd * 0.012, -0.005, 0, [1, 1, 1], { mat: 'cloth', shade: sleevePattern });
-      if (!longSleeve) ab.add(CAPSULE, sleeveC, [0, -ua * 0.32, 0], [0, 0, 0], [0.057 * sw, ua * 0.42, 0.055 * sw], sleevePattern, 'cloth'); // puffy closed short sleeve
+      if (!longSleeve) ab.add(CAPSULE, sleeveC, [0, -ua * 0.24, 0], [0, 0, 0], [0.06 * sw, ua * 0.5, 0.058 * sw], sleevePattern, 'cloth'); // puffy closed short sleeve
     }
     if (uniform) ab.add(TORUS, trim, [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.058, 0.058, 0.25], null, 'cloth');
     if (top === 'raglan' && !uniform) ab.add(TORUS, shade(sleeveC, 0.8), [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.057, 0.057, 0.22], null, 'cloth');

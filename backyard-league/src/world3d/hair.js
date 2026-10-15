@@ -59,14 +59,15 @@ function strandTexture() {
   const S = 256;
   const cv = document.createElement('canvas'); cv.width = cv.height = S;
   const c = cv.getContext('2d');
-  c.fillStyle = 'rgb(214,214,214)'; c.fillRect(0, 0, S, S);
+  // Soft sculpted look: a few broad, low-contrast combing bands instead of fine strands.
+  c.fillStyle = 'rgb(232,232,232)'; c.fillRect(0, 0, S, S);
   const rng = mulberry32(4242);
-  for (let i = 0; i < 520; i++) {
-    const x = rng() * S; const v = 150 + rng() * 105; const w = 0.6 + rng() * 1.8;
-    c.strokeStyle = `rgba(${v},${v},${v},${0.35 + rng() * 0.5})`; c.lineWidth = w;
+  for (let i = 0; i < 70; i++) {
+    const x = rng() * S; const v = 196 + rng() * 50; const w = 4 + rng() * 9;
+    c.strokeStyle = `rgba(${v},${v},${v},${0.25 + rng() * 0.3})`; c.lineWidth = w; c.lineCap = 'round';
     for (const dx of [-S, 0, S]) {
       c.beginPath(); c.moveTo(x + dx, 0);
-      for (let y = 0; y <= S; y += 16) c.lineTo(x + dx + Math.sin(y * 0.05 + i) * 1.5, y);
+      for (let y = 0; y <= S; y += 16) c.lineTo(x + dx + Math.sin(y * 0.03 + i) * 3, y);
       c.stroke();
     }
   }
@@ -80,7 +81,7 @@ function strandTexture() {
 let hairMat = null;
 export function hairMaterial() {
   if (!hairMat) {
-    hairMat = new THREE.MeshStandardMaterial({ vertexColors: true, map: strandTexture(), roughness: 0.48, metalness: 0.02 });
+    hairMat = new THREE.MeshStandardMaterial({ vertexColors: true, map: strandTexture(), roughness: 0.4, metalness: 0.02 });
     hairMat.userData.shared = true;
   }
   return hairMat;
