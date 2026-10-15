@@ -199,7 +199,7 @@ export const ITEMS = {
   cookie_dough: { name: 'Cookie Dough', price: 2, shop: 'grocery', kind: 'gift', like: 'baking', food: true, icon: '🍪' },
   pudding: { name: 'Pudding Cup', price: 1, shop: 'grocery', kind: 'gift', food: true, icon: '🍮' },
   // Mall: sporting goods
-  team_shirt: { name: 'Plain Team Shirt', price: 6, shop: 'sporting goods', kind: 'team', icon: '👕' },
+  team_shirt: { name: 'Plain Team Shirt', price: 4, shop: 'sporting goods', kind: 'team', icon: '👕' },
   cones: { name: 'Orange Cones (10)', price: 8, shop: 'sporting goods', kind: 'drill', icon: '🔶' },
   sport_ball: { name: 'Practice Ball', price: 10, shop: 'sporting goods', kind: 'drill', icon: '🏐' },
   chalk_tape: { name: 'Chalk + Measuring Tape', price: 5, shop: 'sporting goods', kind: 'drill', icon: '📏' },

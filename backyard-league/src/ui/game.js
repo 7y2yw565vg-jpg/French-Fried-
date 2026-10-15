@@ -380,6 +380,10 @@ export class Game {
       d.interact.push({ kind: 'task', x, z, r: 1.6, label: t.label, data: { taskId: t.id } });
     }
     if (d.extra && d.extra.mowLawn) this.engine.addMarker(d.extra.mowLawn.x, d.extra.mowLawn.z, '#74c69d', 'Mowing job');
+    // Still need team shirts? Point at the Sporting Goods counter.
+    const need = Math.max(SPORTS[s.team.sport].minRoster, s.team.roster.length);
+    const shop = d.interact.find((i) => i.kind === 'shop' && i.data && i.data.shop === 'sporting goods');
+    if (shop && s.team.shirts < need) this.engine.addMarker(shop.x, shop.z, '#ffd23f', 'Team shirts here!');
   }
 
   // ------------------------------------------------------------- time ---

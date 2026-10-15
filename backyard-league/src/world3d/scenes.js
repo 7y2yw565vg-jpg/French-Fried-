@@ -1011,7 +1011,7 @@ export function buildMall() {
   const mb = mall.b;
   P.addSign(sc.group, 'GRUBBSVILLE MALL', -54.4, 5.0, 1, 9, -Math.PI / 2, { bg: '#e63946', color: '#ffffff', stroke: '#7a1020' });
   const stores = [
-    ['sporting goods', -40, 16, 'Sporty Spice Sports', '#2a9d8f'], ['game shop', -22, 14, 'Level Up Games', '#8338ec'],
+    ['sporting goods', -40, 16, 'Sporting Goods', '#2a9d8f'], ['game shop', -22, 14, 'Level Up Games', '#8338ec'],
     ['shoe store', -6, 12, 'Sole Patrol', '#e76f51'], ['dollar store', 8, 12, 'Dollar Dreams', '#ffbe0b'],
     ['pet store', 22, 12, 'Pawsome Pets', '#06d6a0'], ['arcade', 40, 16, 'ARCADE', '#ff006e'],
   ];

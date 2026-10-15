@@ -102,7 +102,7 @@ export function registrationChecklist(state) {
   const info = dayInfo(state.time.day);
   return [
     { id: 'roster', label: `Roster of at least ${sp.minRoster} (you count!)`, done: state.team.roster.length >= sp.minRoster, detail: `${state.team.roster.length}/${sp.minRoster}` },
-    { id: 'shirts', label: `${sp.minRoster} team shirts ($${sp.shirtCost} each at Sporting Goods)`, done: state.team.shirts >= Math.max(sp.minRoster, state.team.roster.length), detail: `${state.team.shirts}/${Math.max(sp.minRoster, state.team.roster.length)}` },
+    { id: 'shirts', label: `${sp.minRoster} team shirts ($${sp.shirtCost} each at Sporting Goods in the mall)`, done: state.team.shirts >= Math.max(sp.minRoster, state.team.roster.length), detail: `${state.team.shirts}/${Math.max(sp.minRoster, state.team.roster.length)}` },
     { id: 'setup', label: `Field setup: ${UPGRADES.goals.names[state.team.sport][0]} ($${sp.setupCost})`, done: state.team.setup, cost: sp.setupCost },
     { id: 'fee', label: `League entry fee ($${sp.entryFee}) at the Library league desk`, done: isRegistered(state), cost: sp.entryFee },
     { id: 'window', label: 'A league season with games left (join any time up to week 11)', done: isRegistered(state) || (!!info.season && info.season.week <= REGISTER_LAST_WEEK), detail: info.season ? `${info.season.name} week ${info.season.week}` : 'Summer break' },

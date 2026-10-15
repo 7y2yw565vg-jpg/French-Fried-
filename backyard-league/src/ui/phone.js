@@ -59,7 +59,7 @@ function teamTab(game, root, redraw) {
     const reg = h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, '📋 Get into the league'));
     for (const c of registrationChecklist(s)) reg.appendChild(h('div', { class: `check ${c.done ? 'done' : ''}` }, h('div', { class: 'mark' }, c.done ? '✓' : ''), h('div', {}, c.label, c.detail ? h('span', { class: 'muted' }, ` (${c.detail})`) : null)));
     if (!s.team.setup) reg.appendChild(btn(`Buy field setup (${money(sp.setupCost)})`, () => { const r = buySetup(s); toast(r.ok ? 'Your backyard is ready!' : r.reason, r.ok ? 'good' : 'bad'); redraw(); }, 'small green'));
-    reg.appendChild(h('p', { class: 'muted' }, 'Shirts: Sporting Goods at the mall. Entry fee: the league desk at the Library.'));
+    reg.appendChild(h('p', { class: 'muted' }, 'Shirts: Sporting Goods, the first store on the left inside the mall (Map → Mall). Entry fee: the league desk at the Library.'));
     root.appendChild(reg);
   }
 

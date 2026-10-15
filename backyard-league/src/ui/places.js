@@ -313,9 +313,9 @@ export function openShop(game, shopId) {
               const r = buy(s, id, qty);
               sfx(r.ok ? 'coin' : 'bad');
               toast(r.text, r.ok ? 'good' : 'bad');
-              draw(); game.hud.render();
+              draw(); game.hud.render(); game.addTaskMarkers();
             }, 'small green', s.money + 1e-9 < it.price * qty ? { disabled: true } : {}),
-            qty > 1 ? btn('Buy 1', () => { const r = buy(s, id, 1); toast(r.text, r.ok ? 'good' : 'bad'); draw(); game.hud.render(); }, 'small white') : null));
+            qty > 1 ? btn('Buy 1', () => { const r = buy(s, id, 1); toast(r.text, r.ok ? 'good' : 'bad'); draw(); game.hud.render(); game.addTaskMarkers(); }, 'small white') : null));
       }));
   };
   draw();
