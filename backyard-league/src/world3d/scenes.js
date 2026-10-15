@@ -3,7 +3,7 @@
 // Buildings are real: roofs from outside, cutaway walls inside, and school
 // classrooms are "focus" rooms (only the room you're in is drawn).
 import * as THREE from 'three';
-import { Builder, shade, signMesh, BOX, RBOX, CYL, PRISM } from './toon.js';
+import { Builder, shade, signMesh, BOX, RBOX, CYL, PRISM, TORUS } from './toon.js';
 import * as P from './props.js';
 import { buildField } from './fields.js';
 import { trophyModel } from './props.js';
@@ -190,6 +190,131 @@ export function buildHome(opts) {
   hb.box(1.3, 0.03, 2.0, '#2b1d14', -2.2, 0.04, -7.0, { mat: 'wood' });
   for (let i = 0; i < 5; i++) hb.box(1.2, 0.05, 0.3, '#7a5c45', -2.2, 0.06, -7.8 + i * 0.38, { mat: 'wood' });
   act(sc, 'basement', -2.2, -6.6, 'Stairs to the basement (trophy room)');
+  // ---- furnishings (doorways at x=-4.2/-1 on z=-8, z=-11 on x=1, z=-5 on x=-3 and x=1 stay clear)
+  const frng = mulberry32(41);
+  // kitchen: the middle counter becomes the range; an L of counters with the sink runs up the west wall
+  const kf = P.frame(hb, -6.6, -7.55, 0);
+  for (const [dx, dz] of [[-0.15, -0.12], [0.15, -0.12], [-0.15, 0.12], [0.15, 0.12]]) { kf.cyl(0.1, 0.1, 0.012, '#4a4a50', dx, 1.0, dz, 'metal'); kf.cyl(0.05, 0.05, 0.014, '#2b2b2f', dx, 1.0, dz, 'metal'); }
+  kf.box(0.6, 0.56, 0.03, '#d9dde2', 0, 0.12, 0.33, 'metal').box(0.42, 0.22, 0.01, '#1d2733', 0, 0.36, 0.35, 'plastic').box(0.46, 0.03, 0.03, '#9aa0a6', 0, 0.62, 0.37, 'metal');
+  for (let i = 0; i < 4; i++) kf.hcyl(0.028, 0.03, '#2b2b2f', -0.21 + i * 0.14, 0.8, 0.33, 'z', 'plastic');
+  kf.box(0.72, 0.22, 0.42, '#c0c7cf', 0, 1.46, -0.12, 'metal').box(0.6, 0.02, 0.34, '#2b2b2f', 0, 1.45, -0.1, 'metal');
+  kf.cyl(0.11, 0.1, 0.12, '#9aa0a6', -0.15, 1.012, 0.12, 'metal').box(0.2, 0.015, 0.02, '#2b2b2f', -0.36, 1.1, 0.12, 'plastic');
+  kf.ball(0.09, '#e63946', 0.15, 1.08, -0.12, 'plastic', [1, 0.8, 1]).hcyl(0.012, 0.1, '#2b2b2f', 0.15, 1.16, -0.12, 'x', 'plastic');
+  // microwave, utensil crock, toaster, coffee maker
+  hb.box(0.55, 0.32, 0.38, '#2b2b2f', -8.45, 0.96, -7.66, { mat: 'plastic' });
+  hb.box(0.36, 0.22, 0.01, '#1d2733', -8.52, 1.01, -7.465, { mat: 'glass' });
+  hb.box(0.1, 0.24, 0.01, '#9aa0a6', -8.25, 1.0, -7.465, { mat: 'metal' });
+  hb.cyl(0.07, 0.07, 0.16, '#e9c46a', -7.85, 0.96, -7.72, { mat: 'plastic' });
+  for (const [dx, c] of [[-0.03, '#c0c7cf'], [0.02, '#e63946'], [0.04, '#2b2b2f']]) hb.cyl(0.012, 0.012, 0.24, c, -7.85 + dx, 1.0, -7.72 + dx, { mat: 'plastic' });
+  hb.box(0.12, 0.22, 0.18, '#8d5a3b', -7.55, 0.96, -7.74, { mat: 'wood' });
+  hb.rbox(0.28, 0.2, 0.18, '#c0c7cf', -5.85, 0.96, -7.66, { mat: 'metal' });
+  hb.box(0.2, 0.01, 0.03, '#1a1a1a', -5.85, 1.16, -7.69, { mat: 'plastic' }); hb.box(0.2, 0.01, 0.03, '#1a1a1a', -5.85, 1.16, -7.62, { mat: 'plastic' });
+  hb.box(0.22, 0.36, 0.24, '#1a1a1a', -5.3, 0.96, -7.72, { mat: 'plastic' });
+  hb.cyl(0.065, 0.06, 0.13, '#cfe8ff', -5.3, 0.97, -7.58, { mat: 'glass' }); hb.cyl(0.055, 0.055, 0.06, '#4a2c1a', -5.3, 0.98, -7.58, { mat: 'plastic' });
+  hb.box(0.03, 0.03, 0.01, '#e63946', -5.22, 1.26, -7.6, { mat: 'glow' });
+  // west run: two cabinets, sink under the window, dishwasher, upper cabinet, fruit bowl, paper towels
+  for (const cz of [-6.555, -5.185]) hb.rbox(0.62, 0.9, 1.36, '#5c8a6b', -8.56, 0, cz, { mat: 'wood', collide: true });
+  hb.box(0.7, 0.06, 2.74, '#f1efe9', -8.55, 0.9, -5.87, { mat: 'tile' });
+  hb.box(0.44, 0.03, 0.62, '#c0c7cf', -8.55, 0.95, -5.0, { mat: 'metal' }); hb.box(0.36, 0.01, 0.52, '#7d848c', -8.55, 0.975, -5.0, { mat: 'metal' });
+  const sf = P.frame(hb, -8.8, -5.0, Math.PI / 2);
+  sf.cyl(0.022, 0.022, 0.26, '#c0c7cf', 0, 0.96, 0, 'metal').box(0.03, 0.03, 0.2, '#c0c7cf', 0, 1.2, 0.09, 'metal');
+  for (const sd of [-0.13, 0.13]) sf.cyl(0.02, 0.02, 0.08, '#c0c7cf', sd, 0.96, 0, 'metal');
+  hb.box(0.02, 0.76, 0.6, '#d9dde2', -8.24, 0.08, -5.78, { mat: 'metal' }); hb.box(0.03, 0.03, 0.44, '#9aa0a6', -8.22, 0.76, -5.78, { mat: 'metal' });
+  hb.rbox(0.4, 0.7, 1.2, '#5c8a6b', -8.68, 1.7, -6.55, { mat: 'wood' });
+  hb.cyl(0.16, 0.1, 0.08, '#ffffff', -8.55, 0.96, -6.25, { mat: 'plastic' });
+  for (const [dx, dz, c] of [[-0.05, -0.04, '#e63946'], [0.06, 0.02, '#f4a261'], [-0.02, 0.07, '#8ac926'], [0.05, -0.07, '#e63946']]) hb.add(P.ICO, c, [-8.55 + dx, 1.08, -6.25 + dz], [0, 0, 0], [0.065, 0.065, 0.065], null, 'plastic');
+  hb.add(P.ICO, '#ffd23f', [-8.53, 1.13, -6.25], [0, 0, 0.4], [0.16, 0.04, 0.05], null, 'plastic');
+  hb.cyl(0.08, 0.08, 0.015, '#8d5a3b', -8.6, 0.96, -7.05, { mat: 'wood' }); hb.cyl(0.06, 0.06, 0.24, '#ffffff', -8.6, 0.975, -7.05, { mat: 'fabric' });
+  P.rug(hb, -7.85, -5.4, 0.7, 1.6, '#e9c46a', '#e76f51');
+  // trash + recycling by the hall wall, wall clock, fridge art
+  P.trashCan(hb, -3.38, -2.42, '#9aa0a6', 0.9); P.trashCan(hb, -3.85, -2.42, '#1982c4', 0.9, true);
+  sc.colliders.push({ minX: -4.05, maxX: -3.08, minZ: -2.62, maxZ: -2.12 });
+  P.wallClock(hb, -3.08, 2.1, -3.1, -Math.PI / 2);
+  hb.box(0.012, 0.02, 0.76, '#9aa0a6', -7.945, 1.45, -3.0, { mat: 'metal' });
+  for (const [y, z0, c] of [[1.25, -3.18, '#ffffff'], [1.7, -2.98, '#fff3b0'], [0.8, -3.15, '#bde0fe']]) {
+    hb.box(0.01, 0.28, 0.22, c, -7.94, y - 0.14, z0, { mat: 'plain' });
+    hb.box(0.012, 0.1, 0.12, ['#e63946', '#2a9d8f', '#f4a261'][Math.floor(y * 3) % 3], -7.935, y - 0.12, z0 + 0.02, { mat: 'plain' });
+    hb.box(0.02, 0.04, 0.04, '#e63946', -7.93, y + 0.08, z0, { mat: 'plastic' });
+  }
+  for (let i = 0; i < 6; i++) hb.box(0.02, 0.05, 0.05, ['#ffd23f', '#3a86ff', '#8ac926', '#ff006e'][i % 4], -7.93, 0.55 + (i % 3) * 0.5, -3.3 + Math.floor(i / 3) * 0.16, { mat: 'plastic' });
+
+  // living room: pillows, armchair, side table + lamp, bookshelf, floor lamp, console + speakers, art, curtains
+  const pf = P.frame(hb, lx, -13.42, 0);
+  for (const [dx, c] of [[-1.2, '#ffd166'], [-0.95, '#ef476f'], [1.15, '#06d6a0']]) pf.rbox(0.38, 0.36, 0.13, c, dx, 0.6, 0, 'fabric', { rx: -0.25, rz: dx * 0.08 });
+  P.armchair(hb, -8.35, -10.6, Math.PI / 2, '#2a9d8f');
+  P.table(hb, -8.5, -9.4, 0.45, 0.45, 0.55, '#8d5a3b'); sc.colliders.push({ minX: -8.75, maxX: -8.25, minZ: -9.65, maxZ: -9.15 });
+  P.tableLamp(hb, -8.5, 0.55, -9.4, '#fff1c9', '#e76f51');
+  P.bookshelf(hb, -1.6, -13.55, 2, 0, frng);
+  hb.cyl(0.08, 0.06, 0.25, '#457b9d', -2.3, 2.0, -13.6, { mat: 'plastic' });
+  hb.cyl(0.05, 0.05, 0.12, '#f7c948', -0.95, 2.0, -13.6, { mat: 'metal' }); hb.cyl(0.13, 0.06, 0.18, '#f7c948', -0.95, 2.12, -13.6, { mat: 'metal' });
+  P.floorLamp(hb, -0.3, -13.55);
+  hb.box(0.36, 0.07, 0.25, '#1a1a1a', -6.3, 0.55, -8.4, { mat: 'plastic' }); hb.box(0.04, 0.01, 0.01, '#4cc9f0', -6.2, 0.6, -8.27, { mat: 'glow' });
+  for (const [cx, c] of [[-7.35, '#2b2d42'], [-7.05, '#e63946']]) hb.rbox(0.16, 0.05, 0.1, c, cx, 0.55, -8.32, { mat: 'plastic' });
+  for (const sx of [-7.78, -5.82]) { hb.box(0.2, 0.42, 0.2, '#2b2b2f', sx, 0.55, -8.45, { mat: 'wood' }); hb.cyl(0.06, 0.06, 0.01, '#555', sx, 0.7, -8.345, { rot: [Math.PI / 2, 0, 0], mat: 'fabric' }); }
+  P.wallFrame(hb, lx, 2.25, -13.86, 1.4, 0.8, 0, ['#9bd5ff', '#7bc96f', '#ffd23f']);
+  P.wallFrame(hb, -2.4, 1.85, -8.1, 0.6, 0.45, Math.PI, ['#ffafcc', '#bde0fe']); P.wallFrame(hb, -3.0 + 0.1, 2.3, -8.1, 0.4, 0.5, Math.PI, ['#caffbf', '#ffd6a5']);
+  for (const cz of [-11.85, -10.15]) hb.box(0.05, 1.7, 0.28, '#b56576', -8.84, 0.7, cz, { mat: 'fabric' });
+  hb.box(0.06, 0.05, 1.9, '#6d4630', -8.84, 2.42, -11, { mat: 'wood' });
+
+  // hall: coat hooks + coats, shoe rack, console table, family photos, runner
+  hb.box(0.04, 0.1, 1.3, '#8d5a3b', 0.9, 1.55, -3.1, { mat: 'wood' });
+  for (let i = 0; i < 4; i++) hb.box(0.1, 0.03, 0.03, '#d4af37', 0.85, 1.55, -3.6 + i * 0.33, { mat: 'metal' });
+  hb.rbox(0.14, 0.72, 0.42, '#2a9d8f', 0.8, 0.85, -3.45, { mat: 'fabric' });
+  hb.rbox(0.14, 0.62, 0.4, '#e63946', 0.8, 0.95, -2.8, { mat: 'fabric' });
+  hb.rbox(0.16, 0.34, 0.28, '#ffbe0b', 0.76, 1.15, -3.12, { mat: 'fabric' });
+  hb.box(0.3, 0.32, 1.0, '#8d5a3b', 0.75, 0, -3.1, { mat: 'wood', collide: true });
+  for (let i = 0; i < 3; i++) for (const sd of [-0.06, 0.06]) hb.box(0.24, 0.08, 0.1, ['#1d3557', '#e63946', '#ffffff'][i], 0.72, 0.32, -3.45 + i * 0.33 + sd, { mat: 'shoe' });
+  P.table(hb, -2.4, -2.32, 0.9, 0.32, 0.8, '#6d4630'); sc.colliders.push({ minX: -2.85, maxX: -1.95, minZ: -2.48, maxZ: -2.12 });
+  hb.cyl(0.1, 0.06, 0.05, '#e9c46a', -2.6, 0.8, -2.3, { mat: 'plastic' }); P.tableLamp(hb, -2.15, 0.8, -2.3, '#ffe5ec', '#b5838d');
+  for (const [z0, y, w, h, c] of [[-3.5, 1.65, 0.45, 0.55, ['#bde0fe', '#ffd6a5']], [-2.85, 1.75, 0.55, 0.42, ['#caffbf', '#9bd5ff']], [-3.2, 2.3, 0.7, 0.4, ['#ffafcc', '#7bc96f']]]) P.wallFrame(hb, -2.92, y, z0, w, h, Math.PI / 2, c, '#2b2b2f');
+  P.rug(hb, -1.0, -4.0, 0.9, 2.4, '#457b9d', '#a8dadc');
+
+  // bedroom: closet, low bookshelf, toy box, dresser, nightstand + lamp, beanbag, balls, pennant, desk lamp
+  const cf = P.frame(hb, 1.95, -7.6, 0);
+  cf.box(1.5, 2.3, 0.6, '#e9dcc9', 0, 0, 0, 'wood');
+  for (const sd of [-1, 1]) { cf.box(0.72, 2.1, 0.03, '#d9c7ad', sd * 0.37, 0.08, 0.31, 'wood'); cf.box(0.03, 0.22, 0.04, '#9aa0a6', sd * 0.06, 1.0, 0.34, 'metal'); }
+  cf.solid(1.5, 0.6);
+  P.shelfUnit(hb, 3.7, -7.7, { w: 1.1, h: 1.0, d: 0.4, shelves: 2, fill: 'books', color: '#f4f1ea', rng: frng });
+  hb.rbox(0.9, 0.48, 0.5, '#3a86ff', 5.2, 0, -7.62, { mat: 'plastic', collide: true });
+  hb.rbox(0.94, 0.08, 0.54, '#ffbe0b', 5.2, 0.46, -7.62, { mat: 'plastic' });
+  hb.add(P.ICO, '#e8742b', [4.65, 0.13, -7.4], [0, 0, 0], [0.13, 0.13, 0.13], null, 'rubber');
+  hb.add(P.ICO, '#ffffff', [5.95, 0.12, -7.5], [0, 0, 0], [0.12, 0.12, 0.12], null, 'rubber');
+  const df = P.frame(hb, 7.5, -7.65, 0);
+  df.box(1.4, 0.95, 0.5, '#a5673f', 0, 0, 0, 'wood');
+  for (let r = 0; r < 3; r++) for (const sd of [-1, 1]) { df.box(0.62, 0.26, 0.02, '#b77b4f', sd * 0.34, 0.06 + r * 0.3, 0.255, 'wood'); df.box(0.12, 0.03, 0.03, '#d4af37', sd * 0.34, 0.2 + r * 0.3, 0.27, 'metal'); }
+  df.box(0.6, 0.8, 0.04, '#cfe8ff', 0, 0.98, -0.2, 'glass').box(0.66, 0.86, 0.03, '#8d5a3b', 0, 0.95, -0.23, 'wood');
+  df.ball(0.1, '#ff8fab', -0.45, 1.05, 0.05, 'plastic', [1.2, 0.9, 0.9]);
+  df.solid(1.4, 0.5);
+  hb.cyl(0.04, 0.04, 0.1, '#f7c948', 7.95, 0.95, -7.6, { mat: 'metal' }); hb.cyl(0.1, 0.05, 0.14, '#f7c948', 7.95, 1.05, -7.6, { mat: 'metal' });
+  P.table(hb, 6.62, -5.36, 0.44, 0.42, 0.55, '#a5673f'); sc.colliders.push({ minX: 6.4, maxX: 6.84, minZ: -5.57, maxZ: -5.15 });
+  P.tableLamp(hb, 6.55, 0.55, -5.42, '#bde0fe', '#457b9d');
+  hb.box(0.14, 0.08, 0.06, '#e63946', 6.7, 0.55, -5.28, { mat: 'plastic' }); hb.box(0.1, 0.04, 0.005, '#ff6b6b', 6.7, 0.57, -5.25, { mat: 'glow' });
+  P.beanbag(hb, 3.1, -6.45, '#8338ec');
+  P.pennant(hb, 8.86, 2.3, -6.6, 1.0, 0.45, -Math.PI / 2, '#1d3557', '#ffd166');
+  wallPicture(house.contents, posterTexture(31), 8.86, 1.55, -7.3, 0.6, 0.8, -Math.PI / 2);
+  P.tableLamp(hb, 1.85, 0.81, -2.55, '#ffd166', '#2a9d8f');
+  for (let i = 0; i < 3; i++) hb.box(0.22, 0.05, 0.3, ['#e63946', '#457b9d', '#e9c46a'][i], 2.95, 0.81 + i * 0.05, -2.6, { mat: 'fabric' });
+  hb.cyl(0.04, 0.04, 0.1, '#ffbe0b', 2.75, 0.81, -2.45, { mat: 'plastic' });
+
+  // garage: workbench + pegboard, wheelie bins, ball bin, bikes, mower, rake & shovel, hose
+  const wf = P.frame(hb, 1.45, -13.15, Math.PI / 2);
+  wf.box(1.5, 0.06, 0.6, '#b08968', 0, 0.86, 0, 'wood');
+  for (const [sx, sz] of [[-0.7, -0.26], [0.7, -0.26], [-0.7, 0.26], [0.7, 0.26]]) wf.box(0.06, 0.86, 0.06, '#7a5233', sx, 0, sz, 'wood');
+  wf.box(1.42, 0.04, 0.52, '#7a5233', 0, 0.25, 0, 'wood');
+  for (let i = 0; i < 3; i++) wf.cyl(0.09, 0.09, 0.18, ['#e63946', '#3a86ff', '#ffffff'][i], -0.5 + i * 0.3, 0.29, 0.02, 'metal');
+  wf.box(1.5, 0.9, 0.03, '#d4a373', 0, 1.15, -0.28, 'wood');
+  for (let i = 0; i < 5; i++) { const tx2 = -0.55 + i * 0.27; wf.box(0.03, 0.26, 0.02, ['#e63946', '#2b2b2f', '#ffbe0b', '#3a86ff', '#2b2b2f'][i], tx2, 1.35 + (i % 2) * 0.2, -0.25, 'plastic'); wf.box(0.12, 0.05, 0.03, '#9aa0a6', tx2, 1.6 + (i % 2) * 0.2, -0.25, 'metal'); }
+  wf.box(0.45, 0.2, 0.02, '#9aa0a6', 0.35, 1.25, -0.25, 'metal', { rz: 0.1 });
+  wf.rbox(0.42, 0.2, 0.22, '#c1121f', -0.4, 0.89, 0.05, 'metal').box(0.16, 0.12, 0.16, '#3d3d42', 0.55, 0.89, 0.14, 'metal');
+  wf.solid(1.5, 0.6);
+  for (const [bx, c] of [[2.25, '#2d6a4f'], [2.85, '#1982c4']]) { hb.rbox(0.55, 1.0, 0.6, c, bx, 0, -13.55, { mat: 'plastic', collide: true }); hb.rbox(0.58, 0.06, 0.64, shade(c, 0.8), bx, 1.0, -13.55, { mat: 'plastic' }); }
+  P.ballBin(hb, 2.4, -12.75);
+  P.bike(hb, 2.2, -8.38, 0, '#e63946');
+  P.lawnMower(hb, 7.5, -13.1, 0, '#2a9d8f');
+  for (const [rx2, c] of [[7.9, '#8d5a3b'], [8.08, '#6c757d']]) hb.box(0.04, 1.5, 0.04, c, rx2, 0, -8.2, { mat: 'wood', rot: [0.12, 0, 0] });
+  hb.box(0.3, 0.06, 0.04, '#6c757d', 7.9, 1.5, -8.28, { mat: 'metal' }); hb.box(0.16, 0.24, 0.03, '#6c757d', 8.08, 0.05, -8.2, { mat: 'metal' });
+  hb.add(TORUS, '#2d6a4f', [1.15, 1.2, -9.1], [0, Math.PI / 2, 0], [0.28, 0.28, 0.5], null, 'rubber');
+  hb.box(1.0, 0.005, 0.6, '#3d3d42', 5.2, 0.065, -11.4, { mat: 'concrete' });
   finishArea(house);
 
   // ---- backyard
@@ -237,6 +362,25 @@ export function buildHome(opts) {
     m.position.set(s.x, s.y, s.z);
     base2.contents.add(m);
   }
+  // more basement fun: rug, foosball, TV corner with a couch, mini fridge, beanbags, dartboard, lamp
+  P.rug(bb, 45.8, -10.0, 5, 3, '#2a9d8f', '#e9c46a');
+  const ff = P.frame(bb, 45.6, -10.4, 0);
+  ff.box(1.3, 0.22, 0.75, '#2d6a4f', 0, 0.62, 0, 'wood').box(1.2, 0.02, 0.65, '#57cc99', 0, 0.8, 0, 'plain');
+  for (const [sx, sz] of [[-0.58, -0.3], [0.58, -0.3], [-0.58, 0.3], [0.58, 0.3]]) ff.box(0.08, 0.62, 0.08, '#1b4332', sx, 0, sz, 'wood');
+  for (let i = 0; i < 6; i++) { ff.hcyl(0.015, 1.1, '#c0c7cf', -0.5 + i * 0.2, 0.86, 0, 'z', 'metal'); ff.box(0.06, 0.1, 0.06, i % 2 ? '#e63946' : '#3a86ff', -0.5 + i * 0.2, 0.8, (i % 3 - 1) * 0.15, 'plastic'); }
+  ff.ball(0.03, '#ffffff', 0.1, 0.84, 0.05).solid(1.3, 0.75);
+  const tf = P.frame(bb, 51.6, -9.6, -Math.PI / 2);
+  tf.box(1.6, 0.5, 0.45, '#3d3d42', 0, 0, 0, 'wood').box(1.5, 0.85, 0.06, '#111111', 0, 0.85, -0.05, 'plastic').box(1.4, 0.75, 0.01, '#ff6b9a', 0, 0.9, -0.015, 'glow');
+  tf.box(0.36, 0.07, 0.25, '#f4f1ea', 0.45, 0.5, 0.05, 'plastic').solid(1.6, 0.45);
+  P.sofa(bb, 49.3, -9.6, Math.PI / 2, '#c1121f', 2.2);
+  bb.box(0.55, 0.85, 0.55, '#e9ecef', 51.5, 0, -7.0, { mat: 'metal', collide: true });
+  bb.box(0.02, 0.6, 0.03, '#9aa0a6', 51.2, 0.15, -6.8, { mat: 'metal' });
+  for (let i = 0; i < 3; i++) bb.cyl(0.04, 0.04, 0.13, ['#e63946', '#06d6a0', '#ffbe0b'][i], 51.35 + i * 0.12, 0.85, -7.0, { mat: 'metal' });
+  P.beanbag(bb, 42.4, -9.2, '#3a86ff'); P.beanbag(bb, 41.3, -10.2, '#ff595e');
+  const dart = P.frame(bb, 40.12, -10.2, Math.PI / 2);
+  for (const [r, c] of [[0.3, '#1a1a1a'], [0.24, '#e9dcc9'], [0.17, '#d62828'], [0.1, '#e9dcc9'], [0.04, '#d62828']]) dart.hcyl(r, 0.03 + (0.3 - r) * 0.06, c, 0, 1.6, 0.02, 'z', 'fabric');
+  P.floorLamp(bb, 50.3, -7.0, '#ffd166');
+  P.pennant(bb, 40.12, 2.3, -8.2, 1.0, 0.45, Math.PI / 2, '#e63946', '#ffffff');
   finishArea(base2);
   act(sc, 'trophy', 44, -12, 'Trophy shelf');
   act(sc, 'upstairs', 46, -6.8, 'Go back upstairs');
@@ -369,6 +513,7 @@ export function buildNeighborhood(hoodId, residents, opts = {}) {
 const SLOT = 11;
 const slotX = (i) => -71.5 + i * SLOT;
 const LOCKER_BLUE = '#4f78a6';
+const PAL8 = ['#e63946', '#457b9d', '#f4a261', '#2a9d8f', '#e9c46a', '#8338ec', '#ff006e', '#06d6a0'];
 
 function classroom(sc, school, { x, north, teacher, subject, grade, i }) {
   const z = north ? -8 : 8;
@@ -428,6 +573,26 @@ function classroom(sc, school, { x, north, teacher, subject, grade, i }) {
   }
   for (let k = 0; k < 3; k++) wallPicture(a.contents, subjectPoster(subject, k + i), x - 2.5 + k * 2.2, 1.85, (north ? sW : nW) + (north ? -0.02 : 0.02), 1.1, 1.1, north ? Math.PI : 0);
   wallPicture(a.contents, posterTexture(i * 13 + 5, 'art'), rw - 0.04, 2.25, z + (north ? 1.6 : -1.6), 1.0, 0.9, -Math.PI / 2);
+  // Classroom extras: stands under the subject displays, bins, plants, a low
+  // bookshelf, a number line and a calendar (all along the walls, clear of desks).
+  const hs = north ? 1 : -1; // toward the hallway wall
+  const hw = z + hs * 4.77; // inside face of the hallway wall
+  const rotIn = north ? Math.PI : 0; // facing into the room from the hallway wall
+  if (subject === 'Science') { P.table(ab, rw - 0.6, z + hs * 2, 0.62, 0.8, 0.9, '#8d99a6', 0, 'metal'); ab.box(0.36, 0.2, 0.56, '#4aa3df', rw - 0.6, 0.91, z + hs * 2, { mat: 'water' }); ab.box(0.06, 0.03, 0.02, '#ff7b00', rw - 0.65, 1.02, z + hs * 2, { mat: 'plastic' }); }
+  else if (subject === 'History') P.table(ab, rw - 0.6, z + hs * 2.6, 0.55, 0.55, 0.9, '#8a5a3b');
+  else if (subject === 'Math') ab.box(0.46, 0.75, 2.3, '#c99a6b', rw - 0.4, 0, z + hs * 2.5, { mat: 'wood' });
+  P.trashCan(ab, fw + 0.35, z + 4.35, '#6c757d', 0.85); P.trashCan(ab, fw + 0.8, z + 4.35, '#1982c4', 0.85, true);
+  P.plant(ab, rw - 0.4, z - hs * 4.3, 1.1);
+  for (const off of [-3.6, 1.4]) P.plant(ab, x + off, outer + hs * 0.08, 0.32, ['#e76f51', '#e9c46a'][Math.abs(i) % 2], '#52a675', 1.14);
+  P.shelfUnit(ab, fw + 1.85, z - hs * 4.45, { w: 1.3, h: 0.85, d: 0.35, shelves: 2, rot: north ? 0 : Math.PI, color: '#c99a6b', rng: mulberry32(i + 3), solid: false });
+  for (let k = 0; k < 11; k++) {
+    const nx = x - 4.6 + k * 0.62;
+    ab.box(0.6, 0.22, 0.02, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'][k % 5], nx, 2.6, hw - hs * 0.02, { mat: 'paint' });
+    ab.box(0.14, 0.12, 0.01, '#ffffff', nx, 2.65, hw - hs * 0.035, { mat: 'plain' });
+  }
+  const calF = P.frame(ab, x - 4.25, hw, rotIn);
+  calF.box(0.62, 0.72, 0.02, '#ffffff', 0, 1.45, 0.01, 'plain').box(0.62, 0.14, 0.025, '#e63946', 0, 2.03, 0.012, 'plain');
+  for (let k = 0; k < 4; k++) calF.box(0.54, 0.012, 0.025, '#adb5bd', 0, 1.55 + k * 0.11, 0.013, 'plain');
   // 4 rows x 6 desks, all facing the board. Row 0 is the front.
   const seats = [];
   for (let row = 0; row < 4; row++) for (let col = 0; col < 6; col++) {
@@ -467,6 +632,10 @@ function serviceRoom(sc, school, name, x, north, span = 1) {
   P.addSign(school.contents, name.replace(/\b\w/g, (m) => m.toUpperCase()), span > 1 ? cx : x + 3.5, 2.48, hz + (north ? 0.03 : -0.03), Math.min(3.2, name.length * 0.2 + 0.8), north ? 0 : Math.PI, { bg: '#ffd166', color: '#1d3557' });
   const back = north ? z - 3.8 : z + 3.8;
   const extra = {};
+  const hs = north ? 1 : -1; // toward the hallway wall
+  const hw = z + hs * 4.77; const fwall = z - hs * 4.77; // inside faces: hallway wall, far wall
+  const rotIn = north ? Math.PI : 0; const rotOut = north ? 0 : Math.PI; // facing into the room / toward the hallway
+  const xl = cx - w / 2 + 0.22; const xr = cx + w / 2 - 0.22; // inside faces of the side walls
   if (name === 'cafeteria') {
     extra.seats = [];
     for (let r2 = 0; r2 < 3; r2++) for (let c = 0; c < 4; c++) {
@@ -479,10 +648,9 @@ function serviceRoom(sc, school, name, x, north, span = 1) {
   }
   if (name === 'school library') {
     const rng = mulberry32(31);
-    for (let k = 0; k < 3; k++) P.bookshelf(ab, cx - 7 + k * 7, back, 4, 0, rng);
-    for (let k = 0; k < 3; k++) ab.sphere(0.5, ['#ff595e', '#ffca3a', '#8ac926'][k], cx - 4 + k * 2.5, 0.35, z, [1, 0.7, 1], { mat: 'fabric' });
+    for (let k = 0; k < 3; k++) P.shelfUnit(ab, cx - 7 + k * 7, z - hs * 4.4, { w: 4, h: 2.0, d: 0.5, rot: rotOut, rng });
   }
-  if (name === 'band room') { ab.rbox(1.8, 1.0, 0.7, '#1a1a1a', x + 2.5, 0, back, { collide: true, mat: 'wood' }); for (let k = 0; k < 5; k++) ab.cyl(0.25, 0.25, 0.5, '#d00000', x - 3 + k * 1.2, 0, z, { mat: 'plastic' }); }
+  if (name === 'band room') ab.rbox(1.8, 1.0, 0.7, '#1a1a1a', x + 2.5, 0, back, { collide: true, mat: 'wood' });
   if (name === 'office') {
     ab.rbox(2.2, 0.8, 1.0, '#6d4c41', x, 0, back + (north ? 1.4 : -1.4), { collide: true, mat: 'wood' });
     ab.rbox(0.6, 0.4, 0.5, '#2b2b2f', x - 0.5, 0.8, back + (north ? 1.4 : -1.4), { mat: 'plastic' });
@@ -497,6 +665,155 @@ function serviceRoom(sc, school, name, x, north, span = 1) {
   if (name === 'detention') for (let k = 0; k < 6; k++) P.studentDesk(ab, x - 3 + (k % 3) * 3, z + (k < 3 ? -1.5 : 1.5), Math.PI / 2);
   if (name === 'after-care room') for (let k = 0; k < 4; k++) ab.sphere(0.5, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][k], x - 3 + k * 2, 0.35, z, [1, 0.7, 1], { mat: 'fabric' });
   if (name === "teachers' lounge") { ab.rbox(2.4, 0.5, 1.0, '#6c5ce7', x, 0, back, { collide: true, mat: 'fabric' }); ab.rbox(0.8, 1.7, 0.7, '#e9ecef', x + 3.5, 0, back, { mat: 'metal' }); }
+  // ---- furnishings per room (all against walls / clear of the door, desks and NPC spots)
+  const frng = mulberry32(hashString(name) + Math.round(cx));
+  const flag = (fx, fz) => {
+    ab.cyl(0.015, 0.015, 1.7, '#b08d57', fx, 0, fz, { mat: 'metal' });
+    ab.box(0.62, 0.42, 0.02, '#b22234', fx + 0.31, 1.2, fz, { mat: 'fabric' });
+    ab.box(0.26, 0.22, 0.025, '#3c3b6e', fx + 0.13, 1.4, fz, { mat: 'fabric' });
+  };
+  if (name === 'office') {
+    P.counter(ab, x - 2.5, z + hs * 2.4, 4.0, 0, '#6d8fb3');
+    const cf = P.frame(ab, x - 3.4, z + hs * 2.4, rotOut);
+    cf.box(0.5, 0.34, 0.04, '#1a1a1a', 0, 1.2, 0, 'plastic').box(0.44, 0.28, 0.01, '#4cc9f0', 0, 1.23, 0.025, 'glow').box(0.06, 0.13, 0.06, '#2b2b2f', 0, 1.07, 0, 'plastic');
+    ab.cyl(0.07, 0.08, 0.06, '#d4af37', x - 1.2, 1.07, z + hs * 2.3, { mat: 'metal' });
+    for (let k = 0; k < 3; k++) ab.box(0.3, 0.02, 0.22, '#ffffff', x - 2.2 + k * 0.05, 1.07 + k * 0.02, z + hs * 2.4, { mat: 'plain' });
+    for (let k = 0; k < 3; k++) P.chair(ab, x + 0.2 + k * 0.62, hw - hs * 0.35, rotIn, '#457b9d');
+    for (let k = 0; k < 2; k++) P.fileCabinet(ab, x + 3.0 + k * 0.55, fwall + hs * 0.32, rotOut);
+    P.shelfUnit(ab, x - 2.8, fwall + hs * 0.22, { w: 1.8, h: 1.9, d: 0.4, rot: rotOut, rng: frng });
+    flag(x + 1.6, fwall + hs * 0.5);
+    for (const sd of [-0.75, 0.75]) P.chair(ab, x + sd, z - hs * 1.4, rotIn, '#6d4c41', 'wood');
+    ab.box(0.3, 0.08, 0.05, '#d4af37', x + 0.45, 0.8, back + hs * 1.0, { mat: 'metal' });
+    P.tableLamp(ab, x + 0.75, 0.8, back + hs * 1.25, '#2d6a4f', '#d4af37');
+    P.plant(ab, x - 4.75, hw - hs * 0.4, 1.2);
+    P.wallClock(ab, x - 1.2, 2.5, hw, rotIn);
+    wallPicture(a.contents, posterTexture(43), x + 1.5, 1.9, hw - hs * 0.02, 0.9, 0.9, rotIn);
+  }
+  if (name === 'nurse') {
+    ab.rbox(0.7, 0.12, 0.35, '#ffffff', x + 2.5, 0.6, z - hs * 0.8, { mat: 'fabric' });
+    ab.box(0.96, 0.03, 1.4, '#bde0fe', x + 2.5, 0.6, z + hs * 0.3, { mat: 'fabric' });
+    ab.box(0.04, 0.04, 2.8, '#c0c7cf', x + 1.75, 2.15, z, { mat: 'metal' });
+    ab.box(0.04, 1.75, 1.0, '#a8dadc', x + 1.75, 0.38, z + hs * 0.85, { mat: 'fabric' });
+    const ef = P.frame(ab, xl, z + hs * 0.8, Math.PI / 2);
+    ef.box(0.5, 0.8, 0.02, '#ffffff', 0, 1.3, 0.01, 'plain');
+    for (let k = 0; k < 6; k++) ef.box(0.36 - k * 0.055, 0.05, 0.01, '#1a1a1a', 0, 1.95 - k * 0.11, 0.022, 'plain');
+    const nf = P.frame(ab, x - 1.5, fwall + hs * 0.3, rotOut);
+    nf.box(1.0, 0.85, 0.55, '#f8f9fa', 0, 0, 0, 'wood').box(1.05, 0.05, 0.6, '#adb5bd', 0, 0.85, 0, 'tile').box(0.4, 0.02, 0.32, '#8a9199', 0, 0.9, 0.02, 'metal');
+    nf.cyl(0.02, 0.02, 0.25, '#c0c7cf', 0, 0.9, -0.2, 'metal').box(0.03, 0.03, 0.14, '#c0c7cf', 0, 1.13, -0.14, 'metal').solid(1.0, 0.55);
+    ab.box(0.36, 0.05, 0.36, '#e9ecef', xl + 0.35, 0, z + hs * 2.0, { mat: 'metal' }); ab.box(0.05, 1.4, 0.05, '#adb5bd', xl + 0.2, 0, z + hs * 2.0, { mat: 'metal' }); ab.box(0.12, 0.18, 0.2, '#e9ecef', xl + 0.24, 1.4, z + hs * 2.0, { mat: 'metal' });
+    const af = P.frame(ab, x - 2.0, hw, rotIn);
+    af.box(0.42, 0.36, 0.12, '#ffffff', 0, 1.3, 0.06, 'plastic').box(0.06, 0.2, 0.01, '#e63946', 0, 1.38, 0.125, 'plastic').box(0.2, 0.06, 0.01, '#e63946', 0, 1.45, 0.125, 'plastic');
+    P.stool(ab, x + 1.3, z - hs * 1.3, 0.55, '#2b2d42');
+    P.trashCan(ab, x - 0.4, fwall + hs * 0.3, '#e63946', 0.8);
+    P.wallClock(ab, x - 0.5, 2.5, hw, rotIn);
+  }
+  if (name === 'detention') {
+    P.teacherDesk(ab, x - 4.2, z - hs * 3.5, Math.PI / 2);
+    P.wallClock(ab, xl, 2.55, z, Math.PI / 2, 0.32);
+    P.addSign(a.contents, 'NO TALKING!', xl + 0.03, 1.75, z, 2.2, Math.PI / 2, { bg: '#1d3557', color: '#ffffff' });
+    P.trashCan(ab, xl + 0.3, z + hs * 4.3, '#6c757d', 0.85);
+    P.plant(ab, xr - 0.4, fwall + hs * 0.4, 0.9, '#9aa0a6', '#6b8f71');
+  }
+  if (name === 'school library') {
+    P.counter(ab, cx, z + 1.0, 2.6, 0, '#8d5a3b');
+    ab.box(0.5, 0.34, 0.04, '#1a1a1a', cx - 0.7, 1.12, z + 1.15, { mat: 'plastic' }); ab.box(0.44, 0.28, 0.01, '#4cc9f0', cx - 0.7, 1.15, z + 1.175, { mat: 'glow' });
+    for (let k = 0; k < 4; k++) ab.box(0.3, 0.06, 0.22, ['#e63946', '#2a9d8f', '#e9c46a', '#457b9d'][k], cx + 0.6, 1.07 + k * 0.06, z + 0.95, { mat: 'fabric', rot: [0, k * 0.15, 0] });
+    ab.cyl(2.2, 2.2, 0.03, '#ffafcc', cx - 7.5, 0.05, z + 0.3, { mat: 'carpet' });
+    for (let k = 0; k < 4; k++) { const ang = -0.6 + k * 0.9; P.beanbag(ab, cx - 7.5 + Math.cos(ang) * 1.4, z + 0.3 + Math.sin(ang) * 1.4, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][k]); }
+    P.shelfUnit(ab, xl + 0.22, z + 0.5, { w: 3, h: 1.2, d: 0.4, shelves: 3, rot: Math.PI / 2, rng: frng });
+    for (const zz of [z - 2, z - 0.5, z + 1]) P.computerDesk(ab, xr - 0.33, zz, -Math.PI / 2, '#e85d04');
+    P.table(ab, cx + 5.5, z + 1.2, 2.2, 1.0, 0.72, '#c99a6b'); ab.colliders.push({ minX: cx + 4.4, maxX: cx + 6.6, minZ: z + 0.7, maxZ: z + 1.7 });
+    for (const sd of [-0.6, 0.6]) { P.chair(ab, cx + 5.5 + sd, z + 0.45, 0, '#2a9d8f'); P.chair(ab, cx + 5.5 + sd, z + 1.95, Math.PI, '#2a9d8f'); }
+    const bc = P.shelfUnit(ab, cx + 2.4, z + 1.0, { w: 0.9, h: 0.75, d: 0.45, shelves: 2, rot: Math.PI / 2, rng: frng, solid: false, color: '#6c757d', mat: 'metal' });
+    for (const [dx, dz] of [[-0.4, -0.18], [0.4, -0.18], [-0.4, 0.18], [0.4, 0.18]]) bc.ball(0.05, '#1a1a1a', dx, 0.0, dz, 'rubber');
+    P.table(ab, cx - 3.0, z + 2.6, 0.5, 0.5, 0.8, '#8a5a3b'); ab.cyl(0.04, 0.06, 0.2, '#8a5a3b', cx - 3.0, 0.8, z + 2.6, { mat: 'wood' });
+    ab.sphere(0.24, '#3a86ff', cx - 3.0, 1.24, z + 2.6, [1, 1, 1], { mat: 'plastic', shade: (px, py, pz) => (Math.sin(px * 9) + Math.cos(pz * 7) > 0.6 ? '#57cc99' : null) });
+    P.plant(ab, xl + 0.4, hw - hs * 0.4, 1.2); P.plant(ab, cx + 1.6, hw - hs * 0.4, 1.1);
+    P.addSign(a.contents, 'READ!', cx, 2.75, fwall + hs * 0.03, 1.8, rotOut, { bg: '#2a9d8f', color: '#ffffff' });
+    P.wallClock(ab, cx + 7, 2.75, fwall, rotOut);
+  }
+  if (name === 'cafeteria') {
+    const sx = cx + 14;
+    ab.box(0.04, 0.42, 4.8, '#cfe8ff', sx + 0.42, 1.12, z, { mat: 'glass' });
+    for (const sd of [-2.3, 2.3]) ab.box(0.04, 0.45, 0.04, '#c0c7cf', sx + 0.42, 1.07, z + sd, { mat: 'metal' });
+    for (let k = 0; k < 6; k++) ab.box(0.42, 0.03, 0.32, '#90be6d', sx, 1.07 + k * 0.035, z - 2.25, { mat: 'plastic' });
+    ab.box(0.3, 0.12, 0.2, '#adb5bd', sx, 1.07, z + 2.2, { mat: 'metal' });
+    for (let k = 0; k < 3; k++) ab.box(0.015, 0.14, 0.015, '#c0c7cf', sx - 0.07 + k * 0.07, 1.14, z + 2.2, { mat: 'metal' });
+    const rf = P.frame(ab, xr - 0.35, z - 1.0, -Math.PI / 2);
+    rf.box(1.2, 0.9, 0.7, '#c0c7cf', 0, 0, 0, 'metal').box(1.2, 0.04, 0.7, '#2b2b2f', 0, 0.9, 0, 'metal');
+    for (const dx of [-0.3, 0.3]) { rf.cyl(0.14, 0.14, 0.12, '#9aa0a6', dx, 0.94, 0, 'metal'); rf.box(0.5, 0.45, 0.02, '#1d2733', dx, 0.25, 0.36, 'plastic'); }
+    rf.box(1.1, 0.04, 0.04, '#9aa0a6', 0, 0.78, 0.37, 'metal').solid(1.2, 0.7);
+    const ff2 = P.frame(ab, xr - 0.4, z + 1.6, -Math.PI / 2);
+    ff2.box(1.2, 2.1, 0.75, '#d9dde2', 0, 0, 0, 'metal').box(0.02, 2.0, 0.02, '#9aa0a6', 0, 0.05, 0.38, 'metal');
+    for (const sd of [-0.1, 0.1]) ff2.box(0.03, 0.6, 0.04, '#9aa0a6', sd, 0.9, 0.4, 'metal');
+    ff2.solid(1.2, 0.75);
+    const pf2 = P.frame(ab, xr - 0.35, z + 3.6, -Math.PI / 2);
+    pf2.box(1.4, 0.05, 0.65, '#c0c7cf', 0, 0.86, 0, 'metal').box(1.3, 0.04, 0.58, '#adb5bd', 0, 0.25, 0, 'metal');
+    for (const [dx, dz] of [[-0.66, -0.28], [0.66, -0.28], [-0.66, 0.28], [0.66, 0.28]]) pf2.box(0.04, 0.86, 0.04, '#9aa0a6', dx, 0, dz, 'metal');
+    pf2.cyl(0.18, 0.16, 0.3, '#9aa0a6', -0.3, 0.91, 0, 'metal').cyl(0.12, 0.12, 0.14, '#adb5bd', 0.35, 0.91, 0.05, 'metal').solid(1.4, 0.65);
+    const mf = P.frame(ab, cx + 11.9, fwall + hs * 0.45, rotOut);
+    mf.box(1.2, 0.9, 0.8, '#ffffff', 0, 0, 0, 'plastic').box(1.21, 0.18, 0.81, '#1982c4', 0, 0.55, 0, 'plastic');
+    for (let k = 0; k < 8; k++) mf.box(0.14, 0.2, 0.14, k % 3 ? '#ffffff' : '#ff8fab', -0.45 + (k % 4) * 0.3, 0.9, -0.15 + Math.floor(k / 4) * 0.3, 'plastic');
+    mf.box(1.1, 0.03, 0.7, '#cfe8ff', 0, 1.12, 0, 'glass').solid(1.2, 0.8);
+    P.addSign(a.contents, 'MILK', cx + 11.9, 1.75, fwall + hs * 0.03, 1.0, rotOut, { bg: '#1982c4', color: '#ffffff' });
+    const mb2 = P.frame(ab, xr - 0.02, z - 1.0, -Math.PI / 2);
+    mb2.box(1.7, 0.95, 0.03, '#2b2d42', 0, 1.55, 0.015, 'plastic');
+    for (let k = 0; k < 5; k++) mb2.box(1.2 - (k % 2) * 0.3, 0.06, 0.01, ['#ffd166', '#ffffff', '#8ac926', '#ffffff', '#ff8fab'][k], -0.1, 2.3 - k * 0.15, 0.035, 'plain');
+    for (let k = 0; k < 3; k++) P.trashCan(ab, xl + 0.3, z - 1.2 + k * 0.6, ['#6c757d', '#1982c4', '#2a9d8f'][k], 1.05, k > 0);
+    ab.colliders.push({ minX: xl, maxX: xl + 0.55, minZ: z - 1.45, maxZ: z + 0.25 });
+    P.addSign(a.contents, 'TRASH  RECYCLE  COMPOST', xl + 0.03, 1.4, z - 0.6, 1.8, Math.PI / 2, { bg: '#2a9d8f', color: '#ffffff' });
+    P.wallClock(ab, cx, 2.7, fwall, rotOut, 0.3);
+    for (const [px, seed] of [[cx - 8, 61], [cx + 4, 62]]) wallPicture(a.contents, posterTexture(seed), px, 2.0, fwall + hs * 0.02, 1.1, 1.1, rotOut);
+  }
+  if (name === 'band room') {
+    for (let k = 0; k < 5; k++) { P.chair(ab, x - 2.6 + k * 1.3, z + 0.1, 0, '#2b2d42'); P.musicStand(ab, x - 2.6 + k * 1.3, z + 0.75, Math.PI); }
+    for (let k = 0; k < 6; k++) { P.chair(ab, x - 3.2 + k * 1.3, z - 1.4, 0, '#2b2d42'); P.musicStand(ab, x - 3.2 + k * 1.3, z - 0.75, Math.PI); }
+    P.drumKit(ab, x - 4.0, z + 3.0, Math.PI);
+    const kf2 = P.frame(ab, x + 2.5, back, rotOut);
+    kf2.box(1.5, 0.06, 0.2, '#ffffff', 0, 0.72, 0.42, 'plastic');
+    for (let k = 0; k < 10; k++) if (k % 7 !== 2 && k % 7 !== 6) kf2.box(0.06, 0.05, 0.12, '#1a1a1a', -0.66 + k * 0.145, 0.78, 0.38, 'plastic');
+    kf2.box(0.5, 0.32, 0.02, '#ffffff', 0, 1.02, 0.12, 'plain', { rx: -0.2 });
+    kf2.box(0.9, 0.45, 0.35, '#1a1a1a', 0, 0, 0.95, 'wood').solid(0.9, 0.35, 0, 0.95);
+    const xf = P.frame(ab, xl + 0.45, z, Math.PI / 2);
+    for (const sd of [-0.5, 0.5]) xf.box(0.04, 0.7, 0.4, '#6d4630', sd, 0, 0, 'wood');
+    for (let k = 0; k < 8; k++) xf.box(0.09, 0.03, 0.4 - k * 0.025, ['#ff595e', '#ff924c', '#ffca3a', '#8ac926', '#52a675', '#1982c4', '#4267ac', '#6a4c93'][k], -0.42 + k * 0.12, 0.72, 0, 'wood');
+    xf.solid(1.1, 0.45);
+    ab.box(2.2, 0.04, 0.3, '#8d5a3b', x - 0.5, 1.45, fwall + hs * 0.15, { mat: 'wood' });
+    for (let k = 0; k < 3; k++) {
+      const tf2 = P.frame(ab, x - 1.2 + k * 0.7, fwall + hs * 0.15, 0);
+      tf2.hcyl(0.025, 0.45, '#e0b84a', 0, 1.56, 0, 'x', 'metal');
+      ab.cone(0.08, 0.14, '#e0b84a', x - 1.2 + k * 0.7 + 0.28, 1.49, fwall + hs * 0.15, { rot: [0, 0, Math.PI / 2], mat: 'metal' });
+    }
+    const gf = P.frame(ab, xr - 0.45, z + 2.6, -Math.PI / 2);
+    gf.ball(0.2, '#c1121f', 0, 0.42, 0, 'plastic', [1, 1.2, 0.35]).ball(0.15, '#c1121f', 0, 0.72, 0, 'plastic', [1, 1, 0.35]);
+    gf.box(0.06, 0.6, 0.03, '#5b3a1e', 0, 0.85, 0, 'wood').box(0.3, 0.3, 0.3, '#2b2b2f', 0, 0, -0.1, 'metal');
+    P.wallClock(ab, x - 2, 2.6, hw, rotIn);
+    wallPicture(a.contents, posterTexture(55), x + 1.5, 1.9, hw - hs * 0.02, 0.9, 0.9, rotIn);
+  }
+  if (name === 'after-care room') {
+    P.rug(ab, x - 0.5, z, 6.6, 2.4, '#90be6d', '#ffd166');
+    for (const dx of [-3, 0]) P.shelfUnit(ab, x + dx, fwall + hs * 0.22, { w: 2, h: 1.1, d: 0.4, shelves: 2, rot: rotOut, fill: 'toys', color: '#f4f1ea', rng: frng });
+    P.table(ab, x + 2.8, z - hs * 2.6, 1.4, 0.9, 0.55, '#ffbe0b', 0, 'plastic');
+    ab.colliders.push({ minX: x + 2.1, maxX: x + 3.5, minZ: z - hs * 2.6 - 0.45, maxZ: z - hs * 2.6 + 0.45 });
+    for (const [dx, dz, r] of [[-0.4, -0.7, 0], [0.4, -0.7, 0], [-0.4, 0.7, Math.PI], [0.4, 0.7, Math.PI]]) P.chair(ab, x + 2.8 + dx, z - hs * 2.6 + dz, r, ['#e63946', '#3a86ff', '#8ac926', '#8338ec'][Math.abs(Math.round(dx * 5 + dz * 3)) % 4]);
+    ab.box(0.5, 0.02, 0.5, '#e9c46a', x + 2.8, 0.55, z - hs * 2.6, { mat: 'plain' });
+    const ef2 = P.frame(ab, xl + 0.5, z - hs * 2.0, Math.PI / 2);
+    ef2.box(0.04, 1.4, 0.04, '#8d5a3b', -0.3, 0, 0.1, 'wood').box(0.04, 1.4, 0.04, '#8d5a3b', 0.3, 0, 0.1, 'wood').box(0.04, 1.4, 0.04, '#8d5a3b', 0, 0, -0.3, 'wood');
+    ef2.box(0.7, 0.8, 0.03, '#ffffff', 0, 0.7, 0.14, 'plain').box(0.3, 0.3, 0.01, '#ff595e', -0.1, 0.95, 0.16, 'plain').box(0.25, 0.15, 0.01, '#1982c4', 0.15, 0.8, 0.16, 'plain');
+    P.wallClock(ab, x - 1, 2.6, hw, rotIn);
+  }
+  if (name === "teachers' lounge") {
+    P.table(ab, x - 2.5, z - hs * 0.5, 1.1, 1.1, 0.75, '#c99a6b');
+    ab.colliders.push({ minX: x - 3.05, maxX: x - 1.95, minZ: z - hs * 0.5 - 0.55, maxZ: z - hs * 0.5 + 0.55 });
+    for (const [dx, dz, r] of [[0, -0.85, 0], [0, 0.85, Math.PI], [-0.85, 0, Math.PI / 2]]) P.chair(ab, x - 2.5 + dx, z - hs * 0.5 + dz, r, '#6d4c41', 'wood');
+    P.counter(ab, xl + 0.45, z - hs * 1.5, 2.4, Math.PI / 2, '#adb5bd');
+    ab.box(0.4, 0.28, 0.5, '#2b2b2f', xl + 0.45, 1.07, z - hs * 2.2, { mat: 'plastic' });
+    ab.box(0.24, 0.36, 0.24, '#1a1a1a', xl + 0.45, 1.07, z - hs * 1.2, { mat: 'plastic' });
+    for (let k = 0; k < 3; k++) ab.cyl(0.04, 0.04, 0.09, ['#ffffff', '#e63946', '#ffd166'][k], xl + 0.4, 1.07, z - hs * (0.6 - k * 0.12), { mat: 'plastic' });
+    P.vendingMachine(ab, xr - 0.45, z + hs * 0.5, -Math.PI / 2, '#d62828', frng);
+    P.bulletinBoard(ab, x - 1.5, 1.9, hw, 1.6, 0.9, rotIn, Math.round(cx));
+    P.plant(ab, x + 1.8, fwall + hs * 0.4, 1.1);
+  }
   if (name !== 'office') zone(sc, name, cx, z, w - 2, 7, extra);
   return a;
 }
@@ -578,6 +895,25 @@ export function buildSchool(opts) {
     if (x1 - x0 < 1) continue;
     sc.colliders.push(P.lockerBank(hb, x0, x1, z, face, LOCKER_BLUE));
   }
+  // hallway: bulletin boards and pennants above the lockers, clocks and fire extinguishers by the doors,
+  // and the bare cafeteria/library walls get a fountain, bins and boards
+  lockerRuns.forEach(([x0, x1, z, face], k) => {
+    if (x1 - x0 < 3) return;
+    const wz = z + face * 0.0; const rot = face > 0 ? 0 : Math.PI;
+    if (k % 2 === 0) P.bulletinBoard(hb, (x0 + x1) / 2, 2.95, wz, Math.min(2.6, x1 - x0 - 1), 0.75, rot, k + 7);
+    else for (let q = 0; q < 4; q++) P.pennant(hb, (x0 + x1) / 2 - 1.5 + q, 2.95, wz + face * 0.02, 0.7, 0.55, rot, ['#1d3557', '#ffd166', '#e63946', '#2a9d8f'][(q + k) % 4], '#ffffff');
+    if (k % 3 === 0) P.wallClock(hb, x1 + 3.2, 2.75, wz, rot);
+    if (k % 4 === 1) { const ef = P.frame(hb, x1 + 3.4, wz, rot); ef.box(0.34, 0.6, 0.12, '#c1121f', 0, 0.8, 0.06, 'metal').box(0.26, 0.45, 0.01, '#cfe8ff', 0, 0.86, 0.125, 'glass').cyl(0.08, 0.08, 0.4, '#e63946', 0, 0.88, 0.06, 'metal'); }
+  });
+  for (const [bx, ws] of [[-17.8, 'LUNCH MENU'], [-33, 'BOOK FAIR FRIDAY!']]) {
+    P.bulletinBoard(hb, bx, 2.3, 2.98, 3.0, 1.1, Math.PI, Math.round(-bx));
+    P.addSign(school.contents, ws, bx, 2.62, 2.9, 2.0, Math.PI, { bg: '#e63946', color: '#ffffff' });
+  }
+  hb.rbox(0.9, 0.9, 0.45, '#c9ced4', -7.0, 0, 2.75, { mat: 'metal', collide: true });
+  for (const sd of [-0.22, 0.22]) hb.cyl(0.15, 0.12, 0.05, '#adb5bd', -7.0 + sd, 0.9, 2.72, { mat: 'metal' });
+  P.trashCan(hb, -0.2, 2.72); P.trashCan(hb, 0.35, 2.72, '#1982c4', 1, true);
+  sc.colliders.push({ minX: -0.45, maxX: 0.6, minZ: 2.5, maxZ: 2.98 });
+  P.plant(hb, -24.6, 2.6, 1.2); P.plant(hb, -42.6, 2.6, 1.2);
   // gym (its own building)
   const gym = makeArea(sc, {
     id: 'gym', x: 96, z: -8, w: 18, d: 16, wallH: 5, mode: 'cutaway', focus: true,
@@ -587,6 +923,32 @@ export function buildSchool(opts) {
   });
   for (const sx of [-1, 1]) { gym.b.box(0.15, 3.2, 0.15, '#6c757d', 96 + sx * 8.4, 0, -8, { mat: 'metal' }); gym.b.box(1.2, 0.9, 0.06, '#ffffff', 96 + sx * 8.2, 3.0, -8, { mat: 'plastic', rot: [0, Math.PI / 2, 0] }); }
   gym.b.cyl(1.5, 1.5, 0.02, '#e63946', 96, 0.05, -8, { mat: 'plastic' });
+  // gym furnishings: court lines, rims + nets, wall pads, bleachers, scoreboard, mats, ball carts, banners
+  const gb2 = gym.b;
+  const line = (w2, d2, lx2, lz2, c = '#ffffff') => gb2.box(w2, 0.006, d2, c, lx2, 0.062, lz2, { mat: 'plain' });
+  line(15, 0.08, 96, -14); line(15, 0.08, 96, -2.4); line(0.08, 11.6, 88.5, -8.2); line(0.08, 11.6, 103.5, -8.2); line(0.08, 11.6, 96, -8.2);
+  for (const sx of [-1, 1]) {
+    const kx = 96 + sx * 6.5;
+    gb2.box(3, 0.005, 2.4, '#c0392b', kx, 0.06, -8, { mat: 'plain' });
+    line(0.08, 2.4, 96 + sx * 5, -8);
+    gb2.add(TORUS, '#ff6b00', [96 + sx * 7.75, 3.05, -8], [Math.PI / 2, 0, 0], [0.23, 0.23, 0.15], null, 'metal');
+    gb2.cyl(0.21, 0.13, 0.42, '#f4f1ea', 96 + sx * 7.75, 2.63, -8, { mat: 'fabric' });
+    gb2.box(0.3, 0.04, 0.05, '#ff6b00', 96 + sx * 7.98, 3.03, -8, { mat: 'metal' });
+    gb2.box(0.03, 0.05, 0.5, '#e63946', 96 + sx * 8.16, 3.1, -8, { mat: 'plastic' }); gb2.box(0.03, 0.4, 0.05, '#e63946', 96 + sx * 8.16, 3.1, -8.25, { mat: 'plastic' }); gb2.box(0.03, 0.4, 0.05, '#e63946', 96 + sx * 8.16, 3.1, -7.75, { mat: 'plastic' });
+    gb2.box(0.1, 1.6, 3.2, '#1d4ed8', 96 + sx * 8.82, 0.25, -8, { mat: 'fabric' });
+  }
+  P.bleachers(gb2, 96.5, -2.6, 10, 3, Math.PI);
+  gb2.colliders.pop();
+  gb2.colliders.push({ minX: 91.3, maxX: 101.7, minZ: -2.95, maxZ: -0.12 });
+  const sbf = P.frame(gb2, 93.5, -15.88, 0);
+  sbf.box(2.4, 1.1, 0.12, '#1a1a1a', 0, 2.95, 0.06, 'metal');
+  for (const sd of [-1, 1]) { sbf.box(0.6, 0.4, 0.02, '#ff6b00', sd * 0.7, 3.2, 0.13, 'glow'); sbf.box(0.7, 0.14, 0.02, '#ffffff', sd * 0.7, 3.75, 0.13, 'plain'); }
+  sbf.box(0.4, 0.22, 0.02, '#ffd60a', 0, 3.05, 0.13, 'glow');
+  P.addSign(gym.contents, 'GO GRIFFINS!', 98.6, 3.45, -15.82, 2.8, 0, { bg: '#1d3557', color: '#ffd166' });
+  for (let k = 0; k < 4; k++) P.pennant(gb2, 89.6 + k * 0.9, 4.6, -15.85, 0.7, 0.55, 0, ['#e63946', '#ffd166', '#2a9d8f', '#3a86ff'][k], '#ffffff');
+  P.matStack(gb2, 102.6, -14.9, 0, 4, '#1d4ed8'); P.matStack(gb2, 89.6, -14.9, 0, 3, '#e63946');
+  P.ballCart(gb2, 98.3, -14.6, 0); P.ballCart(gb2, 93.7, -14.6, 0, ['#ffffff', '#e63946', '#3a86ff']);
+  P.wallClock(gb2, 104.88, 4.1, -12, -Math.PI / 2, 0.32);
   zone(sc, 'gym', 96, -8, 14, 12);
   b.box(10, 0.1, 3, '#cfcac0', 82, 0, -0.8, { mat: 'concrete' });
   b.box(4, 0.1, 6, '#cfcac0', 85, 0, -4, { mat: 'concrete' });
@@ -666,7 +1028,8 @@ export function buildMall() {
     if (id !== 'arcade') {
       P.counter(mb, x + w / 2 - 3, -14, 3.2, 0, shade(color, 0.9));
       act(sc, 'shop', x + w / 2 - 3, -12.6, `Shop: ${label}`, { shop: id });
-      for (let k = 0; k < 2; k++) P.bookshelf(mb, x - w / 2 + 2.5 + k * 3.5, -16.5, 3, 0, rng);
+      const fill = { 'sporting goods': 'toys', 'game shop': 'products', 'shoe store': 'shoes', 'dollar store': 'products', 'pet store': 'products' }[id];
+      for (let k = 0; k < 2; k++) P.shelfUnit(mb, x - w / 2 + 2.5 + k * 3.5, -16.55, { w: 3, h: 2.0, d: 0.5, fill, rng, color: shade(color, 0.7) });
       if (id === 'sporting goods') for (let k = 0; k < 6; k++) mb.sphere(0.12, ['#e8742b', '#ffffff', '#8b4a24'][k % 3], x - 4 + k * 0.6, 1.1, -12, [1, 1, 1], { mat: 'rubber' });
     } else {
       for (let k = 0; k < 5; k++) { mb.rbox(0.95, 1.95, 0.85, ['#3a0ca3', '#f72585', '#4361ee', '#7209b7', '#4cc9f0'][k], x - 6 + k * 2.4, 0, -15.9, { collide: true, mat: 'plastic' }); mb.box(0.75, 0.55, 0.04, '#80ffdb', x - 6 + k * 2.4, 1.3, -15.45, { mat: 'glow' }); }
@@ -674,6 +1037,63 @@ export function buildMall() {
       mb.box(1.2, 1.0, 1.2, '#cfeeff', x + 5, 1.15, -9, { mat: 'glass' });
       for (let k = 0; k < 6; k++) mb.sphere(0.13, ['#ff006e', '#ffbe0b', '#3a86ff'][k % 3], x + 4.7 + (k % 3) * 0.25, 1.25, -9.2 + Math.floor(k / 3) * 0.3, [1, 1, 1], { mat: 'fabric' });
       act(sc, 'claw', x + 5, -7.6, 'Claw machine (50¢)');
+    }
+    // per-store fixtures (kept clear of the entrance x-2..x+2 and the walk to the counter)
+    const L = x - w / 2 + 0.1; const R = x + w / 2 - 0.1; // inside faces of the partitions
+    if (id === 'sporting goods') {
+      P.table(mb, x - 2.5, -12, 3.8, 0.8, 0.98, '#c9a227'); mb.colliders.push({ minX: x - 4.4, maxX: x - 0.6, minZ: -12.4, maxZ: -11.6 });
+      P.clothesRack(mb, x - 5.2, -9.0, 0, 1.8, rng, ['#e63946', '#1d3557', '#2a9d8f', '#ffbe0b', '#ffffff']);
+      mb.cyl(0.3, 0.28, 0.7, '#8d5a3b', L + 0.45, 0, -12.6, { mat: 'wood', collide: true });
+      for (let k = 0; k < 5; k++) mb.cyl(0.035, 0.05, 0.95, ['#c9a227', '#a0522d', '#d4a373'][k % 3], L + 0.35 + (k % 3) * 0.1, 0.5, -12.7 + Math.floor(k / 3) * 0.18, { mat: 'wood' });
+      P.ballCart(mb, x - 1.2, -8.6, 0);
+      P.bike(mb, R - 0.8, -8.6, Math.PI / 2, '#3a86ff');
+      P.mannequin(mb, x - 4.5, -5.75, 0, '#2a9d8f', '#1d3557'); P.mannequin(mb, x + 4.5, -5.75, 0, '#e63946', '#ffffff');
+      const hf = P.frame(mb, L, -10.5, Math.PI / 2);
+      hf.box(1.0, 0.7, 0.04, '#ffffff', 0, 2.1, 0.02, 'plastic');
+      mb.add(TORUS, '#ff6b00', [L + 0.35, 2.15, -10.5], [Math.PI / 2, 0, 0], [0.2, 0.2, 0.15], null, 'metal');
+    } else if (id === 'game shop') {
+      const tvf = P.frame(mb, x - 4.5, -10.8, 0);
+      tvf.box(1.6, 0.7, 0.5, '#2b2d42', 0, 0, 0, 'wood').box(1.5, 0.85, 0.06, '#111111', 0, 0.95, -0.1, 'plastic').box(1.4, 0.75, 0.01, '#80ffdb', 0, 1.0, -0.065, 'glow');
+      tvf.box(0.36, 0.07, 0.25, '#f4f1ea', 0.45, 0.7, 0.05, 'plastic').rbox(0.18, 0.05, 0.11, '#e63946', -0.3, 0.7, 0.12, 'plastic').rbox(0.18, 0.05, 0.11, '#3a86ff', 0.0, 0.7, 0.12, 'plastic').solid(1.6, 0.5);
+      P.armchair(mb, x - 4.5, -9.3, Math.PI, '#8338ec');
+      for (const dz of [-12.6, -8.6]) {
+        P.table(mb, x - 1.6, dz, 1.6, 0.8, 0.8, '#3d405b'); mb.colliders.push({ minX: x - 2.4, maxX: x - 0.8, minZ: dz - 0.4, maxZ: dz + 0.4 });
+        for (let k = 0; k < 8; k++) mb.box(0.14, 0.2, 0.03, PAL8[(k + Math.abs(Math.round(dz))) % 8], x - 2.2 + (k % 4) * 0.4, 0.8, dz - 0.15 + Math.floor(k / 4) * 0.3, { mat: 'plastic', rot: [-0.4, 0, 0] });
+      }
+      P.plinth(mb, x + 4.4, -5.8, 0.8, 0.9, '#2b2d42');
+      mb.box(0.7, 0.6, 0.7, '#cfe8ff', x + 4.4, 0.96, -5.8, { mat: 'glass' }); mb.box(0.36, 0.08, 0.26, '#f4f1ea', x + 4.4, 0.96, -5.8, { mat: 'plastic' });
+      wallPicture(mall.contents, posterTexture(81), L + 0.02, 2.0, -9.5, 1.1, 1.1, Math.PI / 2);
+    } else if (id === 'shoe store') {
+      P.shelfUnit(mb, L + 0.25, -11, { w: 3, h: 1.8, d: 0.4, rot: Math.PI / 2, fill: 'shoes', rng, color: '#f4f1ea' });
+      for (const dz of [-10.6, -8.4]) { mb.rbox(1.6, 0.45, 0.5, '#2b2d42', x - 2.2, 0, dz, { mat: 'fabric', collide: true }); }
+      mb.box(0.3, 0.03, 0.12, '#1d3557', x - 2.2, 0, -9.5, { mat: 'metal' });
+      const mf = P.frame(mb, L + 0.08, -7.0, Math.PI / 2);
+      mf.box(0.6, 1.6, 0.04, '#8d5a3b', 0, 0.1, 0.02, 'wood').box(0.5, 1.5, 0.01, '#e6f4ff', 0, 0.15, 0.045, 'glass');
+      for (let k = 0; k < 6; k++) mb.box(0.36, 0.2, 0.26, ['#e76f51', '#ffffff', '#264653'][k % 3], x + 5.0, k * 0.2, -16.6, { mat: 'plastic' });
+      for (const sd of [-1, 1]) { P.plinth(mb, x + sd * 4, -5.75, 0.6, 0.8); mb.box(0.12, 0.1, 0.28, sd > 0 ? '#e63946' : '#3a86ff', x + sd * 4 - 0.08, 0.86, -5.75, { mat: 'shoe' }); mb.box(0.12, 0.1, 0.28, sd > 0 ? '#e63946' : '#3a86ff', x + sd * 4 + 0.08, 0.86, -5.7, { mat: 'shoe' }); }
+    } else if (id === 'dollar store') {
+      P.groceryShelf(mb, x - 3.5, -11, 4, rng);
+      for (const bx of [x - 4.5, x - 2.8]) { mb.rbox(1.2, 0.6, 0.8, '#ffbe0b', bx, 0, -7.6, { mat: 'plastic', collide: true }); for (let k = 0; k < 8; k++) mb.box(0.18, 0.12, 0.18, PAL8[(k * 3 + Math.round(bx)) % 8], bx - 0.4 + (k % 4) * 0.27, 0.6, -7.8 + Math.floor(k / 4) * 0.35, { mat: 'plastic', rot: [0, k, 0] }); }
+      for (let k = 0; k < 4; k++) { const by = 2.2 + (k % 2) * 0.3; mb.box(0.006, by - 1.05, 0.006, '#ffffff', R - 0.5 + k * 0.08, 1.05, -13.3 + (k % 2) * 0.12, { mat: 'plain' }); mb.add(P.ICO, ['#ff006e', '#3a86ff', '#ffbe0b', '#06d6a0'][k], [R - 0.5 + k * 0.08, by + 0.2, -13.3 + (k % 2) * 0.12], [0, 0, 0], [0.17, 0.21, 0.17], null, 'plastic'); }
+      P.addSign(mall.contents, 'EVERYTHING $1!', x - 2, 2.6, -17.8, 3, 0, { bg: '#ffbe0b', color: '#1d3557' });
+    } else if (id === 'pet store') {
+      P.fishTank(mb, L + 0.3, -10.0, Math.PI / 2, 1.6, rng); P.fishTank(mb, L + 0.3, -12.4, Math.PI / 2, 1.6, rng);
+      P.table(mb, x - 2, -11.5, 1.2, 0.7, 0.8, '#8d5a3b'); mb.colliders.push({ minX: x - 2.6, maxX: x - 1.4, minZ: -11.85, maxZ: -11.15 });
+      mb.box(0.9, 0.5, 0.5, '#cfe8ff', x - 2, 0.8, -11.5, { mat: 'glass' }); mb.box(0.86, 0.06, 0.46, '#e9c46a', x - 2, 0.8, -11.5, { mat: 'dirt' });
+      mb.add(TORUS, '#ff7b00', [x - 1.75, 1.05, -11.5], [0, 0, 0], [0.16, 0.16, 0.2], null, 'plastic'); mb.add(P.ICO, '#d4a373', [x - 2.25, 0.92, -11.45], [0, 0, 0], [0.07, 0.06, 0.09], null, 'fabric');
+      for (let k = 0; k < 3; k++) mb.rbox(0.5, 0.16, 0.7, ['#e63946', '#2a9d8f', '#f4a261'][k], L + 1.0, k * 0.16, -7.2, { mat: 'fabric' });
+      mb.cyl(0.45, 0.45, 0.14, '#8d5a3b', x - 3, 0, -8.2, { mat: 'fabric' }); mb.cyl(0.33, 0.33, 0.15, '#f4d6c6', x - 3, 0.02, -8.2, { mat: 'fabric' });
+      mb.cyl(0.03, 0.03, 1.5, '#9aa0a6', R - 0.5, 0, -9.0, { mat: 'metal' }); mb.cyl(0.3, 0.3, 0.6, '#cfe8ff', R - 0.5, 1.5, -9.0, { mat: 'glass' }); mb.cone(0.32, 0.25, '#d4af37', R - 0.5, 2.1, -9.0, { mat: 'metal' });
+      mb.add(P.ICO, '#06d6a0', [R - 0.5, 1.75, -9.0], [0, 0, 0], [0.08, 0.1, 0.07], null, 'plastic');
+    } else {
+      P.airHockey(mb, x - 2.5, -10.8, 0);
+      for (const lx2 of [L + 0.95, L + 2.05]) P.skeeBall(mb, lx2, -12.0);
+      const pf = P.frame(mb, R - 0.55, -13, -Math.PI / 2);
+      pf.box(3, 1.0, 0.8, '#3d405b', 0, 0, 0, 'wood').box(2.9, 0.4, 0.75, '#cfe8ff', 0, 1.0, 0, 'glass').solid(3, 0.8);
+      for (let k = 0; k < 10; k++) pf.ball(0.13, PAL8[k % 8], -1.25 + k * 0.28, 1.15, 0, 'fabric');
+      P.shelfUnit(mb, R - 0.08 - 0.01, -13, { w: 3, h: 2.2, d: 0.18, shelves: 3, rot: -Math.PI / 2, fill: 'toys', rng, solid: false, color: '#ff006e' });
+      mb.box(0.6, 1.5, 0.5, '#2b2d42', R - 0.3, 0, -6.4, { mat: 'metal', collide: true }); mb.box(0.02, 0.3, 0.3, '#ffd60a', R - 0.56, 1.0, -6.4, { mat: 'glow' });
+      for (const sx of [L, R]) mb.box(0.03, 0.08, 11, '#ff006e', sx + (sx === L ? 0.02 : -0.02), 2.75, -11, { mat: 'glow' });
     }
   }
   // food court
@@ -689,6 +1109,25 @@ export function buildMall() {
   act(sc, 'fountain', 12, 2.8, 'Fountain (fish for coins?)');
   for (let k = 0; k < 4; k++) P.bench(mb, -8 + k * 10, 4.2, Math.PI);
   for (let k = 0; k < 6; k++) { mb.cyl(0.45, 0.55, 0.7, '#c9b79c', -48 + k * 18, 0, -4.2, { mat: 'concrete' }); P.bush(mb, -48 + k * 18, -4.2, 0.7, '#2d6a4f'); }
+  // commons: kiosks, directory, trash cans by the benches; two more food stalls and a condiment station
+  P.kiosk(mb, -30, 0.6, 0, '#3a86ff', rng); P.kiosk(mb, 29, 0.6, 0, '#ff006e', rng);
+  P.addSign(mall.contents, 'PHONE CASES', -30, 2.9, 0.6, 1.8, 0, { bg: '#3a86ff', color: '#ffffff' });
+  P.addSign(mall.contents, 'PRETZELS', 29, 2.9, 0.6, 1.6, 0, { bg: '#ff006e', color: '#ffffff' });
+  const dirf = P.frame(mb, -50.5, -3.6, -Math.PI / 2);
+  dirf.box(1.1, 1.8, 0.2, '#2b2d42', 0, 0, 0, 'metal').box(0.9, 1.2, 0.01, '#f4f1ea', 0, 0.45, -0.105, 'plain', { ry: Math.PI });
+  for (let k = 0; k < 6; k++) dirf.box(0.36, 0.12, 0.012, PAL8[k], -0.2 + (k % 2) * 0.4, 0.6 + Math.floor(k / 2) * 0.32, -0.11, 'plain');
+  dirf.solid(1.1, 0.2);
+  for (let k = 0; k < 4; k++) { P.trashCan(mb, -6.7 + k * 10, 4.6, '#6c757d'); sc.colliders.push({ minX: -6.95 + k * 10, maxX: -6.45 + k * 10, minZ: 4.35, maxZ: 4.85 }); }
+  for (const [fx, label, c] of [[-38, 'BURGER BARN', '#c1121f'], [-12, 'TACO TOWN', '#2a9d8f']]) {
+    P.counter(mb, fx, 18, 6, 0, c);
+    mb.box(6, 1.2, 0.2, shade(c, 1.3), fx, 2.2, 19.4, { mat: 'paint' });
+    P.addSign(mall.contents, label, fx, 3.0, 19.25, 3.6, Math.PI, { bg: c, color: '#ffffff' });
+    for (let k = 0; k < 4; k++) mb.box(0.5, 0.25, 0.4, ['#e9c46a', '#f4a261', '#ffffff', '#8ac926'][k], fx - 2 + k * 1.3, 1.07, 18.1, { mat: 'plastic' });
+    mb.box(0.8, 0.9, 0.5, '#adb5bd', fx + 2.2, 0, 19.1, { mat: 'metal' });
+  }
+  P.table(mb, -6.6, 12, 0.6, 1.4, 0.9, '#adb5bd', 0, 'metal'); sc.colliders.push({ minX: -6.9, maxX: -6.3, minZ: 11.3, maxZ: 12.7 });
+  for (let k = 0; k < 4; k++) mb.cyl(0.05, 0.05, 0.18, ['#e63946', '#ffd60a', '#ffffff', '#6c757d'][k], -6.6, 0.9, 11.5 + k * 0.3, { mat: 'plastic' });
+  for (const tz of [8, 16]) { P.trashCan(mb, -6.6, tz, '#6c757d'); sc.colliders.push({ minX: -6.85, maxX: -6.35, minZ: tz - 0.25, maxZ: tz + 0.25 }); }
   act(sc, 'exit', -66, 3, 'Leave the mall (Town Map)', {}, 2.6);
   sc.spawn = { x: -62, z: 0, rot: Math.PI / 2 };
   sc.grass.push({ x: -20, z: -24, w: 150, d: 6 }, { x: -20, z: 25, w: 150, d: 4 });
@@ -716,7 +1155,14 @@ export function buildLibrary() {
   for (let k = 0; k < 5; k++) lb.sphere(0.55, ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'][k], -18 + k * 1.2, 0.4, -5.5 - (k % 2), [1, 0.7, 1], { mat: 'fabric' });
   P.addSign(lib.contents, "Kids' Corner", -16, 2.6, -14.0, 2.4);
   zone(sc, "kids' corner", -16, -7, 7, 6);
-  for (let k = 0; k < 5; k++) { lb.rbox(1.4, 0.06, 0.75, '#6d4c41', 11 + k * 2.2, 0.75, -11, { mat: 'wood' }); lb.rbox(0.7, 0.48, 0.06, '#1a1a1a', 11 + k * 2.2, 1.1, -11.25, { mat: 'plastic' }); lb.box(0.62, 0.4, 0.02, '#4cc9f0', 11 + k * 2.2, 1.12, -11.21, { mat: 'glow' }); }
+  for (let k = 0; k < 5; k++) {
+    const cx2 = 11 + k * 2.2;
+    lb.rbox(1.4, 0.06, 0.75, '#6d4c41', cx2, 0.75, -11, { mat: 'wood' }); lb.rbox(0.7, 0.48, 0.06, '#1a1a1a', cx2, 1.1, -11.25, { mat: 'plastic' }); lb.box(0.62, 0.4, 0.02, '#4cc9f0', cx2, 1.12, -11.21, { mat: 'glow' });
+    for (const [dx, dz] of [[-0.62, -0.3], [0.62, -0.3], [-0.62, 0.3], [0.62, 0.3]]) lb.box(0.05, 0.75, 0.05, '#4a3428', cx2 + dx, 0, -11 + dz, { mat: 'wood' });
+    lb.box(0.04, 0.12, 0.04, '#1a1a1a', cx2, 0.81, -11.25, { mat: 'plastic' }); lb.box(0.5, 0.02, 0.16, '#3a3a3f', cx2, 0.81, -10.85, { mat: 'plastic' }); lb.box(0.2, 0.4, 0.4, '#2b2b2f', cx2 + 0.5, 0, -11.05, { mat: 'plastic' });
+    P.chair(lb, cx2, -10.25, Math.PI, '#264653');
+    sc.colliders.push({ minX: cx2 - 0.7, maxX: cx2 + 0.7, minZ: -11.38, maxZ: -10.62 });
+  }
   zone(sc, 'computer row', 15, -9.5, 10, 2.5);
   for (let k = 0; k < 3; k++) { lb.rbox(1.2, 0.5, 1.1, '#6a994e', -20 + k * 2.5, 0, 8, { mat: 'fabric' }); lb.rbox(1.2, 0.8, 0.3, '#6a994e', -20 + k * 2.5, 0.4, 7.5, { mat: 'fabric' }); }
   lb.rbox(2, 1.0, 0.9, '#c9a227', -12, 0, 10, { collide: true, mat: 'wood' });
@@ -731,6 +1177,39 @@ export function buildLibrary() {
   zone(sc, 'league desk', 14, -0.4, 2, 1, { boss: { x: 14, z: -0.2 } });
   P.counter(lb, -2, 10, 5, 0, '#8d5a3b');
   zone(sc, 'front desk', -2, 9, 2, 1, { boss: { x: -2, z: 9 } });
+  // furnishings: chairs at the homework tables, low wall shelves, magazine rack, lamps + side tables in the nook,
+  // kids' table and teddy, card catalog, entrance rug, book drop, new-books display, globe, plants, clock, signs
+  for (let i = 0; i < 12; i++) P.chair(lb, 9 + (i % 6) * 2, i < 6 ? 4.95 : 7.05, i < 6 ? 0 : Math.PI, '#a5673f', 'wood');
+  for (const lz of [-4, 4]) P.shelfUnit(lb, 24.65, lz, { w: 4, h: 1.05, d: 0.4, shelves: 2, rot: -Math.PI / 2, rng });
+  P.shelfUnit(lb, -24.65, 2, { w: 4, h: 1.05, d: 0.4, shelves: 2, rot: Math.PI / 2, rng });
+  const mrf = P.frame(lb, -24.55, 10.6, Math.PI / 2);
+  mrf.box(1.2, 1.2, 0.35, '#8d5a3b', 0, 0, -0.05, 'wood');
+  for (let r = 0; r < 3; r++) for (let k = 0; k < 4; k++) mrf.box(0.24, 0.32, 0.02, PAL8[(r * 4 + k) % 8], -0.42 + k * 0.28, 0.15 + r * 0.36, 0.14, 'plain', { rx: -0.25 });
+  mrf.solid(1.2, 0.4);
+  P.floorLamp(lb, -21.3, 7.5, '#fff1c9');
+  for (const sx2 of [-18.75, -16.25]) { P.table(lb, sx2, 7.9, 0.5, 0.5, 0.55, '#8d5a3b'); P.tableLamp(lb, sx2, 0.55, 7.9); }
+  P.table(lb, -22.4, -9.2, 1.2, 0.8, 0.5, '#ffbe0b', 0, 'plastic'); sc.colliders.push({ minX: -23, maxX: -21.8, minZ: -9.6, maxZ: -8.8 });
+  for (const [dx, dz, r] of [[-0.3, -0.65, 0], [0.3, -0.65, 0], [-0.3, 0.65, Math.PI], [0.3, 0.65, Math.PI]]) P.chair(lb, -22.4 + dx, -9.2 + dz, r, ['#e63946', '#3a86ff', '#8ac926', '#8338ec'][Math.round((dx + 0.3) / 0.6) + (dz > 0 ? 2 : 0)]);
+  for (const [px, py, pz, r, sy] of [[0, 0.35, 0, 0.38, 1.1], [0, 0.92, 0, 0.26, 1], [-0.18, 1.12, 0, 0.09, 1], [0.18, 1.12, 0, 0.09, 1], [-0.32, 0.5, 0.05, 0.12, 1.4], [0.32, 0.5, 0.05, 0.12, 1.4]]) lb.add(P.ICO, '#a0522d', [-13 + px, py, -10 + pz], [0, 0, 0], [r, r * sy, r], null, 'fabric');
+  lb.add(P.ICO, '#f4d6c6', [-13, 0.88, -9.78], [0, 0, 0], [0.11, 0.08, 0.06], null, 'fabric');
+  const ccf = P.frame(lb, -7.5, 14.55, Math.PI);
+  ccf.box(1.0, 1.2, 0.5, '#8d5a3b', 0, 0, 0, 'wood');
+  for (let r = 0; r < 5; r++) for (let k = 0; k < 4; k++) { ccf.box(0.2, 0.18, 0.02, '#a5673f', -0.36 + k * 0.24, 0.12 + r * 0.21, 0.26, 'wood'); ccf.box(0.06, 0.02, 0.02, '#d4af37', -0.36 + k * 0.24, 0.2 + r * 0.21, 0.275, 'metal'); }
+  ccf.solid(1.0, 0.5);
+  P.rug(lb, 0, 13.6, 3.2, 1.8, '#9d0208', '#e9c46a');
+  lb.rbox(0.7, 1.1, 0.6, '#1d4ed8', 3.4, 0, 13.8, { mat: 'metal', collide: true }); lb.box(0.4, 0.06, 0.02, '#1a1a1a', 3.4, 0.85, 13.49, { mat: 'plastic' });
+  P.addSign(lib.contents, 'BOOK DROP', 3.4, 1.35, 13.48, 0.7, 0, { bg: '#1d4ed8', color: '#ffffff' });
+  P.table(lb, 6.2, 11.6, 1.6, 0.8, 0.8, '#a5673f'); sc.colliders.push({ minX: 5.4, maxX: 7.0, minZ: 11.2, maxZ: 12.0 });
+  for (let k = 0; k < 5; k++) lb.box(0.26, 0.34, 0.05, PAL8[k + 1], 5.65 + k * 0.28, 0.8, 11.6, { mat: 'fabric', rot: [-0.3, 0, 0] });
+  P.addSign(lib.contents, 'NEW BOOKS', 6.2, 1.5, 11.25, 1.3, 0, { bg: '#e9c46a', color: '#1d3557' });
+  lb.cyl(0.25, 0.3, 0.06, '#8a5a3b', 21.6, 0, 6, { mat: 'wood' }); lb.cyl(0.04, 0.05, 0.85, '#8a5a3b', 21.6, 0, 6, { mat: 'wood' });
+  lb.sphere(0.35, '#3a86ff', 21.6, 1.2, 6, [1, 1, 1], { mat: 'plastic', shade: (px, py, pz) => (Math.sin(px * 9) + Math.cos(pz * 7) > 0.6 ? '#57cc99' : null) });
+  sc.colliders.push({ minX: 21.3, maxX: 21.9, minZ: 5.7, maxZ: 6.3 });
+  for (const [px, pz] of [[-24.2, 14.2], [24.2, 14.2], [24.2, -14.2], [-0.8, -14.3]]) P.plant(lb, px, pz, 1.4);
+  P.wallClock(lb, 10, 3.3, -14.86, 0, 0.35);
+  P.addSign(lib.contents, 'SHHH! QUIET PLEASE', 15, 3.3, -14.84, 3.4, 0, { bg: '#2d4a3e', color: '#ffffff' });
+  P.addSign(lib.contents, 'FICTION', -4, 2.4, -3.8, 1.4, 0, { bg: '#e63946', color: '#ffffff' });
+  P.addSign(lib.contents, 'NON-FICTION', 4, 2.4, -3.8, 1.8, 0, { bg: '#457b9d', color: '#ffffff' });
   for (const sx of [-14, 14]) P.tree(b, sx, 22, 1.2, sx > 0 ? 0 : 2);
   b.box(2.4, 0.08, 10, '#cfcac0', 0, 0, 24, { mat: 'concrete' });
   for (let k = 0; k < 4; k++) b.box(0.08, 0.8, 1.2, '#2f3238', 5 + k * 0.6, 0, 20, { mat: 'metal' });
@@ -771,6 +1250,61 @@ export function buildMuseum() {
   P.counter(mb, -18, 10, 6, 0, '#9d4edd');
   act(sc, 'shop', -18, 8.6, 'Museum Gift Shop', { shop: 'gift shop' });
   zone(sc, 'gift shop', -18, 7, 10, 3);
+  // exhibits: ropes + plaques round the dino, fossil plinths, a rocket, astronaut, meteorite and telescope in the
+  // space wing, a painting gallery with benches, bug zoo plaques, gift shop shelves, ticket desk, plants and bins
+  P.ropeLine(mb, [[-20.2, -8.3], [-9.8, -8.3], [-9.8, -3.7], [-20.2, -3.7]], true);
+  sc.colliders.push({ minX: -20.25, maxX: -9.75, minZ: -8.35, maxZ: -3.65 });
+  P.infoPlaque(mb, -12.4, -3.1, 0); P.infoPlaque(mb, -17.6, -3.1, 0, '#6a4c93');
+  const fossil = (fx, fz, kind) => {
+    P.plinth(mb, fx, fz, 0.9, 1.0, '#e9e4dc');
+    mb.box(0.8, 0.7, 0.8, '#cfe8ff', fx, 1.06, fz, { mat: 'glass' });
+    if (kind === 0) { mb.add(P.ICO, '#efe6cc', [fx, 1.3, fz], [0, 0.4, 0], [0.32, 0.2, 0.2], null, 'plastic'); mb.box(0.3, 0.06, 0.16, '#efe6cc', fx + 0.18, 1.12, fz, { mat: 'plastic' }); }
+    else if (kind === 1) { mb.cyl(0.3, 0.3, 0.08, '#a5673f', fx, 1.06, fz, { mat: 'dirt' }); for (let k = 0; k < 3; k++) mb.add(P.ICO, '#f4f1de', [fx - 0.12 + k * 0.12, 1.24, fz + (k % 2) * 0.08], [0, 0, 0], [0.09, 0.13, 0.09], null, 'plastic'); }
+    else { mb.add(TORUS, '#c9a66b', [fx, 1.3, fz], [0, 0, 0], [0.2, 0.2, 0.4], null, 'plastic'); mb.add(TORUS, '#b08d57', [fx + 0.05, 1.3, fz], [0, 0, 0], [0.1, 0.1, 0.5], null, 'plastic'); }
+    P.infoPlaque(mb, fx + 0.9, fz, Math.PI / 2, '#5a6370');
+  };
+  fossil(-27.5, -10, 0); fossil(-27.5, -6, 1); fossil(-27.5, -2, 2);
+  const panel = P.frame(mb, -6.5, -14.88, 0);
+  panel.box(4, 2.2, 0.06, '#5a6370', 0, 1.2, 0.03, 'stucco');
+  for (let k = 0; k < 7; k++) panel.box(0.5 - (k % 3) * 0.1, 0.1, 0.04, '#efe6cc', -1.4 + k * 0.45, 1.6 + Math.sin(k) * 0.5, 0.08, 'plastic', { center: true, rz: k * 0.7 });
+  panel.ball(0.35, '#efe6cc', 1.2, 2.6, 0.1, 'plastic', [1.3, 0.8, 0.3]);
+  const rk = P.frame(mb, 26.5, -11.5, 0);
+  rk.cyl(1.2, 1.3, 0.3, '#5a6370', 0, 0, 0, 'stucco').cyl(0.5, 0.5, 3.6, '#f4f1ea', 0, 0.3, 0, 'metal').cone(0.5, 1.1, '#e63946', 0, 3.9, 0, 'metal');
+  for (let k = 0; k < 3; k++) { const a = k * 2.094; rk.box(0.06, 0.9, 0.6, '#e63946', Math.cos(a) * 0.55, 0.3, Math.sin(a) * 0.55, 'metal', { ry: -a + Math.PI / 2 }); }
+  rk.hcyl(0.14, 0.06, '#1d2733', 0, 2.8, 0.5, 'z', 'glass').cyl(0.35, 0.25, 0.3, '#3d405b', 0, 0.3, 0, 'metal').solid(2.6, 2.6);
+  P.plinth(mb, 7.5, -12.8, 1.0, 0.5, '#2b2d42');
+  const as = P.frame(mb, 7.5, -12.8, 0);
+  for (const sd of [-0.12, 0.12]) as.rbox(0.18, 0.75, 0.22, '#f4f1ea', sd, 0.56, 0, 'fabric');
+  as.rbox(0.5, 0.65, 0.34, '#f4f1ea', 0, 1.3, 0, 'fabric').rbox(0.36, 0.42, 0.18, '#d0d7df', 0, 1.35, -0.25, 'metal');
+  for (const sd of [-1, 1]) as.rbox(0.14, 0.55, 0.16, '#f4f1ea', sd * 0.34, 1.35, 0, 'fabric');
+  as.ball(0.26, '#f4f1ea', 0, 2.15, 0, 'plastic').ball(0.2, '#e0b84a', 0, 2.15, 0.1, 'metal', [1, 0.85, 0.6]).box(0.12, 0.1, 0.02, '#e63946', -0.12, 1.5, 0.17, 'plain');
+  P.infoPlaque(mb, 8.9, -12.4, 0);
+  P.plinth(mb, 14, -3.6, 0.8, 0.8, '#2b2d42');
+  mb.add(P.ICO, '#4a4e57', [14, 1.1, -3.6], [0.4, 0.7, 0], [0.32, 0.24, 0.28], null, 'concrete');
+  P.ropeLine(mb, [[13, -2.6], [15, -2.6]]); P.infoPlaque(mb, 15.6, -2.8, 0);
+  const tsf = P.frame(mb, 23.5, -3.2, 0);
+  for (let k = 0; k < 3; k++) { const a = k * 2.094; tsf.box(0.04, 1.3, 0.04, '#2b2b2f', Math.cos(a) * 0.3, 0, Math.sin(a) * 0.3, 'metal', { rx: Math.sin(a) * 0.2, rz: -Math.cos(a) * 0.2 }); }
+  tsf.hcyl(0.12, 1.2, '#f4f1ea', 0, 1.45, 0, 'x', 'metal').hcyl(0.14, 0.1, '#2b2b2f', 0.6, 1.45, 0, 'x', 'metal');
+  for (let k = 0; k < 3; k++) wallPicture(mus.contents, posterTexture(90 + k, 'art'), -4 + k * 4, 2.6, -14.86, 2.0, 1.6, 0);
+  for (let k = 0; k < 3; k++) mb.box(2.3, 2.0, 0.06, '#d4af37', -4 + k * 4, 1.6, -14.9, { mat: 'metal' });
+  P.ropeLine(mb, [[-6, -13.6], [-2, -13.6], [2, -13.6], [6, -13.6]]);
+  for (const bx of [-3, 3]) { mb.rbox(2.0, 0.42, 0.55, '#3d405b', bx, 0, -9.0, { mat: 'fabric', collide: true }); }
+  for (let k = 0; k < 4; k++) P.infoPlaque(mb, 11 + k * 3, 7.9, Math.PI, '#2d6a4f');
+  const bf = P.frame(mb, 29.88, 9, -Math.PI / 2);
+  bf.box(2.0, 1.4, 0.05, '#6d4630', 0, 1.6, 0.025, 'wood').box(1.85, 1.25, 0.01, '#fdf6e3', 0, 1.675, 0.055, 'plain');
+  for (let k = 0; k < 9; k++) { const px = -0.7 + (k % 3) * 0.7; const py = 1.95 + Math.floor(k / 3) * 0.38; bf.box(0.24, 0.14, 0.01, PAL8[k % 8], px - 0.06, py, 0.065, 'plain', { center: true, rz: 0.4 }); bf.box(0.24, 0.14, 0.01, PAL8[k % 8], px + 0.06, py, 0.065, 'plain', { center: true, rz: -0.4 }); }
+  P.shelfUnit(mb, -24.5, 14.45, { w: 2.6, h: 1.25, d: 0.45, shelves: 3, rot: Math.PI, fill: 'toys', rng: mulberry32(17), palette: ['#57cc99', '#38a3a5', '#ffd166', '#e76f51'] });
+  P.shelfUnit(mb, -16.5, 14.45, { w: 2.6, h: 1.25, d: 0.45, shelves: 3, rot: Math.PI, fill: 'products', rng: mulberry32(18) });
+  P.table(mb, -24.5, 8.0, 1.8, 0.9, 0.8, '#9d4edd'); sc.colliders.push({ minX: -25.4, maxX: -23.6, minZ: 7.55, maxZ: 8.45 });
+  for (let k = 0; k < 5; k++) { const dx = -24.5 - 0.7 + k * 0.35; mb.add(P.ICO, ['#57cc99', '#80ed99', '#38a3a5'][k % 3], [dx, 0.95, 8.0], [0, k, 0], [0.12, 0.12, 0.2], null, 'fabric'); mb.add(P.ICO, ['#57cc99', '#80ed99', '#38a3a5'][k % 3], [dx, 1.08, 7.88], [0, 0, 0], [0.07, 0.07, 0.09], null, 'fabric'); }
+  mb.cyl(0.03, 0.03, 1.6, '#9aa0a6', -12.3, 0, 8.4, { mat: 'metal' });
+  for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2; mb.box(0.16, 0.22, 0.01, PAL8[(r + k) % 8], -12.3 + Math.cos(a) * 0.1, 0.7 + r * 0.25, 8.4 + Math.sin(a) * 0.1, { mat: 'plain', rot: [0, -a + Math.PI / 2, 0] }); }
+  P.clothesRack(mb, -27.6, 11.5, Math.PI / 2, 1.6, mulberry32(19), ['#1d3557', '#57cc99', '#ffd166', '#ffffff']);
+  P.counter(mb, 6.5, 12.6, 3, 0, '#1d3557');
+  P.addSign(mus.contents, 'TICKETS', 6.5, 2.0, 13.2, 1.4, 0, { bg: '#ffd166', color: '#1d3557' });
+  mb.box(0.4, 0.3, 0.3, '#2b2b2f', 7.4, 1.07, 12.6, { mat: 'plastic' });
+  for (const sx of [-1, 1]) { P.plant(mb, sx * 3.0, 14.3, 1.6); P.trashCan(mb, sx * 4.0, 14.4, '#6c757d'); }
+  sc.colliders.push({ minX: -4.3, maxX: -2.7, minZ: 14.0, maxZ: 14.88 }, { minX: 2.7, maxX: 4.3, minZ: 14.0, maxZ: 14.88 });
   // T-rex statue on the plaza
   b.box(36, 0.08, 14, '#d6d2ca', 0, 0, 25, { mat: 'concrete' });
   P.fountain(b, -12, 26, 2.4);
@@ -831,6 +1365,39 @@ export function buildGrocery() {
   for (let k = 0; k < 6; k++) gb.box(0.4, 0.5, 0.02, ['#ffffff', '#fff3b0', '#bde0fe'][k % 3], -17 + (k % 3) * 0.9, 1.2 + Math.floor(k / 3) * 0.7, 7.5, { mat: 'plain' });
   P.addSign(gro.contents, 'Community Board', -16, 2.9, 7.5, 2.4, Math.PI);
   act(sc, 'bulletin', -16, 6.4, 'Bulletin board (jobs)');
+  // departments: produce along the west wall + an island, freezers along the back, dairy cooler on the east wall,
+  // bakery case, aisle endcaps, checkout belts and registers, carts, baskets, gumball machines, signs
+  const fruit = [['#e63946', '#8ac926', '#ffca3a'], ['#f4a261', '#6a994e', '#9d0208'], ['#ffd23f', '#e63946', '#2d6a4f'], ['#ff924c', '#8ac926', '#6a4c93']];
+  P.produceStand(gb, -19.4, -8.6, Math.PI / 2, 3, fruit[0], rng); P.produceStand(gb, -19.4, -4.6, Math.PI / 2, 3, fruit[1], rng);
+  P.produceStand(gb, -16.45, -6.6, Math.PI / 2, 3, fruit[2], rng); P.produceStand(gb, -15.55, -6.6, -Math.PI / 2, 3, fruit[3], rng);
+  P.addSign(gro.contents, 'Produce', -17.6, 3.0, -10.8, 2.0, 0, { bg: '#2d6a4f', color: '#ffffff' });
+  P.freezerCase(gb, 0, -13.45, 0, 16, rng);
+  P.addSign(gro.contents, 'Frozen', 0, 3.0, -13.0, 2.0, 0, { bg: '#3a86ff', color: '#ffffff' });
+  P.freezerCase(gb, 19.45, -8, -Math.PI / 2, 6, rng, ['#ffffff', '#ffffff', '#fff3b0', '#bde0fe', '#ffafcc']);
+  P.addSign(gro.contents, 'Dairy', 19.0, 3.0, -8, 1.6, -Math.PI / 2, { bg: '#ffffff', color: '#1d3557' });
+  const bk = P.frame(gb, 14.2, -13.35, 0);
+  bk.box(4, 0.8, 0.9, '#8d5a3b', 0, 0, 0, 'wood').box(4, 0.4, 0.9, '#cfe8ff', 0, 0.8, 0, 'glass').solid(4, 0.9);
+  for (let k = 0; k < 8; k++) bk.ball(0.16, k % 2 ? '#d4a373' : '#c68b59', -1.6 + k * 0.45, 0.92, 0, 'plastic', [1.4, 0.6, 0.8]);
+  for (let k = 0; k < 3; k++) bk.cyl(0.22, 0.22, 0.2, ['#ffafcc', '#ffffff', '#ffd6a5'][k], -1.2 + k * 1.2, 1.2, -0.25, 'plastic');
+  P.addSign(gro.contents, 'Bakery', 14.2, 3.0, -13.2, 1.8, 0, { bg: '#c68b59', color: '#ffffff' });
+  P.addSign(gro.contents, 'Snacks', 4, 2.6, -11.2, 1.4); P.addSign(gro.contents, 'Drinks', 12, 2.6, -11.2, 1.4);
+  for (const ex of [-12, -4, 4, 12]) { for (let r = 0; r < 3; r++) for (let k = 0; k < 3 - r; k++) gb.box(0.28, 0.24, 0.5, PAL8[(Math.abs(ex) + r + k) % 8], ex - 0.28 + k * 0.29 + r * 0.145, r * 0.24, -0.62, { mat: 'plastic' }); sc.colliders.push({ minX: ex - 0.45, maxX: ex + 0.45, minZ: -0.9, maxZ: -0.35 }); }
+  for (let k = 0; k < 3; k++) {
+    const cx = -6 + k * 5;
+    gb.box(0.5, 0.02, 1.6, '#1a1a1a', cx, 1.07, 3.55, { mat: 'rubber' });
+    gb.box(0.36, 0.22, 0.3, '#2b2d42', cx + 0.12, 1.07, 4.75, { mat: 'plastic' }); gb.box(0.3, 0.22, 0.03, '#4cc9f0', cx + 0.18, 1.32, 4.75, { mat: 'glow', rot: [0, Math.PI / 2, 0] });
+    gb.box(0.4, 0.15, 0.3, '#ffffff', cx - 0.1, 1.07, 5.05, { mat: 'fabric' });
+    const ir = P.frame(gb, cx, 2.35, 0);
+    ir.box(0.6, 1.1, 0.3, '#adb5bd', 0, 0, 0, 'metal');
+    for (let r = 0; r < 3; r++) for (let q = 0; q < 3; q++) ir.box(0.14, 0.18, 0.05, PAL8[(r * 3 + q + k) % 8], -0.18 + q * 0.18, 0.15 + r * 0.32, 0.16, 'plastic');
+    ir.solid(0.6, 0.3);
+  }
+  for (let k = 0; k < 4; k++) P.shoppingCart(gb, 7.6 + k * 0.32, 6.7, Math.PI / 2);
+  sc.colliders.push({ minX: 7.15, maxX: 9.35, minZ: 6.25, maxZ: 7.15 });
+  for (let k = 0; k < 4; k++) gb.box(0.5, 0.12, 0.34, '#e63946', 3.0, k * 0.12, 7.3, { mat: 'plastic', shade: (px, py) => (py > 0.3 ? '#c1121f' : null) });
+  for (const gx of [-2.9, -3.45]) { gb.cyl(0.12, 0.16, 0.9, '#c1121f', gx, 0, 7.4, { mat: 'metal' }); gb.sphere(0.2, '#cfe8ff', gx, 1.1, 7.4, [1, 1, 1], { mat: 'glass' }); for (let q = 0; q < 5; q++) gb.add(P.ICO, PAL8[q], [gx - 0.08 + (q % 3) * 0.08, 1.02 + Math.floor(q / 3) * 0.09, 7.4], [0, 0, 0], [0.04, 0.04, 0.04], null, 'plastic'); }
+  sc.colliders.push({ minX: -3.65, maxX: -2.7, minZ: 7.2, maxZ: 7.6 });
+  P.rug(gb, 0, 6.9, 3.4, 1.4, '#3d405b', '#2b2d42');
   act(sc, 'exit', 0, 33, 'Leave (Town Map)', {}, 2.6);
   sc.spawn = { x: 0, z: 30, rot: Math.PI };
   sc.grass.push({ x: -26, z: 10, w: 6, d: 40 }, { x: 26, z: 10, w: 6, d: 40 });

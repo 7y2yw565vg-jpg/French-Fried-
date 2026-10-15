@@ -556,6 +556,7 @@ export function frame(b, x, z, rot = 0) {
     box: (w, h, d, col, dx, y, dz, mat = 'plain', o) => { put(BOX, col, w, h, d, dx, y, dz, mat, o); return f; },
     rbox: (w, h, d, col, dx, y, dz, mat = 'plain', o) => { put(RBOX, col, w, h, d, dx, y, dz, mat, o); return f; },
     cyl: (rt, rb, h, col, dx, y, dz, mat = 'plain') => { const [px, pz] = at(dx, dz); b.cyl(rt, rb, h, col, px, y, pz, { mat }); return f; },
+    cone: (r, h, col, dx, y, dz, mat = 'plain') => { const [px, pz] = at(dx, dz); b.cone(r, h, col, px, y, pz, { mat }); return f; },
     /** cylinder lying along local x ('x') or local z ('z'), centered at y */
     hcyl: (r, len, col, dx, y, dz, axis = 'x', mat = 'plain') => { const [px, pz] = at(dx, dz); b.add(CYL, col, [px, y, pz], yawTilt(rot, axis === 'z' ? Math.PI / 2 : 0, axis === 'x' ? Math.PI / 2 : 0), [r, len, r], null, mat); return f; },
     ball: (r, col, dx, y, dz, mat = 'plastic', sc = [1, 1, 1]) => { const [px, pz] = at(dx, dz); b.add(ICO, col, [px, y, pz], [0, rot, 0], [r * sc[0], r * sc[1], r * sc[2]], null, mat); return f; },
@@ -971,6 +972,25 @@ export function matStack(b, x, z, rot = 0, n = 4, color = '#1d4ed8') {
   const f = frame(b, x, z, rot);
   for (let i = 0; i < n; i++) f.rbox(1.8, 0.14, 1.2, i % 2 ? shade(color, 1.2) : color, (i % 2) * 0.04, i * 0.14, 0, 'fabric');
   f.solid(1.8, 1.2);
+}
+
+export function airHockey(b, x, z, rot = 0) {
+  const f = frame(b, x, z, rot);
+  f.box(2.2, 0.7, 1.2, '#3a0ca3', 0, 0, 0, 'plastic').box(2.1, 0.04, 1.1, '#f8f9fa', 0, 0.7, 0, 'plastic');
+  for (const sd of [-1, 1]) { f.box(2.2, 0.1, 0.05, '#ff006e', 0, 0.7, sd * 0.575, 'plastic'); f.box(0.05, 0.1, 1.2, '#ff006e', sd * 1.075, 0.7, 0, 'plastic'); f.cyl(0.08, 0.08, 0.06, '#e63946', sd * 0.75, 0.74, 0, 'plastic'); f.box(0.3, 0.12, 0.02, '#ffd60a', sd * 1.1, 0.8, 0, 'glow', { ry: Math.PI / 2 }); }
+  f.box(0.02, 0.005, 1.08, '#e63946', 0, 0.742, 0, 'plain').cyl(0.05, 0.05, 0.015, '#1a1a1a', 0.2, 0.742, 0.1, 'plastic').solid(2.2, 1.2);
+}
+
+/** Skee-ball lane running along local z, the target at the far (-z) end. */
+export function skeeBall(b, x, z, rot = 0, len = 3.6) {
+  const f = frame(b, x, z, rot);
+  f.box(0.9, 0.5, len, '#7209b7', 0, 0, 0, 'wood');
+  f.box(0.7, 0.04, len - 0.6, '#f4d35e', 0, 0.5, 0.3, 'wood', { rx: -0.08 });
+  f.box(0.9, 1.8, 0.4, '#3a0ca3', 0, 0, -len / 2 + 0.2, 'plastic');
+  for (const [r, c] of [[0.3, '#ffbe0b'], [0.2, '#ff006e'], [0.1, '#06d6a0']]) f.hcyl(r, 0.03, c, 0, 1.1, -len / 2 + 0.42 + (0.3 - r) * 0.1, 'z', 'plastic');
+  f.box(0.8, 0.25, 0.02, '#80ffdb', 0, 1.55, -len / 2 + 0.41, 'glow');
+  for (let k = 0; k < 3; k++) f.ball(0.07, '#8d5a3b', -0.2 + k * 0.2, 0.62, len / 2 - 0.25, 'wood');
+  f.solid(0.9, len);
 }
 
 export { THREE, mulberry32, Builder, CYL, CONE, BOX, RBOX, SPHERE_LO, PRISM, matFor };
