@@ -62,8 +62,7 @@ export function kidSpec(k, opts = {}) {
   const band = BAND(grade);
   const build = BUILD[L.build] || BUILD.average;
   const f = Math.max(0.92, Math.min(1.08, L.height_in / (AVG_IN[k.grade_at_start] || 52)));
-  // Wheelchairs are left out of the character art (art direction call); those kids are drawn standing.
-  const acc = L.accessories.filter((x) => !x.startsWith('wheelchair'));
+  const acc = L.accessories.slice();
   const has = (a) => acc.some((x) => x.startsWith(a));
   // Hair color + dye
   let hairName = L.hair_color; let dye = null;
@@ -294,7 +293,6 @@ export function renderCharacter(sp) {
   const H = sp.heads * 100 * sp.f;
   const L = H - 100;
   const G = 80 + H;
-  const seated = sp.acc.some((a) => a.startsWith('wheelchair'));
   const S = 46 * sp.shoulder * sp.build.w;
   const T = S - 15;
   const belly = sp.build.belly ? 14 : 0;
@@ -318,25 +316,18 @@ export function renderCharacter(sp) {
   const armD = (d) => `M${r1(A(d)[0])} ${r1(A(d)[1])} Q${r1(C(d)[0])} ${r1(C(d)[1])} ${r1(W(d)[0])} ${r1(W(d)[1])}`;
   const hand = (d) => [W(d)[0] + d * 2, W(d)[1] + 16];
 
-  // seated geometry (wheelchair)
-  const seatY = waistY + 16; const sKnee = seatY + 22; const footY = sKnee + 0.25 * L; const Gs = footY + 22;
-  const ground = seated ? Gs : G;
+  const ground = G;
 
   let s = '';
-  s += ellipse(CX, ground + 4, seated ? 104 : 74 + T * 0.2, 10, INK, 0, ' opacity="0.12"');
+  s += ellipse(CX, ground + 4, 74 + T * 0.2, 10, INK, 0, ' opacity="0.12"');
 
   // ---------- behind the body
   if (a('superhero cape')) {
     const c = sp.accent;
-    s += shape(`M${CX - S + 8} 204 L${CX + S - 8} 204 L${CX + S + 34} ${seated ? seatY + 30 : kneeY + 10} Q${CX} ${seated ? seatY + 44 : kneeY + 26} ${CX - S - 34} ${seated ? seatY + 30 : kneeY + 10} Z`, c[0]);
-    s += fillOnly(`M${CX + S - 20} 206 L${CX + S - 8} 204 L${CX + S + 34} ${seated ? seatY + 30 : kneeY + 10} Q${CX + S} ${seated ? seatY + 36 : kneeY + 20} ${CX + S - 2} ${seated ? seatY + 34 : kneeY + 16} Z`, c[1]);
+    s += shape(`M${CX - S + 8} 204 L${CX + S - 8} 204 L${CX + S + 34} ${kneeY + 10} Q${CX} ${kneeY + 26} ${CX - S - 34} ${kneeY + 10} Z`, c[0]);
+    s += fillOnly(`M${CX + S - 20} 206 L${CX + S - 8} 204 L${CX + S + 34} ${kneeY + 10} Q${CX + S} ${kneeY + 20} ${CX + S - 2} ${kneeY + 16} Z`, c[1]);
   }
   if (a('giant backpack')) s += `<rect x="${r1(CX - S - 8)}" y="182" width="${r1(2 * S + 16)}" height="${r1(waistY - 160)}" rx="22" fill="${sp.accent[0]}" stroke="${INK}" stroke-width="3"/>` + fillOnly(`M${r1(CX + S - 10)} 186 L${r1(CX + S - 2)} 190 L${r1(CX + S + 4)} ${r1(waistY + 10)} L${r1(CX + S - 10)} ${r1(waistY + 16)} Z`, sp.accent[1]);
-  if (seated) {
-    // chair back + push handles
-    for (const d of [-1, 1]) s += `<rect x="${r1(CX + d * (T + 6) - 5)}" y="${r1(180)}" width="10" height="${r1(seatY - 170)}" rx="4" fill="${METAL[1]}" stroke="${INK}" stroke-width="2.5"/><rect x="${r1(CX + d * (T + 6) - 7)}" y="172" width="14" height="14" rx="5" fill="${INK}"/>`;
-    s += `<rect x="${r1(CX - T - 4)}" y="${r1(214)}" width="${r1(2 * T + 8)}" height="${r1(seatY - 214)}" rx="8" fill="${CLOTH.charcoal[0]}" stroke="${INK}" stroke-width="3"/>`;
-  }
   s += hair.back;
   // ears + hearing aids
   const ex = young ? 49 : 47;
@@ -351,7 +342,7 @@ export function renderCharacter(sp) {
   // ---------- legs, socks, shoes
   const longBottom = ['jeans', 'track', 'slacks', 'scrubs'].includes(sp.bottom);
   const legCol = sp.bottom === 'skirt' ? sp.leggings : skin;
-  if (!seated) {
+  {
     for (const d of [-1, 1]) s += limb(`M${r1(CX + d * legX)} ${r1(crotchY - 10)} L${r1(CX + d * legX)} ${r1(G - 32)}`, lw, legCol[0], legCol[1], 6);
     // knee details
     const kx = CX - legX; const ky = kneeY + 6;
@@ -371,14 +362,7 @@ export function renderCharacter(sp) {
   // ---------- bottoms
   const bc = sp.bottomColor;
   const shade = (x0) => ({ shadeX: x0, y0: waistY, y1: G });
-  if (seated) {
-    const lap = `M${r1(CX - T - 6)} ${r1(waistY)} L${r1(CX + T + 6)} ${r1(waistY)} L${r1(CX + T + 8)} ${r1(sKnee + 6)} Q${r1(CX + T + 6)} ${r1(sKnee + 18)} ${r1(CX + 4)} ${r1(sKnee + 14)} L${r1(CX)} ${r1(sKnee + 4)} L${r1(CX - 4)} ${r1(sKnee + 14)} Q${r1(CX - T - 6)} ${r1(sKnee + 18)} ${r1(CX - T - 8)} ${r1(sKnee + 6)} Z`;
-    const shin = longBottom ? bc : sp.bottom === 'skirt' ? sp.leggings : skin;
-    for (const d of [-1, 1]) s += limb(`M${r1(CX + d * legX)} ${r1(sKnee + 8)} L${r1(CX + d * legX)} ${r1(footY - 18)}`, lw, shin[0], shin[1], 6);
-    s += `<rect x="${r1(CX - legX - 40)}" y="${r1(footY + 2)}" width="${r1(2 * legX + 80)}" height="8" rx="3" fill="${METAL[1]}" stroke="${INK}" stroke-width="2.5"/>`;
-    for (const [i, d] of [[0, -1], [1, 1]]) s += shoeSvg(sp.shoe === 'rain' ? 'low' : sp.shoe, CX + d * (legX + 1), footY + 4, sp.shoeUpper, sp.sole, i);
-    s += garment(uid, lap, sp.bottom === 'skirt' ? bc : bc, { key: 'lap', shadeX: CX + T * 0.55, y0: waistY, y1: sKnee + 20 });
-  } else if (sp.bottom === 'skirt') {
+  if (sp.bottom === 'skirt') {
     const hem = 181 + 0.6 * L;
     s += garment(uid, `M${r1(CX - T - 4)} ${r1(waistY)} L${r1(CX + T + 4)} ${r1(waistY)} L${r1(CX + T + 24)} ${r1(hem)} Q${CX} ${r1(hem + 8)} ${r1(CX - T - 24)} ${r1(hem)} Z`, bc, { key: 'skirt', ...shade(CX + T * 0.6), y1: hem + 8 })
       + line(`M${r1(CX - T - 22)} ${r1(hem - 8)} Q${CX} ${r1(hem)} ${r1(CX + T + 22)} ${r1(hem - 8)}`, bc[1], 2.5);
@@ -557,20 +541,6 @@ export function renderCharacter(sp) {
   if (P('softball')) s += circle(rx + 4, ry - 18, 13, CLOTH.yellow[0], 3) + line(`M${r1(rx - 4)} ${r1(ry - 28)} q6 10 0 20 M${r1(rx + 12)} ${r1(ry - 28)} q-6 10 0 20`, CLOTH.red[0], 1.8) + mittenHand(rx, ry, skin, -1);
   if (P('robot')) s += `<rect x="${r1(rx - 6)}" y="${r1(ry - 40)}" width="32" height="28" rx="5" fill="${METAL[0]}" stroke="${INK}" stroke-width="3"/>` + circle(rx + 4, ry - 28, 3.5, CLOTH.sky[0]) + circle(rx + 16, ry - 28, 3.5, CLOTH.sky[0]) + line(`M${r1(rx + 10)} ${r1(ry - 40)} l0 -8`, INK, 2.5) + circle(rx + 10, ry - 50, 3, CLOTH.red[0], 2) + mittenHand(rx, ry, skin, -1);
   if (P('counting fingers')) { const [lx, ly] = hand(-1); s += [0, 1, 2].map((i) => `<rect x="${r1(lx - 9 + i * 7)}" y="${r1(ly - 26)}" width="6" height="16" rx="3" fill="${skin[0]}" stroke="${INK}" stroke-width="2"/>`).join(''); }
-  // ---------- wheelchair wheels in front
-  if (seated) {
-    const R = 0.17 * L + 8; const wy = Gs - R;
-    for (const d of [-1, 1]) {
-      const wx = CX + d * (T + 30);
-      const rx = R * 0.34;
-      s += ellipse(wx, wy, rx, R, CLOTH.charcoal[0], 3) + ellipse(wx, wy, rx - 6, R - 8, METAL[0], 2, ' fill-opacity="0.55"') + ellipse(wx, wy, rx - 9, R - 12, 'none', 0, ` stroke="${sp.main[0]}" stroke-width="3"`);
-      s += [0, 45, 90, 135].map((deg) => { const t = deg * Math.PI / 180; return line(`M${r1(wx - Math.cos(t) * (rx - 7))} ${r1(wy - Math.sin(t) * (R - 9))} L${r1(wx + Math.cos(t) * (rx - 7))} ${r1(wy + Math.sin(t) * (R - 9))}`, METAL[1], 2); }).join('');
-      s += ellipse(wx + d * 5, wy, rx + 2, R + 2, 'none', 0, ` stroke="${METAL[0]}" stroke-width="3"`) + circle(wx, wy, 7, METAL[0], 2.5);
-    }
-    s += emblemSvg('star', CX - T - 30, Gs - 0.17 * L - 8 - (0.17 * L) * 0.5, CLOTH.yellow[0]);
-    s += `<rect x="${r1(CX - legX - 40)}" y="${r1(Gs - 10)}" width="10" height="10" rx="5" fill="${INK}"/><rect x="${r1(CX + legX + 30)}" y="${r1(Gs - 10)}" width="10" height="10" rx="5" fill="${INK}"/>`;
-  }
-
   // ---------- head
   const headD = young ? 'M151 128 C151 96 173 80 200 80 C227 80 249 96 249 128 C249 161 230 183 200 183 C170 183 151 161 151 128 Z'
     : old ? 'M154 126 C154 95 175 79 200 79 C225 79 246 95 246 126 C246 161 229 186 200 188 C171 186 154 161 154 126 Z'

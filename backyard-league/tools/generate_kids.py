@@ -155,7 +155,7 @@ ACCESSORIES = ["glasses", "sport goggles", "missing front tooth", "braces",
                "cast with signatures", "headphones", "star earrings",
                "superhero cape", "fanny pack", "bandana", "rolled-up sleeves",
                "knee pads", "dinosaur hoodie", "lucky socks", "hearing aids",
-               "wheelchair (sports chair upgrade unlockable)", "eye patch (pirate phase)"]
+               "eye patch (pirate phase)"]
 OUTFIT_COLORS = ["red", "orange", "yellow", "lime", "green", "teal", "sky blue",
                  "navy", "purple", "pink", "black", "white", "gray", "tie-dye",
                  "camo", "plaid", "polka dot", "striped"]

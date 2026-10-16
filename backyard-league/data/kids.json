@@ -4329,8 +4329,7 @@
         "build": "wiry",
         "height_in": 52.2,
         "accessories": [
-          "cast with signatures",
-          "wheelchair (sports chair upgrade unlockable)"
+          "cast with signatures"
         ],
         "favorite_color": "gray"
       },
@@ -6014,8 +6013,7 @@
         "build": "round",
         "height_in": 56.7,
         "accessories": [
-          "lucky socks",
-          "wheelchair (sports chair upgrade unlockable)"
+          "lucky socks"
         ],
         "favorite_color": "lime"
       },
@@ -6801,9 +6799,7 @@
         "eye_color": "blue",
         "build": "sturdy",
         "height_in": 47.0,
-        "accessories": [
-          "wheelchair (sports chair upgrade unlockable)"
-        ],
+        "accessories": [],
         "favorite_color": "red"
       },
       "residence": {
@@ -7032,9 +7028,7 @@
         "eye_color": "blue",
         "build": "tall-for-age",
         "height_in": 57.3,
-        "accessories": [
-          "wheelchair (sports chair upgrade unlockable)"
-        ],
+        "accessories": [],
         "favorite_color": "striped"
       },
       "residence": {
@@ -7262,7 +7256,6 @@
         "build": "small-for-age",
         "height_in": 54.2,
         "accessories": [
-          "wheelchair (sports chair upgrade unlockable)",
           "sport goggles"
         ],
         "favorite_color": "pink"
@@ -10317,8 +10310,7 @@
         "build": "wiry",
         "height_in": 57.7,
         "accessories": [
-          "sweatband",
-          "wheelchair (sports chair upgrade unlockable)"
+          "sweatband"
         ],
         "favorite_color": "black"
       },
@@ -14477,7 +14469,6 @@
         "build": "tall-for-age",
         "height_in": 61.4,
         "accessories": [
-          "wheelchair (sports chair upgrade unlockable)",
           "bandana"
         ],
         "favorite_color": "sky blue"
@@ -16583,7 +16574,6 @@
         "build": "skinny",
         "height_in": 53.6,
         "accessories": [
-          "wheelchair (sports chair upgrade unlockable)",
           "fanny pack"
         ],
         "favorite_color": "tie-dye"
@@ -21929,8 +21919,7 @@
         "build": "wiry",
         "height_in": 50.5,
         "accessories": [
-          "headphones",
-          "wheelchair (sports chair upgrade unlockable)"
+          "headphones"
         ],
         "favorite_color": "white"
       },

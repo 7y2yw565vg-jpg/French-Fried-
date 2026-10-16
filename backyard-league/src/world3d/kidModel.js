@@ -483,7 +483,6 @@ export function buildCharacter(look, opts = {}) {
   const longSleeve = adult || ['hoodie', 'sweater', 'flannel', 'jacket'].includes(top) || look.shirt === 'dinosaur hoodie'; // grown-ups wear long sleeves
   const noSleeve = top === 'tank';
   const bareLegs = ['shorts', 'cargo shorts', 'skirt'].includes(bottom);
-  const wheelchair = [...acc].some((a) => a.startsWith('wheelchair'));
   const shoeC = acc.has('light-up sneakers') ? '#4cc9f0' : uniform ? '#1d1d1f' : fit.shoe;
   const shoeType = acc.has('light-up sneakers') ? 'sneakers' : uniform ? 'cleats' : fit.shoes || 'sneakers';
   const shoeAccent = uniform ? uniform[0] : fit.shoeAccent;
@@ -731,7 +730,6 @@ export function buildCharacter(look, opts = {}) {
   };
   const legL = mkLeg(-1); const legR = mkLeg(1);
   root.add(legL, legR);
-  if (wheelchair) root.add(wheelchairMesh(hipY));
 
   // contact shadow (soft) under the feet
   const blob = new THREE.Mesh(new THREE.PlaneGeometry(0.75 * w + 0.2, 0.75 * w + 0.2), new THREE.MeshBasicMaterial({ map: softDot(), transparent: true, opacity: 0.32, depthWrite: false }));
@@ -749,7 +747,7 @@ export function buildCharacter(look, opts = {}) {
   let lookT = rng() * 5;
   const height = hipY + torsoLen + 0.02 + hc + R;
   const char = {
-    root, parts, height, headY: hipY + torsoLen + hc, wheelchair,
+    root, parts, height, headY: hipY + torsoLen + hc,
     setTalking(b) {
       talking = b;
       if (b && !faces.talk) faces.talk = paintFace(faces.look, 'talk');
@@ -790,9 +788,9 @@ export function buildCharacter(look, opts = {}) {
       const lt = mode === 'idle' ? (head.userData.lookTarget || 0) : 0;
       head.rotation.y += (lt - head.rotation.y) * Math.min(1, dt * 3);
       head.rotation.x = mode === 'talk' ? Math.sin(phase * 3) * 0.05 : mode === 'run' ? -0.12 : 0;
-      if (wheelchair || mode === 'sit') {
+      if (mode === 'sit') {
         legL.rotation.x = -1.45; legR.rotation.x = -1.45;
-        const sitY = wheelchair ? hipY * 0.25 : -hipY * 0.48;
+        const sitY = -hipY * 0.48;
         body.position.y = hipY + sitY; legL.position.y = legR.position.y = hipY - 0.04 + sitY;
         armL.rotation.x = -0.55; armR.rotation.x = -0.55; body.rotation.x = 0;
       } else {
@@ -812,18 +810,6 @@ export function buildCharacter(look, opts = {}) {
 }
 
 const TAPERED_PANT = new THREE.CylinderGeometry(1, 0.9, 1, 16);
-
-function wheelchairMesh(hipY) {
-  const b = new Builder();
-  b.rbox(0.42, 0.06, 0.4, '#3a3a44', 0, hipY * 0.75, -0.02, { mat: 'fabric' });
-  b.rbox(0.42, 0.4, 0.05, '#3a3a44', 0, hipY * 0.8, -0.22, { mat: 'fabric' });
-  for (const sx of [-1, 1]) {
-    b.add(TORUS, '#222', [sx * 0.25, 0.27, -0.05], [0, Math.PI / 2, 0], [0.27, 0.27, 0.35], null, 'rubber');
-    b.add(TORUS, '#b8c2cc', [sx * 0.27, 0.27, -0.05], [0, Math.PI / 2, 0], [0.24, 0.24, 0.12], null, 'metal');
-    b.add(TORUS, '#222', [sx * 0.18, 0.07, 0.22], [0, Math.PI / 2, 0], [0.07, 0.07, 0.4], null, 'rubber');
-  }
-  return b.mesh();
-}
 
 export function ball(sport) {
   const b = new Builder();

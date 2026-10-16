@@ -487,7 +487,7 @@ The player levels up by doing things (Skyrim-style use-to-improve) and picks a *
 ## 16. Tone & Content Guardrails
 - Mischief is pranks, not cruelty: no bullying a specific kid, no violence beyond cartoon slapstick, no destroying property. Thrown objects are paper airplanes, erasers and spitwad-free paper balls.
 - Money and cheating mechanics always have visible consequences, and honest play is fully viable (and earns the "Clean Hands" achievement track).
-- Diverse cast in looks, backgrounds, family types and abilities (kids with glasses, hearing aids and wheelchairs. Adaptive sports equipment is an unlockable upgrade, not a joke).
+- Diverse cast in looks, backgrounds and family types (kids with glasses, braces, hearing aids and more).
 - No real-world brands. All products are parody (e.g., "Gatordrip," "Nike-ish" → **"Swooshers"**).
 
 ---
