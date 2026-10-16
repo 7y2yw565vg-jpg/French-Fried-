@@ -109,6 +109,13 @@ const LOOK_PANTS = { denim: 'denim', 'dark denim': 'navy', 'light denim': 'sky',
 const LOOK_SHOE = { sneakers: 'low', 'high-tops': 'high', 'slip-ons': 'slip', cleats: 'low', boots: 'boots', 'rain boots': 'rain', sandals: 'slip' };
 const LOOK_SHOE_COLOR = { white: 'white', black: 'charcoal', red: 'red', blue: 'blue', yellow: 'yellow', purple: 'purple', green: 'green', brown: 'brownc', pink: 'pink', gray: 'gray' };
 const PERK_FACE = { none: ['soft', 'smile'], smooth: ['high', 'grin'], teacherskid: ['level', 'smile'], hustler: ['cocked', 'grin'], gymrat: ['level', 'grin'], sneaky: ['sly', 'smirk'] };
+const MOOD_FACE = { grin: ['high', 'grin'], smile: ['soft', 'smile'], smirk: ['cocked', 'smirk'], shy: ['worried', 'small'], grump: ['angry', 'frown'] };
+
+/** [brow, mouth, eyeMod] for a 3D look: the player's trait face, a roster kid's personality face, or a grown-up's mood. */
+export function faceOf(look) {
+  if (look.id === 'PLAYER') return PERK_FACE[look.perk] || PERK_FACE.none;
+  return FACE_BY_PERSONALITY[look.personality] || MOOD_FACE[look.mood] || PERK_FACE.none;
+}
 
 export function lookSpec(look, { grade = 3, id = 'PLAYER', name = 'You', perk = 'none', heightIn } = {}) {
   const band = BAND(grade);
@@ -130,7 +137,7 @@ export function lookSpec(look, { grade = 3, id = 'PLAYER', name = 'You', perk = 
     main: CLOTH[main], pattern: look.top === 'flannel' ? 'plaid' : pattern, second: CLOTH[second],
     bottomColor: CLOTH[look.top === 'overalls' ? 'denim' : pants], leggings: CLOTH.charcoal,
     shoeUpper: CLOTH[look.shoes === 'boots' ? 'brownc' : shoeKey], sole: CLOTH[shoeKey === 'white' ? 'navy' : 'white'],
-    accent: CLOTH[main === 'red' ? 'yellow' : 'red'], emblem: look.top === 'graphic tee' ? 'bolt' : 'star', number: 1,
+    accent: CLOTH[main === 'red' ? 'yellow' : 'red'], emblem: look.top === 'graphic tee' ? 'bolt' : 'star', bigEmblem: look.top === 'graphic tee', number: 1,
     brow, mouth, eyeMod: null, acc, seed: hash(id + (look.hairStyle || '')), mud: false,
   };
 }
@@ -442,7 +449,8 @@ export function renderCharacter(sp) {
   const tPat = sp.pattern ? { pattern: sp.pattern, patternCol: sp.second } : {};
   let topSvg = '';
   const tShade = { shadeX: CX + T * 0.62, y0: 196, y1: hemTop };
-  const embl = (y) => emblemSvg(sp.emblem, CX - T * 0.35, y, sp.second === CLOTH.white || sp.main === CLOTH.white ? (sp.main === CLOTH.white ? CLOTH.red[0] : CLOTH.white[0]) : sp.second[0]);
+  const emblCol = sp.second === CLOTH.white || sp.main === CLOTH.white ? (sp.main === CLOTH.white ? CLOTH.red[0] : CLOTH.white[0]) : sp.second[0];
+  const embl = (y) => (sp.bigEmblem ? `<g transform="translate(${CX} ${r1(y + 6)}) scale(2.1) translate(${-CX} ${r1(-y - 6)})">${emblemSvg(sp.emblem, CX, y + 6, emblCol)}</g>` : emblemSvg(sp.emblem, CX - T * 0.35, y, emblCol));
   const rolled = a('rolled-up sleeves');
   switch (sp.top) {
     case 'raglan':

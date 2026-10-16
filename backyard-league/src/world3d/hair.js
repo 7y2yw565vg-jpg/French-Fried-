@@ -427,9 +427,10 @@ export function buildHair(styleIn, ctx) {
       for (let i = 0; i < 46; i++) { const a = (rng() - 0.5) * 2.6; const e = 0.66 + rng() * 0.9; if (!covered(a, e)) add(puff(ctx, H(a, e, 1.12 + shellK + 0.06 * Math.sin(e * 2)), R * 0.12, { bump: 0.04, seed: i, detail: 2, colorFixed: mix(ctx.color, ctx.light, rng() * 0.35) })); }
       break;
     case 'curly afro': {
-      if (hat) { S({ T: 0.16, front: 0.48, curl: 0.03, lowSides: 0.1 }); break; }
-      S({ T: 0.5, front: 0.48, curl: 0.05, top: 0.35, lowSides: 0.1 });
-      for (let i = 0; i < 150; i++) { const a = rng() * TAU; const e = 0.05 + rng() * 1.5; if (Math.cos(a) > 0.5 && e < 0.55) continue; add(puff(ctx, H(a, e, 1.46 + 0.12 * smooth(0.6, 1.4, e)), R * 0.14, { bump: 0.04, seed: i, detail: 2, colorFixed: mix(ctx.color, ctx.light, rng() * 0.3) })); }
+      // Under a hat the afro still puffs out around it (as in the bible).
+      if (hat) S({ T: 0.16, front: 0.48, curl: 0.03, lowSides: 0.1 });
+      else S({ T: 0.5, front: 0.48, curl: 0.05, top: 0.35, lowSides: 0.1 });
+      for (let i = 0; i < 150; i++) { const a = rng() * TAU; const e = 0.05 + rng() * 1.5; if (Math.cos(a) > 0.5 && e < 0.55) continue; if (hat && (covered(a, e) || Math.cos(a) > 0.55)) continue; add(puff(ctx, H(a, e, hat ? 1.26 : 1.46 + 0.12 * smooth(0.6, 1.4, e)), R * (hat ? 0.2 : 0.14), { bump: 0.04, seed: i, detail: 2, colorFixed: mix(ctx.color, ctx.light, rng() * 0.3) })); }
       break;
     }
     case 'high puff':
@@ -478,19 +479,22 @@ export function buildHair(styleIn, ctx) {
       S({ T: 0.08, front: 0.5, part: 0, ridges: 14, ridgeAmp: 0.03, chunky: 1 });
       bangs(-0.5, 0.5, 5, 0.22, 1.11);
       for (const sd of [-1, 1]) {
-        const root = H(sd * 1.95, 0.45, 1.1);
-        const mid = root.clone().add(new THREE.Vector3(sd * R * 0.45, -R * 0.1, -R * 0.15));
-        const end = root.clone().add(new THREE.Vector3(sd * R * 0.55, -R * 0.75, -R * 0.1));
-        add(lock(ctx, [root, mid, end.clone().add(new THREE.Vector3(sd * R * 0.15, R * 0.3, 0)), end], R * 0.26, R * 0.18, R * 0.24, R * 0.16, { segs: 12, roundTip: true, sides: 10 }));
+        // Short bunches tied high on the sides, puffing out and down (bible pigtails).
+        const root = H(sd * 1.6, 0.75, 1.08);
+        const mid = root.clone().add(new THREE.Vector3(sd * R * 0.32, -R * 0.08, -R * 0.05));
+        const end = root.clone().add(new THREE.Vector3(sd * R * 0.42, -R * 0.5, -R * 0.05));
+        add(lock(ctx, [root, mid, end.clone().add(new THREE.Vector3(sd * R * 0.08, R * 0.2, 0)), end], R * 0.24, R * 0.3, R * 0.26, R * 0.2, { segs: 12, roundTip: true, sides: 10 }));
         add(puff(ctx, root.clone().add(new THREE.Vector3(sd * R * 0.04, 0, 0)), R * 0.1, { colorFixed: ctx.fav, bump: 0.02, detail: 2 }));
       }
       break;
     case 'ponytail': case 'headband + ponytail': {
       S({ T: 0.08, front: 0.5, ridges: 14, ridgeAmp: 0.03, chunky: 1, swirl: 0, shineE: 1.0 });
       if (style === 'ponytail') bangs(-0.55, 0.55, 5, 0.18, 1.1, { sweep: 0.2 });
-      const root = H(Math.PI, hat === 'cap' || hat === 'backwards cap' ? 0.32 : 0.65, 1.12);
-      const end = root.clone(); end.y -= R * 1.25; end.z -= R * 0.25;
-      add(lock(ctx, [root, root.clone().add(new THREE.Vector3(0, R * 0.05, -R * 0.45)), new THREE.Vector3(0, root.y - R * 0.6, root.z - R * 0.45), end], R * 0.3, R * 0.2, R * 0.26, R * 0.14, { segs: 14, sides: 10, roundTip: true, keep: true }));
+      // Tied high at the back, off to one side, so it shows past the head from the front (bible ponytail).
+      const root = H(2.3, hat === 'cap' || hat === 'backwards cap' ? 0.32 : 0.7, 1.12);
+      const out = root.clone().setY(0).normalize();
+      const end = root.clone().addScaledVector(out, R * 0.55); end.y -= R * 1.25;
+      add(lock(ctx, [root, root.clone().addScaledVector(out, R * 0.4).add(new THREE.Vector3(0, R * 0.05, 0)), root.clone().addScaledVector(out, R * 0.6).add(new THREE.Vector3(0, -R * 0.6, 0)), end], R * 0.3, R * 0.2, R * 0.26, R * 0.14, { segs: 14, sides: 10, roundTip: true, keep: true }));
       add(puff(ctx, root, R * 0.13, { colorFixed: ctx.fav, bump: 0.02, detail: 2, sz: 0.7 }));
       if (style === 'headband + ponytail' && !hat) add(lock(ctx, [H(-1.6, 0.25, 1.11), H(-0.9, 0.95, 1.12), H(0.9, 0.95, 1.12), H(1.6, 0.25, 1.11)], R * 0.1, R * 0.1, R * 0.04, R * 0.04, { segs: 16, sides: 6, color: ctx.fav, rootColor: ctx.fav, tipColor: ctx.fav, out: [0, 1, 0.3] }));
       break;

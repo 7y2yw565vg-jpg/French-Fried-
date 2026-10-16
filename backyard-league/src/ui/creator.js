@@ -225,7 +225,7 @@ export function showCreator(engine, onDone) {
   sheet.addEventListener('click', (e) => { e.stopPropagation(); sheet.classList.toggle('big'); });
   sheet.addEventListener('pointerdown', (e) => e.stopPropagation());
   const refresh = () => {
-    engine.setPlayer({ id: 'PLAYER', ...look, heightIn: 50, grade: 3 });
+    engine.setPlayer({ id: 'PLAYER', ...look, perk: cfg.perk, heightIn: 50, grade: 3 });
     engine.player.root.visible = true;
     drawSheet();
   };
@@ -284,7 +284,7 @@ export function showCreator(engine, onDone) {
   const perkCards = h('div', { class: 'sport-cards' });
   for (const [id, p] of Object.entries(PERKS)) {
     const c = h('div', { class: `sport-card ${cfg.perk === id ? 'sel' : ''}`, onclick: () => {
-      cfg.perk = id; sfx('click'); drawStats(); drawSheet();
+      cfg.perk = id; sfx('click'); drawStats(); refresh();
       perkCards.querySelectorAll('.sport-card').forEach((x) => x.classList.remove('sel')); c.classList.add('sel');
     } }, h('h4', {}, p.name), h('p', {}, p.desc));
     perkCards.appendChild(c);

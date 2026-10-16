@@ -34,7 +34,7 @@ const PASS_SPM = 12; // seconds of real time per game minute in the hallway
 
 export function playerLook(state) {
   const g = playerGrade(state);
-  return { id: 'PLAYER', ...state.player.look, heightIn: 50 + (g - 3) * 2.3, grade: g };
+  return { id: 'PLAYER', ...state.player.look, perk: state.player.perk, heightIn: 50 + (g - 3) * 2.3, grade: g };
 }
 
 export class Game {

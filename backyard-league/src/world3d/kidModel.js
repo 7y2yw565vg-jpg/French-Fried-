@@ -4,7 +4,8 @@
 import * as THREE from 'three';
 import { Builder, CAPSULE, SPHERE, CYL, BOX, RBOX, TORUS, HALF_TORUS, CONE, SKIN, HAIR, HAIR_ACCENT, EYES, OUTFIT, shade, mix, matFor } from './toon.js';
 import { softDot } from './textures.js';
-import { CLOTH as BIBLE_CLOTH } from '../../art/charstyle/palette.js';
+import { FAVORITE as BIBLE_FAVORITE, CLOTH as BIBLE_CLOTH, SKIN as BIBLE_SKIN, HAIR as BIBLE_HAIR, EYES as BIBLE_EYES, INK, BROW_DARK } from '../../art/charstyle/palette.js';
+import { faceOf } from '../../art/charstyle/figure.js';
 import { buildHair, addHat, hairBulk, STYLE_ALIASES, hairMaterial as buildHairMaterial } from './hair.js';
 import { hashString, mulberry32 } from '../game/rng.js';
 
@@ -72,7 +73,7 @@ export function outfitFor(look, adult = false) {
   return {
     top, bottom, shirt: top === 'raglan' ? pick(['#f4f4f0', '#9aa0a6', '#2b2b2f']) : fav, sleeve: fav,
     trim: top === 'jersey' || top === 'jacket' || top === 'sweater' ? contrast : shade(fav, 0.72),
-    under: top === 'overalls' ? fav : pick(['#f4f4f0', '#2b2b2f', '#9aa0a6']), denim: pick([P.denim, P['light denim']]),
+    under: top === 'overalls' ? fav : pick(['#f4f4f0', '#2b2b2f', '#9aa0a6']), denim: ((d) => (look.id === 'PLAYER' ? P.denim : d))(pick([P.denim, P['light denim']])),
     pants, stripe: r() < 0.5 ? '#ffffff' : null, shoes: kidShoes, shoe: look.shoeColor ? SHOE_COLORS[look.shoeColor] || look.shoeColor : kidShoes === 'rain boots' ? pick(['#ffb703', '#e63946', '#3a86ff', '#06d6a0']) : kidShoes === 'boots' ? pick(['#7a4a2a', '#5a3a24']) : pick(SHOES), shoeAccent: pick(SHOES), kneeSocks: r() < 0.2, sockStripe: r() < 0.3 ? fav : null,
     number: 1 + Math.floor(r() * 99), graphic: pick(GRAPHICS), graphicColor: contrast === '#2b2b2f' ? '#ffffff' : contrast, skirtPleats: r() < 0.5,
   };
@@ -169,133 +170,87 @@ const FACE_PX = 384;
 const faceCache = new Map(); // key -> {open, blink, talk}
 
 function faceKey(look) {
-  return `${look.id}|${look.skin}|${look.eyeColor}|${look.hairColor}|${look.mood}|${(look.accessories || []).join(',')}|${look.adult ? 1 : 0}`;
+  return `${look.id}|${look.skin}|${look.eyeColor}|${look.hairColor}|${faceOf(look).join(',')}|${look.grade}|${(look.accessories || []).join(',')}|${look.adult ? 1 : 0}`;
 }
 
 function paintFace(look, variant) {
+  // Painted in the bible's face coordinates (art/charstyle/figure.js): a 100-unit
+  // head centred on (200, 131), drawn onto the sphere's angular map.
   const S = FACE_PX;
   const cv = document.createElement('canvas');
   cv.width = cv.height = S;
   const c = cv.getContext('2d');
   const sx = S / FACE.phiLen; const sy = S / FACE.thetaLen;
-  // Angular coordinates: x = longitude (radians, + = viewer's right), y = -latitude (down positive).
   c.setTransform(sx, 0, 0, sy, S / 2, (Math.PI / 2 - FACE.thetaStart) * sy);
-  const rng = mulberry32(hashString(String(look.id)));
-  const acc = new Set(look.accessories || []);
-  const mood = variant === 'talk' ? 'talk' : look.mood || 'smile';
-  const ink = '#3b1f14';
-  const skin = SKIN[look.skin] || SKIN.tan;
-  const dark = new THREE.Color(skin).getHSL({ h: 0, s: 0, l: 0 }).l < 0.35;
-  // blush
-  for (const side of [-1, 1]) {
-    const g = c.createRadialGradient(side * 0.52, 0.3, 0, side * 0.52, 0.3, 0.22);
-    g.addColorStop(0, dark ? 'rgba(255,105,105,0.32)' : 'rgba(255,95,100,0.5)'); g.addColorStop(1, 'rgba(255,105,105,0)');
-    c.fillStyle = g; c.fillRect(side * 0.52 - 0.24, 0.06, 0.48, 0.48);
-  }
-  if (acc.has('freckles')) {
-    c.fillStyle = 'rgba(120,60,30,0.55)';
-    for (let i = 0; i < 16; i++) { const sd = i % 2 ? 1 : -1; c.beginPath(); c.ellipse(sd * (0.36 + rng() * 0.26), 0.16 + rng() * 0.16, 0.012, 0.012, 0, 0, Math.PI * 2); c.fill(); }
-  }
-  // nose shadow
-  c.fillStyle = 'rgba(80,30,10,0.12)'; c.beginPath(); c.ellipse(0, 0.2, 0.07, 0.025, 0, 0, Math.PI * 2); c.fill();
-  // eyes
-  const lashes = !look.adult && (hashString(String(look.id) + 'l') % 2 === 0);
-  const eyeC = EYES[look.eyeColor] || EYES.brown;
-  // Big, glossy, mostly-iris cartoon eyes.
-  const ey = 0.01; const ex = 0.37; const rx = look.adult ? 0.145 : 0.19; const ry = look.adult ? 0.165 : 0.235;
-  const blink = variant === 'blink';
-  for (const side of [-1, 1]) {
-    const cx = side * ex;
-    if (acc.has('eye patch (pirate phase)') && side === 1) {
-      c.fillStyle = '#151515'; c.beginPath(); c.ellipse(cx, ey, rx * 1.15, ry * 1.05, 0, 0, Math.PI * 2); c.fill();
-      c.strokeStyle = '#151515'; c.lineWidth = 0.025; c.beginPath(); c.moveTo(cx - rx, ey - ry); c.lineTo(-1.2, -0.45); c.moveTo(cx + rx, ey - ry * 0.8); c.lineTo(1.2, -0.3); c.stroke();
-      continue;
-    }
-    if (blink) {
-      c.strokeStyle = ink; c.lineWidth = 0.035; c.lineCap = 'round';
-      c.beginPath(); c.ellipse(cx, ey + ry * 0.15, rx * 0.95, ry * 0.45, 0, 0.1 * Math.PI, 0.9 * Math.PI); c.stroke();
-      if (lashes) { c.beginPath(); c.moveTo(cx + side * rx * 0.9, ey + ry * 0.2); c.lineTo(cx + side * rx * 1.25, ey + ry * 0.05); c.stroke(); }
-      continue;
-    }
-    // sclera with soft top shading
-    const sg = c.createLinearGradient(0, ey - ry, 0, ey + ry);
-    sg.addColorStop(0, '#e8e4e0'); sg.addColorStop(0.35, '#ffffff'); sg.addColorStop(1, '#f6f6f6');
-    c.fillStyle = sg; c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.fill();
-    // iris + pupil (look slightly inward and down: friendly, focused)
-    const ix = cx - side * 0.01; const iy = ey + ry * 0.06;
-    const ir = rx * 0.94;
-    const irisC = mix(eyeC, '#3a2414', 0.45); // warm, dark cartoon irises
-    const deep = shade(irisC, 0.4);
-    const ig = c.createRadialGradient(ix, iy + ir * 0.35, ir * 0.05, ix, iy, ir * 1.1);
-    ig.addColorStop(0, mix(irisC, '#ffffff', 0.2)); ig.addColorStop(0.55, irisC); ig.addColorStop(1, deep);
-    c.save(); c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.clip();
-    c.fillStyle = ig; c.beginPath(); c.ellipse(ix, iy, ir, ir * 1.18, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#100805'; c.beginPath(); c.ellipse(ix, iy, ir * 0.62, ir * 0.72, 0, 0, Math.PI * 2); c.fill();
-    // two sparkles: a big one up-left, a small one down-right
-    c.fillStyle = 'rgba(255,255,255,0.97)'; c.beginPath(); c.ellipse(ix - ir * 0.32, iy - ir * 0.42, ir * 0.36, ir * 0.4, -0.3, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.ellipse(ix + ir * 0.4, iy + ir * 0.42, ir * 0.15, ir * 0.17, 0, 0, Math.PI * 2); c.fill();
-    // upper lid shadow
-    c.fillStyle = 'rgba(60,30,20,0.18)'; c.beginPath(); c.ellipse(cx, ey - ry * 0.95, rx * 1.1, ry * 0.35, 0, 0, Math.PI * 2); c.fill();
-    c.restore();
-    // outline + thick upper lid
-    c.strokeStyle = 'rgba(59,31,20,0.55)'; c.lineWidth = 0.012; c.beginPath(); c.ellipse(cx, ey, rx, ry, 0, 0, Math.PI * 2); c.stroke();
-    c.strokeStyle = ink; c.lineWidth = 0.045; c.lineCap = 'round';
-    c.beginPath(); c.ellipse(cx, ey, rx * 1.02, ry * 1.02, 0, 1.1 * Math.PI, 1.9 * Math.PI); c.stroke();
-    if (lashes) {
-      c.lineWidth = 0.025;
-      for (let k = 0; k < 2; k++) { c.beginPath(); const a = side > 0 ? -0.15 - k * 0.3 : Math.PI + 0.15 + k * 0.3; c.moveTo(cx + Math.cos(a) * rx, ey + Math.sin(a) * ry); c.lineTo(cx + Math.cos(a) * rx * 1.4, ey + Math.sin(a) * ry * 1.3 - 0.02); c.stroke(); }
-    }
-  }
-  // brows
-  const browC = shade(HAIR[look.hairColor] || '#5c3a21', 0.55);
-  c.strokeStyle = browC; c.lineCap = 'round'; c.lineWidth = 0.075;
-  for (const side of [-1, 1]) {
-    const cx = side * ex; const by = ey - ry - 0.1;
-    let inner = 0; let outer = 0;
-    if (look.mood === 'grump') { inner = 0.06; outer = -0.04; }
-    if (look.mood === 'shy') { inner = -0.05; outer = 0.02; }
-    if (look.mood === 'smirk' && side === 1) { inner = -0.03; outer = -0.04; }
-    c.beginPath();
-    c.moveTo(cx - side * rx * 0.95, by + inner);
-    c.quadraticCurveTo(cx, by - 0.045 + (inner + outer) / 2, cx + side * rx * 1.05, by + outer + 0.02);
-    c.stroke();
-  }
-  // mouth
-  const my = 0.46;
+  c.scale(1 / 50, 1 / 50);
+  c.translate(-200, -131);
   c.lineCap = 'round'; c.lineJoin = 'round';
-  const openMouth = (w, h, teeth = true) => {
-    c.fillStyle = '#5e1717';
-    c.beginPath(); c.moveTo(-w, my - h * 0.15); c.quadraticCurveTo(0, my + h * 0.05, w, my - h * 0.15); c.quadraticCurveTo(w * 0.8, my + h * 1.2, 0, my + h * 1.15); c.quadraticCurveTo(-w * 0.8, my + h * 1.2, -w, my - h * 0.15); c.fill();
-    c.save(); c.clip();
-    if (teeth) {
-      c.fillStyle = '#ffffff'; c.fillRect(-w, my - h * 0.3, w * 2, h * 0.42);
-      if (acc.has('missing front tooth')) { c.fillStyle = '#5e1717'; c.fillRect(-0.03, my - h * 0.3, 0.045, h * 0.45); }
-      if (acc.has('braces')) { c.fillStyle = '#b8c2cc'; c.fillRect(-w, my + h * 0.02, w * 2, h * 0.08); }
+  const acc = new Set(look.accessories || []);
+  const band = look.adult ? 'adult' : (look.grade ?? 3) <= 4 ? 'g34' : (look.grade ?? 3) <= 6 ? 'g56' : 'g78';
+  const young = band === 'g34'; const old = band === 'g78' || band === 'adult';
+  const ey = young ? 131 : old ? 134 : 129;
+  const eyeRx = young ? 10.5 : band === 'adult' ? 9 : 10;
+  const eyeRy = young ? 14 : band === 'adult' ? 9.5 : old ? 11.5 : 13;
+  const irisR = young ? 7.5 : band === 'adult' ? 6 : 6.8;
+  const skin = BIBLE_SKIN[look.skin] || BIBLE_SKIN.tan;
+  const hairC = BIBLE_HAIR[look.hairColor] || BIBLE_HAIR.brown;
+  const [brow, mouth0, eyeMod] = faceOf(look);
+  const P = (d, fill, stroke, w = 3) => { const p = new Path2D(d); if (fill) { c.fillStyle = fill; c.fill(p); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = w; c.stroke(p); } };
+  const ell = (x, y, rx, ry, fill, w = 0, alpha = 1) => { c.globalAlpha = alpha; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fillStyle = fill; c.fill(); if (w) { c.strokeStyle = INK; c.lineWidth = w; c.stroke(); } c.globalAlpha = 1; };
+  // blush + freckles
+  ell(168, ey + 20, 8, 5, skin[2], 0, 0.72); ell(232, ey + 20, 8, 5, skin[2], 0, 0.72);
+  if (acc.has('freckles')) for (const [x, y] of [[166, 0], [172, 3], [176, -1], [224, -1], [228, 3], [234, 0]]) ell(x, ey + 17 + y, 1.5, 1.5, skin[1]);
+  const patch = acc.has('eye patch (pirate phase)');
+  const dx = eyeMod === 'aside' ? -3 : 0; const dy = eyeMod === 'up' ? -4 : 1;
+  for (const [i, ex] of [[0, 181], [1, 219]]) {
+    if (patch && i === 0) continue;
+    if (variant === 'blink') { P(`M${ex - eyeRx} ${ey + 2} Q${ex} ${ey + 8} ${ex + eyeRx} ${ey + 2}`, null, INK, 3); continue; }
+    ell(ex, ey, eyeRx, eyeRy, '#F7F4EA', 2.5);
+    ell(ex + 1 + dx, ey + dy, irisR, irisR, BIBLE_EYES[look.eyeColor] || BIBLE_EYES.brown);
+    ell(ex + 1 + dx, ey + dy, irisR * 0.52, irisR * 0.52, INK);
+    ell(ex - 1.5 + dx, ey + dy - 3.5, irisR * 0.34, irisR * 0.34, '#F7F4EA');
+    if (eyeMod === 'lids' || old) {
+      const lidY = ey - eyeRy * (eyeMod === 'lids' ? 0.25 : 0.55);
+      P(`M${ex - eyeRx - 2} ${lidY} L${ex + eyeRx + 2} ${lidY} L${ex + eyeRx + 2} ${ey - eyeRy - 3} L${ex - eyeRx - 2} ${ey - eyeRy - 3} Z`, skin[0]);
+      P(`M${ex - eyeRx - 1} ${lidY} L${ex + eyeRx + 1} ${lidY}`, null, INK, 2.5);
     }
-    c.fillStyle = '#ff7a8a'; c.beginPath(); c.ellipse(0, my + h * 1.05, w * 0.55, h * 0.45, 0, 0, Math.PI * 2); c.fill();
-    c.restore();
-    c.strokeStyle = ink; c.lineWidth = 0.022;
-    c.beginPath(); c.moveTo(-w, my - h * 0.15); c.quadraticCurveTo(0, my + h * 0.05, w, my - h * 0.15); c.quadraticCurveTo(w * 0.8, my + h * 1.2, 0, my + h * 1.15); c.quadraticCurveTo(-w * 0.8, my + h * 1.2, -w, my - h * 0.15); c.stroke();
-  };
-  c.strokeStyle = ink; c.lineWidth = 0.032;
-  switch (mood) {
-    case 'grin': case 'talk': openMouth(mood === 'talk' ? 0.16 : 0.22, mood === 'talk' ? 0.13 : 0.13); break;
-    case 'smile': openMouth(0.18, 0.09); break;
-    case 'smirk':
-      c.beginPath(); c.moveTo(-0.16, my + 0.02); c.quadraticCurveTo(0.02, my + 0.1, 0.19, my - 0.06); c.stroke();
-      c.beginPath(); c.moveTo(0.17, my - 0.09); c.lineTo(0.21, my - 0.03); c.stroke();
-      break;
-    case 'shy':
-      c.beginPath(); c.moveTo(-0.12, my + 0.01); c.quadraticCurveTo(0, my + 0.1, 0.12, my + 0.01); c.stroke();
-      break;
-    case 'grump':
-      c.beginPath(); c.moveTo(-0.12, my + 0.06); c.quadraticCurveTo(0, my - 0.0, 0.12, my + 0.06); c.stroke();
-      break;
-    default:
-      c.beginPath(); c.moveTo(-0.17, my - 0.02); c.quadraticCurveTo(0, my + 0.13, 0.17, my - 0.02); c.stroke();
-      c.lineWidth = 0.02; c.beginPath(); c.moveTo(-0.19, my - 0.05); c.lineTo(-0.15, my); c.moveTo(0.19, my - 0.05); c.lineTo(0.15, my); c.stroke();
-      if (acc.has('braces') || acc.has('missing front tooth')) { c.fillStyle = '#fff'; c.fillRect(-0.06, my + 0.035, 0.12, 0.035); if (acc.has('missing front tooth')) { c.fillStyle = '#5e1717'; c.fillRect(-0.012, my + 0.035, 0.03, 0.035); } }
   }
+  if (patch) { P(`M150 ${ey - 32} L248 ${ey + 6}`, null, INK, 3.5); ell(181, ey + 1, 12, 13, INK); }
+  // brows
+  const by = ey - 21;
+  const browC = ['blonde', 'platinum blonde', 'strawberry blonde'].includes(look.hairColor) || look.adult && look.hairColor === 'platinum blonde' ? BROW_DARK : hairC[1];
+  const B = {
+    soft: [`M170 ${by} Q180 ${by - 5} 190 ${by - 1}`, `M210 ${by - 1} Q220 ${by - 5} 230 ${by}`],
+    high: [`M170 ${by - 4} Q180 ${by - 10} 190 ${by - 5}`, `M210 ${by - 5} Q220 ${by - 10} 230 ${by - 4}`],
+    level: [`M170 ${by} L191 ${by - 1}`, `M209 ${by - 1} L230 ${by}`],
+    cocked: [`M170 ${by} L191 ${by - 1}`, `M209 ${by - 3} Q220 ${by - 9} 231 ${by - 4}`],
+    angry: [`M169 ${by - 3} L192 ${by + 3}`, `M208 ${by + 3} L231 ${by - 3}`],
+    worried: [`M170 ${by + 1} Q181 ${by + 1} 190 ${by - 5}`, `M210 ${by - 5} Q219 ${by + 1} 230 ${by + 1}`],
+    sly: [`M170 ${by + 2} L191 ${by + 4}`, `M209 ${by + 4} Q220 ${by - 2} 231 ${by + 1}`],
+  }[brow] || [];
+  for (const d of B) P(d, null, browC, band === 'g78' ? 4.5 : 5);
+  // nose
+  if (band === 'adult') P(`M194 ${ey + 10} Q199 ${ey + 25} 208 ${ey + 15}`, skin[1], INK, 2.5);
+  else P(`M195 ${ey + 13} Q200 ${ey + 22} 206 ${ey + 14}`, skin[1], INK, 2.5);
+  if (acc.has('mustache')) P(`M184 ${ey + 27} Q192 ${ey + 18} 200 ${ey + 23} Q208 ${ey + 18} 216 ${ey + 27} Q208 ${ey + 31} 200 ${ey + 27} Q192 ${ey + 31} 184 ${ey + 27} Z`, hairC[0], INK, 2.5);
+  // mouth
+  const my = ey + 29 + (band === 'g78' ? 2 : band === 'adult' ? 6 : 0);
+  const braces = acc.has('braces'); const gap = acc.has('missing front tooth');
+  let m = variant === 'talk' ? 'open' : mouth0;
+  if ((braces || gap) && !['open', 'grin'].includes(m)) m = 'open';
+  if (m === 'open' || m === 'grin') {
+    const w = m === 'grin' ? 18 : 15; const d = m === 'grin' ? 18 : 15;
+    P(`M${200 - w} ${my} Q200 ${my + d} ${200 + w} ${my} Q200 ${my + 5} ${200 - w} ${my} Z`, '#5A1E1A', INK, 3);
+    P(`M${200 - w + 4} ${my + 1.5} Q200 ${my + 5} ${200 + w - 4} ${my + 1.5} L${200 + w - 5} ${my + 4.5} Q200 ${my + 8} ${200 - w + 5} ${my + 4.5} Z`, '#F7F4EA');
+    if (gap) P(`M197 ${my + 1.5} h6 v5 h-6 Z`, '#5A1E1A');
+    if (braces) { P(`M${200 - w + 5} ${my + 3.5} Q200 ${my + 6.5} ${200 + w - 5} ${my + 3.5}`, null, '#8E98A3', 2); }
+    if (m === 'open') P(`M${200 - 7} ${my + 10} Q200 ${my + 6} ${200 + 7} ${my + 10} Q200 ${my + 13} ${200 - 7} ${my + 10} Z`, '#E07A6E');
+  } else if (m === 'smirk') { P(`M189 ${my} Q201 ${my + 6} 213 ${my - 4}`, null, INK, 3); P(`M211 ${my - 6} L215 ${my - 2}`, null, INK, 2.5); }
+  else if (m === 'small') P(`M192 ${my + 1} Q200 ${my + 6} 208 ${my + 1}`, null, INK, 3);
+  else if (m === 'flat') P(`M190 ${my + 2} L210 ${my + 1}`, null, INK, 3);
+  else if (m === 'frown') P(`M188 ${my + 6} Q200 ${my - 3} 212 ${my + 6}`, null, INK, 3);
+  else if (m === 'smile') P(`M184 ${my - 1} Q200 ${my + 12} 216 ${my - 1}`, null, INK, 3);
+  else P(`M188 ${my} Q200 ${my + 8} 212 ${my - 2}`, null, INK, 3);
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
@@ -353,7 +308,7 @@ const TORSO = lathe('torso', [[0, 0], [1.08, 0.0], [1.06, 0.06], [0.97, 0.3], [1
 const PELVIS = lathe('pelvis', [[0, 0], [0.82, 0.0], [0.95, 0.45], [0.98, 1.0], [0, 1.0]]);
 const SLEEVE = lathe('sleeve', [[0.86, 1.0], [0.98, 0.7], [1.02, 0.15], [1.0, 0.0], [0.9, -0.02]], 16);
 const SHORTS_LEG = lathe('shortsleg', [[0.95, 1.0], [1.0, 0.5], [1.05, 0.0]], 16);
-const SKIRT = lathe('skirt', [[1.0, 0.02], [1.04, -0.25], [1.22, -0.7], [1.4, -1.0], [0.0001, -1.0]], 24);
+const SKIRT = lathe('skirt', [[1.0, 0.02], [1.05, -0.3], [1.22, -1.0], [0.0001, -1.0]], 24);
 
 const hairCapCache = new Map();
 /** A lumpy hair cap: a partial sphere with chunky clumps around its edge. */
@@ -375,8 +330,8 @@ function hairCap(theta, lumps = 7, depth = 0.08) {
 }
 
 /** Footwear on one leg (sole at y = sy, toe toward +z). */
-function buildShoe(lb, type, f, sy, c, accent, skin, lr, shin, glow) {
-  const sole = (h = 0.045, color = '#f2f2f2', len = 0.27, w = 0.13) => {
+function buildShoe(lb, type, f, sy, c, accent, skin, lr, shin, glow, soleC = '#f2f2f2') {
+  const sole = (h = 0.045, color = soleC, len = 0.27, w = 0.13) => {
     lb.rbox(w * f, h * f, len * f, color, 0, sy, 0.045 * f, { mat: 'rubber' });
     lb.rbox((w + 0.005) * f, 0.02 * f, (len + 0.005) * f, shade(color, 0.8), 0, sy, 0.045 * f, { mat: 'rubber' });
   };
@@ -456,15 +411,28 @@ export function buildCharacter(look, opts = {}) {
   const rng = mulberry32(hashString(String(look.id || 'x')));
   const H = (look.heightIn || 50) / 50;
   const grade = look.grade ?? 3;
-  // Grown-ups: about 1.4x a kid's height with the same chunky cartoon style
-  // (big head, sturdy limbs) rather than a stretched-out kid.
-  const R = adult ? 0.215 : grade <= 5 ? 0.25 : grade <= 8 ? 0.225 : 0.2;
+  // Proportions follow the character design bible (art/charstyle/figure.js):
+  // a figure is `heads` head-heights tall (4.5 in grades 3-4, 5 in 5-6, 5.5 in
+  // 7-8, 6.2 for grown-ups). Measurements are in bible units u (100u = one head).
+  const heads = adult ? 6.2 : grade <= 4 ? 4.5 : grade <= 6 ? 5 : 5.5;
+  const shoulderK = adult ? 2.0 : grade <= 4 ? 1.4 : grade <= 6 ? 1.6 : 1.8;
+  const total = adult ? 0.92 * H + 0.38 : 0.72 * H + 0.45;
+  const u = total / (heads * 100);
+  const L = heads * 100 - 100; // everything below the chin
+  const k = u / 0.00264; // 1 for an average third grader
   const w = BUILD_W[look.build] ?? 1;
-  const legLen = (adult ? 0.52 : 0.4) * H * (look.build === 'lanky' ? 1.08 : 1);
-  const torsoLen = (adult ? 0.4 : 0.32) * H;
-  const rc = (adult ? 0.2 : 0.15) * w;
-  const lk = adult ? 1.45 : 1.05; // limb thickness
-  const fk = adult ? 1.22 : 1.05; // hands and sneakers
+  const R = 50 * u;
+  const lanky = look.build === 'lanky' || look.build === 'tall-for-age' ? 1.04 : 1;
+  const legLen = (0.5 * L + 10) * u * lanky; // hip height
+  const torsoLen = (0.5 * L - 29) * u; // hips to the top of the shoulders
+  const neckLen = 14 * u;
+  const S = 46 * shoulderK * w; // shoulder half-width
+  const rc = (S - 10) * u;
+  const ar = 12 * u * Math.sqrt(w); // arm radius
+  const lr = 15 * u * Math.sqrt(w); // leg radius
+  const handR = 14 * u;
+  const legX = Math.max(20, 0.42 * (S - 15)) * u;
+  const fk = (adult ? 1.12 : 1.02) * k; // sneakers
   const skin = SKIN[look.skin] || SKIN.tan;
   const hair = HAIR[look.hairColor] || HAIR.brown;
   const acc = new Set(look.accessories || []);
@@ -490,7 +458,7 @@ export function buildCharacter(look, opts = {}) {
   const shoeType = acc.has('light-up sneakers') ? 'sneakers' : uniform ? 'cleats' : fit.shoes || 'sneakers';
   const shoeAccent = uniform ? uniform[0] : fit.shoeAccent;
   const sock = acc.has('lucky socks') ? '#ff006e' : uniform && kitPants ? uniform[0] : '#f4f4f4';
-  const pattern = !uniform && ['tee', 'hoodie', 'sweater', 'polo', 'flannel'].includes(top) ? look.shirt : top === 'flannel' ? 'plaid' : null;
+  const pattern = !uniform && ['tee', 'graphic tee', 'hoodie', 'sweater', 'polo', 'flannel'].includes(top) ? look.shirt : top === 'flannel' ? 'plaid' : null;
   const patternShade = (x, y, z) => {
     if (pattern === 'striped') return Math.floor((y + 1) * 9) % 2 ? '#ffffff' : null;
     if (pattern === 'tie-dye') return `hsl(${Math.round(((Math.atan2(z, x) / Math.PI + 1) * 180 + y * 200) % 360)} 80% 62%)`;
@@ -506,8 +474,7 @@ export function buildCharacter(look, opts = {}) {
       return null;
     }
     if (top === 'overalls') {
-      if (y < 0.24 || (z > 0.15 && y < 0.64 && Math.abs(x) < 0.52)) return fit.denim;
-      return z > 0.15 && Math.abs(y - 0.64) < 0.02 && Math.abs(x) < 0.52 ? shade(fit.denim, 0.8) : patternShade(x, y, z);
+      return patternShade(x, y, z);
     }
     if (top === 'flannel' && z > 0.3 && Math.abs(x) < 0.2) return under;
     if (top === 'jacket') {
@@ -534,55 +501,74 @@ export function buildCharacter(look, opts = {}) {
 
   // ---- torso (top + waist)
   const tb = new Builder();
-  tb.add(PELVIS, top === 'overalls' ? fit.denim : pants, [0, -0.07, 0], [0, 0, 0], [rc * 0.95, 0.1, rc * 0.78], null, 'cloth');
-  if (bottom === 'skirt') tb.add(SKIRT, pants, [0, 0.0, 0], [0, 0, 0], [rc * 1.02, legLen * 0.46, rc * 0.84], fit.skirtPleats ? (x, y, z) => (Math.sin(Math.atan2(z, x) * 14) > 0.6 ? shade(pants, 0.82) : null) : null, 'cloth');
-  tb.add(TORSO, shirt, [0, -0.02, 0], [0, 0, 0], [rc, torsoLen, rc * 0.8], torsoShade, 'cloth');
+  // The shirt ends a little below the waistband; shorts/pants show between it and the legs.
+  const waistH = (0.13 * L - 10) * u;
+  const hemH = Math.max(0, waistH - ((top === 'hoodie' || look.shirt === 'dinosaur hoodie' ? 24 : 12) + (adult ? 0 : 0)) * u);
+  tb.add(PELVIS, top === 'overalls' ? fit.denim : pants, [0, -0.07 * k, 0], [0, 0, 0], [rc * 0.95, waistH + 0.07 * k, rc * 0.78], null, 'cloth');
+  if (bottom === 'skirt') tb.add(SKIRT, pants, [0, waistH, 0], [0, 0, 0], [rc * 1.02, (0.23 * L + 8) * u, rc * 0.84], fit.skirtPleats ? (x, y, z) => (Math.sin(Math.atan2(z, x) * 14) > 0.6 ? shade(pants, 0.82) : null) : null, 'cloth');
+  tb.add(TORSO, shirt, [0, hemH, 0], [0, 0, 0], [rc, torsoLen - hemH, rc * 0.8], torsoShade, 'cloth');
   // neckline
   if (top === 'polo') {
-    tb.add(TORUS, shirt, [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.44, rc * 0.38, 0.75], null, 'cloth');
+    tb.add(TORUS, shirt, [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.44, rc * 0.38, 0.2 * k], null, 'cloth');
     for (const sd of [-1, 1]) tb.rbox(0.06, 0.012, 0.05, shirt, sd * 0.032, torsoLen - 0.025, rc * 0.36, { center: true, rot: [0.35, sd * 0.5, sd * 0.25], mat: 'cloth' });
     for (let k = 0; k < 2; k++) tb.sphere(0.006, '#f4f4f4', 0, torsoLen * (0.9 - k * 0.07), rc * 0.79, [1, 1, 0.5], { mat: 'plastic' });
   } else if (top === 'hoodie' || look.shirt === 'dinosaur hoodie') {
-    tb.add(TORUS, shade(shirt, 0.92), [0, torsoLen - 0.03, -0.01], [Math.PI / 2 + 0.25, 0, 0], [rc * 0.6, rc * 0.62, 1.15], null, 'cloth');
+    tb.add(TORUS, shade(shirt, 0.92), [0, torsoLen - 0.03, -0.01], [Math.PI / 2 + 0.25, 0, 0], [rc * 0.6, rc * 0.62, 0.32 * k], null, 'cloth');
     tb.sphere(rc * 0.62, shade(shirt, 0.88), 0, torsoLen + 0.005, -rc * 0.55, [1.05, 0.55, 0.75], { mat: 'cloth' });
     for (const sd of [-1, 1]) tb.cyl(0.004, 0.004, 0.09, '#f4f4f4', sd * 0.03, torsoLen - 0.13, rc * 0.78, { mat: 'cloth' });
   } else if (top === 'jacket') {
-    tb.add(TORUS, trim, [0, torsoLen - 0.025, 0], [Math.PI / 2, 0, 0], [rc * 0.48, rc * 0.42, 0.95], null, 'cloth');
+    tb.add(TORUS, trim, [0, torsoLen - 0.025, 0], [Math.PI / 2, 0, 0], [rc * 0.48, rc * 0.42, 0.18 * k], null, 'cloth');
   } else if (top === 'jersey') {
     // V-neck: two trim strips meeting at the chest
     for (const sd of [-1, 1]) tb.box(0.016, torsoLen * 0.26, 0.012, trim, sd * rc * 0.17, torsoLen * 0.76, rc * 0.74, { mat: 'cloth', rot: [-0.32, 0, sd * 0.55] });
-    tb.add(TORUS, trim, [0, torsoLen - 0.02, -0.01], [Math.PI / 2 + 0.2, 0, 0], [rc * 0.44, rc * 0.4, 0.45], null, 'cloth');
+    tb.add(TORUS, trim, [0, torsoLen - 0.02, -0.01], [Math.PI / 2 + 0.2, 0, 0], [rc * 0.44, rc * 0.4, 0.14 * k], null, 'cloth');
   } else if (top === 'tank') {
-    tb.add(TORUS, shade(shirt, 0.85), [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.5, rc * 0.42, 0.35], null, 'cloth');
+    tb.add(TORUS, shade(shirt, 0.85), [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.5, rc * 0.42, 0.12 * k], null, 'cloth');
   } else if (top !== 'jersey') {
-    tb.add(TORUS, top === 'sweater' ? shade(shirt, 0.8) : top === 'overalls' ? shade(under, 0.85) : trim, [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.42, rc * 0.36, 0.5], null, 'cloth');
+    tb.add(TORUS, top === 'sweater' ? shade(shirt, 0.8) : top === 'overalls' ? shade(under, 0.85) : trim, [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.42, rc * 0.36, 0.14 * k], null, 'cloth');
   }
-  tb.cyl(0.05, 0.056, 0.05, skin, 0, torsoLen - 0.035, 0, { mat: 'skin' });
+  tb.cyl(11 * u, 12 * u, neckLen + 0.05 * k, skin, 0, torsoLen - 0.035 * k, 0, { mat: 'skin' });
   if (top === 'overalls') {
+    // Bib from the waist to the chest, with straps over the shoulders and gold buttons (bible overalls).
+    const bibTop = torsoLen - (0.155 * L - 18) * u; const bibBot = hemH - 6 * u;
+    const bw = 68 * u * w; const bz = rc * 0.8;
+    tb.rbox(bw, bibTop - bibBot, 24 * u, fit.denim, 0, bibBot, bz - 9 * u, { mat: 'cloth' });
+    tb.rbox(36 * u, 26 * u, 4 * u, shade(fit.denim, 0.88), 0, bibTop - 40 * u, bz + 3.5 * u, { mat: 'cloth' });
     for (const sd of [-1, 1]) {
-      tb.box(0.035, torsoLen * 0.42, 0.012, fit.denim, sd * rc * 0.4, torsoLen * 0.6, rc * 0.74, { mat: 'cloth', rot: [-0.25, 0, 0] });
-      tb.box(0.035, torsoLen * 0.7, 0.012, fit.denim, sd * rc * 0.4, torsoLen * 0.25, -rc * 0.78, { mat: 'cloth', rot: [0.2, 0, 0] });
-      tb.sphere(0.012, '#d4af37', sd * rc * 0.38, torsoLen * 0.62, rc * 0.79, [1, 1, 0.6], { mat: 'metal' });
+      const sx = sd * bw * 0.36;
+      tb.box(9 * u, torsoLen - bibTop + 6 * u, 5 * u, fit.denim, sx, bibTop - 4 * u, rc * 0.62, { mat: 'cloth', rot: [-0.35, 0, 0] });
+      tb.box(9 * u, torsoLen * 0.8, 5 * u, fit.denim, sx, torsoLen * 0.18, -rc * 0.78, { mat: 'cloth', rot: [0.2, 0, 0] });
+      tb.sphere(5 * u, '#E8B830', sx, bibTop - 7 * u, bz + 3 * u, [1, 1, 0.6], { mat: 'metal' });
     }
-    tb.rbox(rc * 0.45, torsoLen * 0.14, 0.01, shade(fit.denim, 0.9), 0, torsoLen * 0.38, rc * 0.8, { mat: 'cloth' });
   }
-  if (top === 'graphic tee' || (top === 'jersey' && !uniform)) {
-    const tex = top === 'jersey' ? numberTexture(fit.number, trim, shade(shirt, 0.45)) : graphicTexture(fit.graphic, fit.graphicColor);
+  // Chest prints, placed where the bible draws them: a small emblem on the
+  // kid's right chest on a plain tee (the player's star), a big centred print on a graphic tee.
+  const player = look.id === 'PLAYER';
+  const chestY = torsoLen - (0.155 * L + 22) * u;
+  const patterned = ['tie-dye', 'camo', 'plaid', 'polka dot', 'striped'].includes(look.shirt);
+  const smallStar = player && !uniform && top === 'tee' && !patterned;
+  if ((top === 'graphic tee' && !(player && patterned)) || (top === 'jersey' && !uniform) || smallStar) {
+    const ink = lightKit(shirt) || shirt === BIBLE_CLOTH.white[0] ? BIBLE_CLOTH.red[0] : '#ffffff';
+    const tex = top === 'jersey' ? numberTexture(fit.number, trim, shade(shirt, 0.45))
+      : graphicTexture(player ? (smallStar ? 'star' : 'bolt') : fit.graphic, player ? ink : fit.graphicColor);
     const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -2 });
     mat.userData.shared = false;
-    const dec = new THREE.Mesh(new THREE.PlaneGeometry(rc * 0.95, rc * 0.95), mat);
-    dec.position.set(0, torsoLen * 0.52, rc * 0.82);
+    const size = smallStar ? 26 * u : top === 'jersey' ? rc * 0.95 : 60 * u;
+    const dec = new THREE.Mesh(new THREE.PlaneGeometry(size, size), mat);
+    const dx = smallStar ? -0.35 * (S - 15) * u : 0;
+    dec.position.set(dx, smallStar ? chestY : (chestY + torsoLen) / 2 - 8 * u, rc * 0.8 * Math.sqrt(Math.max(0.2, 1 - (dx / rc) ** 2)) + 0.004);
+    dec.rotation.y = Math.asin(Math.max(-0.6, Math.min(0.6, dx / rc))) * 0.8;
     body.add(dec);
   }
   if (look.shirt === 'dinosaur hoodie' && !uniform) for (let i = 0; i < 5; i++) tb.cone(0.035, 0.08, '#2f8f3a', 0, torsoLen - 0.02 - i * 0.07, -rc * 0.78, { rot: [-1.3, 0, 0], mat: 'cloth' });
   if (acc.has('giant backpack')) { tb.rbox(rc * 1.6, torsoLen * 1.0, 0.16, shade(fav, 0.7), 0, torsoLen * 0.05, -rc * 0.8 - 0.07, { mat: 'cloth' }); tb.box(0.03, torsoLen * 0.9, 0.03, '#333', -rc * 0.5, torsoLen * 0.1, -rc * 0.72); tb.box(0.03, torsoLen * 0.9, 0.03, '#333', rc * 0.5, torsoLen * 0.1, -rc * 0.72); }
   if (acc.has('superhero cape')) tb.box(rc * 2.0, torsoLen + legLen * 0.6, 0.025, '#d62828', 0, -legLen * 0.6, -rc * 0.82, { rot: [0.1, 0, 0], mat: 'cloth' });
   if (acc.has('fanny pack')) tb.rbox(0.16, 0.07, 0.06, '#f72585', 0, 0.02, rc * 0.82, { mat: 'cloth' });
-  if (acc.has('scarf (even in summer)')) { tb.add(TORUS, '#e76f51', [0, torsoLen - 0.03, 0], [Math.PI / 2, 0, 0], [rc * 0.6, rc * 0.55, 0.9], null, 'cloth'); tb.box(0.07, 0.2, 0.03, '#e76f51', rc * 0.3, torsoLen - 0.24, rc * 0.62, { mat: 'cloth' }); }
-  if (acc.has('bandana')) tb.add(TORUS, '#c1121f', [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.5, rc * 0.45, 0.6], null, 'cloth');
+  if (acc.has('scarf (even in summer)')) { tb.add(TORUS, '#e76f51', [0, torsoLen - 0.03, 0], [Math.PI / 2, 0, 0], [rc * 0.6, rc * 0.55, 0.3 * k], null, 'cloth'); tb.box(0.07, 0.2, 0.03, '#e76f51', rc * 0.3, torsoLen - 0.24, rc * 0.62, { mat: 'cloth' }); }
+  if (acc.has('bandana')) tb.add(TORUS, '#c1121f', [0, torsoLen - 0.02, 0], [Math.PI / 2, 0, 0], [rc * 0.5, rc * 0.45, 0.2 * k], null, 'cloth');
   if (adult && top !== 'overalls') {
-    tb.add(TORUS, '#3a2a20', [0, 0.0, 0], [Math.PI / 2, 0, 0], [rc * 0.97, rc * 0.79, 0.12], null, 'rubber');
-    tb.rbox(0.07, 0.045, 0.02, '#c9a227', 0, -0.015, rc * 0.8, { mat: 'metal' });
+    tb.add(TORUS, '#3a2a20', [0, waistH - 4 * u, 0], [Math.PI / 2, 0, 0], [rc * 0.93, rc * 0.76, 0.1 * k], null, 'rubber');
+    tb.rbox(0.05 * k, 0.03 * k, 0.015 * k, '#c9a227', 0, waistH - 9 * u, rc * 0.78, { mat: 'metal' });
   }
   const torso = tb.mesh();
   body.add(torso);
@@ -599,7 +585,7 @@ export function buildCharacter(look, opts = {}) {
 
   // ---- head
   const head = new THREE.Group();
-  head.position.y = torsoLen - 0.035;
+  head.position.y = torsoLen + neckLen;
   body.add(head);
   const hc = R * 0.98; // head center height above neck
   const hb = new Builder();
@@ -612,7 +598,11 @@ export function buildCharacter(look, opts = {}) {
   hb.sphere(R * 0.135, mix(skin, '#e07a6a', 0.22), 0, hc - R * 0.17, R * 0.97, [1.2, 0.95, 0.9], { mat: 'skin' });
   // headwear (one hat at a time) + hair tucked under it
   const hat = acc.has('baseball cap') ? 'cap' : acc.has('backwards cap') ? 'backwards cap' : acc.has('beanie') ? 'beanie' : acc.has('bucket hat') ? 'bucket hat' : null;
-  if (hat) addHat(hb, hat, R, hc, hat === 'bucket hat' ? '#c9b27c' : fav, hat === 'beanie' ? '#ffffff' : lightKit(fav) ? '#e63946' : '#ffffff', hair);
+  // The player's hat uses the bible accent color (yellow on red shirts, red otherwise), like the sheet.
+  const accent = BIBLE_CLOTH[(BIBLE_FAVORITE[look.shirt] || ['red'])[0] === 'red' ? 'yellow' : 'red'];
+  const hatC = look.id === 'PLAYER' && hat !== 'bucket hat' ? accent[0] : hat === 'bucket hat' ? '#c9b27c' : fav;
+  const hatC2 = look.id === 'PLAYER' && hat !== 'bucket hat' ? accent[1] : hat === 'beanie' ? '#ffffff' : lightKit(fav) ? '#e63946' : '#ffffff';
+  if (hat) addHat(hb, hat, R, hc, hatC, hatC2, hair);
   const hairMesh = hairFor(look, R, hc, hair, skin, fav, hat);
   const bulk = hairBulk(look.hairStyle);
   if (acc.has('sweatband') && hat !== 'beanie' && hat !== 'bucket hat') {
@@ -639,8 +629,8 @@ export function buildCharacter(look, opts = {}) {
     hb.box(R * 0.2, 0.01, 0.01, fc, 0, hc + R * 0.02, gr, { center: true, mat: 'plastic' });
     if (goggles) hb.add(BAND, '#222', [0, hc - R * 0.02, -R * 0.02], [0, 0, 0], [R * 1.05, R * 0.09, R * 1.03], null, 'rubber');
   }
-  if (acc.has('star earrings')) for (const sd of [-1, 1]) hb.sphere(0.02, '#ffd60a', sd * R * 0.98, hc - R * 0.3, 0.0, [1, 1, 1], { mat: 'metal' });
-  if (acc.has('hearing aids')) for (const sd of [-1, 1]) hb.sphere(0.022, '#d9b38c', sd * R * 1.02, hc + 0.0, -R * 0.12, [1, 1, 1], { mat: 'plastic' });
+  if (acc.has('star earrings')) for (const sd of [-1, 1]) hb.sphere(R * 0.08, '#ffd60a', sd * R * 0.98, hc - R * 0.3, 0.0, [1, 1, 1], { mat: 'metal' });
+  if (acc.has('hearing aids')) for (const sd of [-1, 1]) hb.sphere(R * 0.09, '#d9b38c', sd * R * 1.02, hc + 0.0, -R * 0.12, [1, 1, 1], { mat: 'plastic' });
   const headMesh = hb.mesh();
   head.add(headMesh);
   if (hairMesh) head.add(hairMesh);
@@ -655,35 +645,33 @@ export function buildCharacter(look, opts = {}) {
   head.add(face);
 
   // ---- arms
-  const shoulderY = torsoLen * (adult ? 0.8 : 0.84);
-  const armLen = (adult ? 0.4 : 0.27) * H;
+  const shoulderY = torsoLen - 20 * u;
+  const armLen = (0.335 * L * (adult ? 1.22 : 1) - 16) * u; // shoulder to wrist
   const sleevePattern = top === 'flannel' || (pattern && pattern !== 'tie-dye') ? (x, y, z) => patternShade(x * 0.4, y * 0.3, z * 0.4) : null;
   const mkArm = (sd) => {
     const ab = new Builder();
     const ua = armLen * 0.48;
-    const sw = Math.sqrt(w) * lk;
-    if (noSleeve) ab.sphere(0.046 * sw, skin, -sd * 0.008, -0.01, 0, [1, 1, 1], { mat: 'skin' });
+    const sr = ar * 1.4; // puffy short sleeve
+    if (noSleeve) ab.sphere(ar * 1.2, skin, -sd * 0.2 * ar, -0.2 * ar, 0, [1, 1, 1], { mat: 'skin' });
     else {
-      ab.sphere(0.052 * sw * (adult ? 0.85 : 1), sleeveC, -sd * 0.012, -0.005, 0, [1, 1, 1], { mat: 'cloth', shade: sleevePattern });
-      if (!longSleeve) ab.add(CAPSULE, sleeveC, [0, -ua * 0.24, 0], [0, 0, 0], [0.06 * sw, ua * 0.5, 0.058 * sw], sleevePattern, 'cloth'); // puffy closed short sleeve
+      ab.sphere(sr * (longSleeve ? 0.8 : 1), sleeveC, -sd * 0.25 * ar, -0.1 * ar, 0, [1, 1, 1], { mat: 'cloth', shade: sleevePattern });
+      if (!longSleeve) ab.add(CAPSULE, sleeveC, [0, -ua * 0.3, 0], [0, 0, 0], [sr, ua * 0.42, sr * 0.96], sleevePattern, 'cloth');
     }
-    if (uniform) ab.add(TORUS, trim, [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.058, 0.058, 0.25], null, 'cloth');
-    if (top === 'raglan' && !uniform) ab.add(TORUS, shade(sleeveC, 0.8), [0, -ua * 0.72, 0], [Math.PI / 2, 0, 0], [0.057, 0.057, 0.22], null, 'cloth');
+    if (uniform) ab.add(TORUS, trim, [0, -ua * 0.68, 0], [Math.PI / 2, 0, 0], [sr * 0.97, sr * 0.97, 0.25 * k], null, 'cloth');
+    if (top === 'raglan' && !uniform) ab.add(TORUS, shade(sleeveC, 0.8), [0, -ua * 0.68, 0], [Math.PI / 2, 0, 0], [sr * 0.96, sr * 0.96, 0.22 * k], null, 'cloth');
     const armC = longSleeve ? sleeveC : skin;
-    ab.add(CAPSULE, armC, [0, -ua * 0.55, 0], [0, 0, 0], [(longSleeve ? 0.05 : 0.045) * lk, ua * 0.6, (longSleeve ? 0.05 : 0.045) * lk], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
-    ab.add(CAPSULE, armC, [0, -ua - armLen * 0.25, 0.02], [0.18, 0, 0], [(longSleeve ? 0.047 : 0.042) * lk, armLen * 0.32, (longSleeve ? 0.047 : 0.042) * lk], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
-    if (longSleeve) {
-      ab.cyl(0.046 * lk, 0.046 * lk, 0.035, top === 'jacket' ? trim : shade(sleeveC, 0.8), 0, -armLen - 0.035, 0.05, { mat: 'cloth' });
-      ab.cyl(0.04 * lk, 0.04 * lk, 0.03, skin, 0, -armLen - 0.05, 0.055, { mat: 'skin' });
-    }
-    const hy = -armLen - 0.06; const hz = 0.06;
-    ab.sphere(0.052 * fk, skin, 0, hy, hz, [0.95, 1.1, 0.8], { mat: 'skin' });
-    ab.sphere(0.022 * fk, skin, sd * -0.035 * fk, hy + 0.02, hz + 0.03, [1, 1.4, 1], { mat: 'skin' });
-    if (sd < 0 && acc.has('friendship bracelets')) for (let k = 0; k < 3; k++) ab.add(TORUS, ['#ff70a6', '#70d6ff', '#ffd670'][k], [0, -armLen + 0.03 + k * 0.025, 0.05], [Math.PI / 2 - 0.18, 0, 0], [0.047, 0.047, 0.25], null, 'cloth');
-    if (sd > 0 && acc.has('cast with signatures')) ab.add(CAPSULE, '#f8f8f8', [0, -ua - armLen * 0.22, 0.02], [0.18, 0, 0], [0.058, armLen * 0.25, 0.058], (x, y) => (Math.sin(y * 40) > 0.85 ? '#3a86ff' : null), 'cloth');
+    const r0 = longSleeve ? ar * 1.4 : ar;
+    ab.add(CAPSULE, armC, [0, -ua * 0.55, 0], [0, 0, 0], [r0, ua * 0.6, r0], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
+    ab.add(CAPSULE, armC, [0, -ua - armLen * 0.25, 0.4 * ar], [0.18, 0, 0], [r0 * 0.94, armLen * 0.32, r0 * 0.94], longSleeve ? sleevePattern : null, longSleeve ? 'cloth' : 'skin');
+    if (longSleeve) ab.cyl(r0 * 1.05, r0 * 1.05, 10 * u, top === 'jacket' ? trim : shade(sleeveC, 0.8), 0, -armLen - 8 * u, 1.0 * ar, { mat: 'cloth' });
+    const hy = -armLen - handR * 0.9; const hz = 1.1 * ar;
+    ab.sphere(handR, skin, 0, hy, hz, [0.88, 1.1, 0.8], { mat: 'skin' });
+    ab.sphere(handR * 0.42, skin, sd * -0.75 * handR, hy + handR * 0.35, hz + handR * 0.45, [1, 1.4, 1], { mat: 'skin' });
+    if (sd < 0 && acc.has('friendship bracelets')) for (let j = 0; j < 3; j++) ab.add(TORUS, ['#ff70a6', '#70d6ff', '#ffd670'][j], [0, -armLen + 0.03 * k + j * 0.025 * k, hz * 0.8], [Math.PI / 2 - 0.18, 0, 0], [ar * 1.08, ar * 1.08, 0.25 * k], null, 'cloth');
+    if (sd > 0 && acc.has('cast with signatures')) ab.add(CAPSULE, '#f8f8f8', [0, -ua - armLen * 0.22, 0.4 * ar], [0.18, 0, 0], [ar * 1.35, armLen * 0.25, ar * 1.35], (x, y) => (Math.sin(y * 40) > 0.85 ? '#3a86ff' : null), 'cloth');
     const m = ab.mesh();
     const pivot = new THREE.Group();
-    pivot.position.set(sd * (adult ? rc * 0.93 + 0.03 : rc + 0.015), shoulderY, 0);
+    pivot.position.set(sd * (rc + ar * 0.5), shoulderY, 0);
     pivot.add(m);
     return pivot;
   };
@@ -694,22 +682,21 @@ export function buildCharacter(look, opts = {}) {
   const mkLeg = (sd) => {
     const lb = new Builder();
     const thigh = legLen * 0.5; const shin = legLen * 0.42;
-    const lr = 0.058 * Math.sqrt(w) * lk;
     const kneeY = -thigh;
     const ankle = kneeY - shin;
     const stripeShade = stripe ? (x) => (x * sd > 0.82 ? stripe : null) : null;
     if (bottom === 'shorts' || bottom === 'cargo shorts') {
       const long = bottom === 'cargo shorts' ? 1.25 : 1;
       lb.add(SHORTS_LEG, pants, [0, -thigh * 0.62 * long, 0], [0, 0, 0], [lr * 1.38, thigh * 0.65 * long, lr * 1.32], uniform ? (x) => (Math.abs(x) > 0.9 ? uniform[0] : null) : stripeShade, 'cloth');
-      if (bottom === 'cargo shorts') lb.rbox(0.035, 0.07, 0.07, shade(pants, 0.88), sd * lr * 1.4, -thigh * 0.62, 0, { mat: 'cloth' });
+      if (bottom === 'cargo shorts') lb.rbox(0.035 * k, 0.07 * k, 0.07 * k, shade(pants, 0.88), sd * lr * 1.4, -thigh * 0.62, 0, { mat: 'cloth' });
       lb.add(CAPSULE, skin, [0, -thigh * 0.75, 0], [0, 0, 0], [lr * 0.92, thigh * 0.4, lr * 0.92], null, 'skin');
-    } else if (bottom === 'skirt') {
-      lb.add(CAPSULE, skin, [0, -thigh * 0.55, 0], [0, 0, 0], [lr * 0.95, thigh * 0.62, lr * 0.95], null, 'skin');
+    } else if (bottom === 'skirt') { // dark leggings under a skirt, as in the bible
+      lb.add(CAPSULE, BIBLE_CLOTH.charcoal[0], [0, -thigh * 0.55, 0], [0, 0, 0], [lr * 0.95, thigh * 0.62, lr * 0.95], null, 'cloth');
     } else {
       const fat = bottom === 'leggings' ? 1.0 : bottom === 'joggers' ? 1.22 : 1.16;
       lb.add(CAPSULE, pants, [0, -thigh * 0.55, 0], [0, 0, 0], [lr * fat, thigh * 0.62, lr * fat], stripeShade, 'cloth');
     }
-    if (bareLegs) lb.add(CAPSULE, skin, [0, kneeY - shin * 0.45, 0], [0, 0, 0], [lr * 0.85, shin * 0.42, lr * 0.85], null, 'skin');
+    if (bareLegs) lb.add(CAPSULE, bottom === 'skirt' ? BIBLE_CLOTH.charcoal[0] : skin, [0, kneeY - shin * 0.45, 0], [0, 0, 0], [lr * 0.85, shin * 0.42, lr * 0.85], null, bottom === 'skirt' ? 'cloth' : 'skin');
     else {
       const fat = bottom === 'leggings' ? 0.92 : bottom === 'joggers' ? 1.12 : 1.18;
       lb.add(TAPERED_PANT, pants, [0, kneeY - shin * 0.42, 0], [0, 0, 0], [lr * fat, shin * 1.05, lr * fat], stripeShade, 'cloth');
@@ -722,13 +709,19 @@ export function buildCharacter(look, opts = {}) {
       lb.cyl(lr * 0.88, lr * 0.85, knee ? shin * 0.85 : shin * 0.55, sock, 0, ankle - 0.02, 0, { mat: 'cloth', shade: uniform ? (x, y) => (Math.abs(y - 0.25) < 0.07 ? uniform[0] : null) : fit.sockStripe ? (x, y) => (Math.abs(y - 0.3) < 0.05 ? fit.sockStripe : null) : null });
     }
     const sy = -legLen + 0.0;
-    buildShoe(lb, shoeType, fk, sy, shoeC, shoeAccent, skin, lr, shin, acc.has('light-up sneakers'));
-    if (acc.has('knee pads')) lb.rbox(lr * 2.3, 0.08, lr * 1.4, '#222', 0, kneeY - 0.04, lr * 0.5, { mat: 'rubber' });
+    // Low, chunky bible sneakers: built full size, then squashed down; white shoes get a navy sole.
+    const sb = new Builder();
+    const soleC = shoeC === '#ffffff' || shoeC === BIBLE_CLOTH.white[0] ? BIBLE_CLOTH.navy[0] : '#f2f2f2';
+    const squash = ['boots', 'rain boots'].includes(shoeType) ? 1 : 0.72;
+    buildShoe(sb, shoeType, fk, 0, shoeC, shoeAccent, skin, lr, shin / squash, acc.has('light-up sneakers'), soleC);
+    const shoeMesh = sb.mesh();
+    shoeMesh.position.y = sy; shoeMesh.scale.y = squash;
+    if (acc.has('knee pads')) lb.rbox(lr * 2.3, 0.08 * k, lr * 1.4, '#222', 0, kneeY - 0.04 * k, lr * 0.5, { mat: 'rubber' });
     if (sd > 0 && acc.has('band-aid on knee') && bareLegs) lb.box(lr * 1.0, 0.03, 0.01, '#e9c49a', 0, kneeY - 0.02, lr * 0.85, { center: true });
     const m = lb.mesh();
     const pivot = new THREE.Group();
-    pivot.position.set(sd * rc * 0.48, hipY - 0.04, 0);
-    pivot.add(m);
+    pivot.position.set(sd * legX, hipY - 0.04 * k, 0);
+    pivot.add(m, shoeMesh);
     return pivot;
   };
   const legL = mkLeg(-1); const legR = mkLeg(1);
@@ -793,18 +786,18 @@ export function buildCharacter(look, opts = {}) {
       head.rotation.x = mode === 'talk' ? Math.sin(phase * 3) * 0.05 : mode === 'run' ? -0.12 : 0;
       if (mode === 'sit') {
         legL.rotation.x = -1.45; legR.rotation.x = -1.45;
-        const sitY = -hipY * 0.48;
-        body.position.y = hipY + sitY; legL.position.y = legR.position.y = hipY - 0.04 + sitY;
+        const sitY = Math.min(0, 0.21 * H - hipY); // hips at chair height
+        body.position.y = hipY + sitY; legL.position.y = legR.position.y = hipY - 0.04 * k + sitY;
         armL.rotation.x = -0.55; armR.rotation.x = -0.55; body.rotation.x = 0;
       } else {
-        legL.position.y = legR.position.y = hipY - 0.04 + bob + lift;
+        legL.position.y = legR.position.y = hipY - 0.04 * k + bob + lift;
         legL.rotation.x = legA; legR.rotation.x = -legA;
         armL.rotation.x = armA; armR.rotation.x = -armA;
         body.position.y = hipY + bob + lift;
         body.rotation.x = lean; body.rotation.y = twist;
       }
       if (mode === 'cheer') { armL.rotation.z = -2.7 + Math.sin(jump * 2) * 0.2; armR.rotation.z = 2.7 - Math.sin(jump * 2) * 0.2; }
-      else { armL.rotation.z = -0.1; armR.rotation.z = 0.1; jump = 0; }
+      else { armL.rotation.z = -0.17; armR.rotation.z = 0.17; jump = 0; }
       if (mode === 'throw') armR.rotation.x = -2.4 + Math.sin(phase * 2) * 0.6;
     },
   };
