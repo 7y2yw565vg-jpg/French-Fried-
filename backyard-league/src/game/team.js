@@ -335,6 +335,23 @@ export function seatingCapacity(state) {
   return UPGRADES.seating.capacity[Math.min(state.team.upgrades.seating, upgradeCap(state, 'seating'))];
 }
 
+/** What a home field would mean for your team: costs, limits and a per-game estimate at its fair ticket price. */
+export function fieldPreview(state, fieldId) {
+  const f = FIELDS[fieldId];
+  const team = { ...state.team, field: fieldId, prices: { ...(state.team.prices || {}), ticket: f.maxAdmission } };
+  const st = { ...state, team };
+  const cap = (cat) => upgradeCap(st, cat);
+  const unlocked = f.needs === 'principal' ? !!state.team.principalOK : f.needs === 'permit' ? !!state.team.permit : true;
+  return {
+    rent: f.rent, parentCut: f.parentCut, fairTicket: f.maxAdmission,
+    seats: seatingCapacity(st), maxSeats: UPGRADES.seating.capacity[cap('seating')],
+    seatingMax: UPGRADES.seating.names[cap('seating')], concessionsMax: UPGRADES.concessions.names[cap('concessions')],
+    trainingMax: UPGRADES.training.names[cap('training')], maxTier: f.maxTier,
+    facilityBonus: { backyard: 0, schoolfield: 8, park: 15 }[fieldId] || 0,
+    est: homeGameRevenue(st), unlocked,
+  };
+}
+
 export function setField(state, fieldId) {
   const f = FIELDS[fieldId];
   if (f.needs === 'principal' && !state.team.principalOK) return { ok: false, reason: 'Ask the principal first (needs a B average and no recent trouble).' };

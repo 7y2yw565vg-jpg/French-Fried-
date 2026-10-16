@@ -413,3 +413,9 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .stat-alloc .stat-row .bar { display: block; width: auto; }
 /* creator preview: a clear window onto the 3D scene (no hazy glow layer) */
 .creator-preview { background: none; }
+
+/* Home field comparison (phone > Field & Staff) */
+.field-compare { font-size: 13px; }
+.field-compare th, .field-compare td { vertical-align: top; padding: 5px 6px; }
+.field-compare th:first-child { width: 22%; }
+.field-compare .cur-field { background: rgba(87, 204, 153, 0.16); }

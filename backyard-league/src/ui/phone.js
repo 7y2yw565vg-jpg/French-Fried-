@@ -3,7 +3,7 @@ import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR, PLAYER_TRAIN_CAP } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
-import { orderDrillGear, practiceStats, untestedDrills, soloWorkout, workoutCheck, WORKOUT_MINUTES, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
+import { orderDrillGear, practiceStats, untestedDrills, soloWorkout, workoutCheck, WORKOUT_MINUTES, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, fieldPreview, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
 import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
@@ -372,13 +372,32 @@ function pricesBox(s) {
 function fieldTab(game, root, redraw) {
   const s = game.state;
   const f = FIELDS[s.team.field];
-  const fields = h('div', { class: 'box' }, h('h3', {}, '🏟️ Home field'));
-  for (const [id, fd] of Object.entries(FIELDS)) {
-    fields.appendChild(h('div', { class: 'row', style: { margin: '6px 0' } },
-      h('div', { style: { flex: 1 } }, h('b', {}, fd.name), h('div', { class: 'muted' }, fd.blurb)),
-      s.team.field === id ? h('span', { class: 'pill good' }, 'Current') : btn('Use this field', () => { const r = setField(s, id); toast(r.ok ? `Home games are now at ${fd.name}.` : r.reason, r.ok ? 'good' : 'bad'); redraw(); }, 'small')));
-  }
-  fields.appendChild(h('p', { class: 'muted' }, `${seatingCapacity(s)} seats. Fans think about ${money(ticketFair(s))} is a fair ticket here.`));
+  const fields = h('div', { class: 'box' }, h('h3', {}, '🏟️ Home field'),
+    h('p', { class: 'muted' }, 'Where you play home games. Bigger fields cost rent, but fans pay more per ticket, more of them fit, nobody takes a cut, and you can build bigger seating, snack stands and training gear. The estimate is for your team right now, at each field\'s fair ticket price.'));
+  const row = (label, fn) => h('tr', {}, h('th', { style: { textAlign: 'left' } }, label), ...Object.keys(FIELDS).map((id) => h('td', { class: s.team.field === id ? 'cur-field' : '' }, fn(id))));
+  const pv = Object.fromEntries(Object.keys(FIELDS).map((id) => [id, fieldPreview(s, id)]));
+  const bestNet = Math.max(...Object.values(pv).map((p) => p.est.net));
+  const how = (id) => {
+    const fd = FIELDS[id];
+    if (s.team.field === id) return h('span', { class: 'pill good' }, 'Current');
+    const use = btn('Move here', () => { const r = setField(s, id); toast(r.ok ? `Home games are now at ${fd.name}.` : r.reason, r.ok ? 'good' : 'bad'); redraw(); }, 'small green');
+    if (pv[id].unlocked) return use;
+    return h('div', { class: 'muted', style: { fontSize: '12px' } }, fd.needs === 'principal'
+      ? '🔒 Ask Principal Plunkett at school (needs a B average and no recent trouble).'
+      : '🔒 Buy a $15 city permit at the Library league desk.');
+  };
+  fields.appendChild(h('table', { class: 'list field-compare' },
+    h('tr', {}, h('th', {}, ''), ...Object.entries(FIELDS).map(([id, fd]) => h('th', { class: s.team.field === id ? 'cur-field' : '' }, fd.name))),
+    row('Cost per home game', (id) => pv[id].rent ? `${money(pv[id].rent)} rent` : 'Free'),
+    row('Mom & Dad\'s cut', (id) => pv[id].parentCut ? `${Math.round(pv[id].parentCut * 100)}% of everything` : 'None'),
+    row('Fair ticket price', (id) => money(pv[id].fairTicket)),
+    row('Seats (yours now / most)', (id) => `${pv[id].seats} / ${pv[id].maxSeats}`),
+    row('Biggest seating', (id) => pv[id].seatingMax),
+    row('Biggest snack stand', (id) => pv[id].concessionsMax),
+    row('Best training gear', (id) => pv[id].trainingMax),
+    row('Facility score bonus', (id) => pv[id].facilityBonus ? `+${pv[id].facilityBonus} (draws fans & recruits)` : '+0'),
+    row('Your take per home game', (id) => h('b', { style: { color: pv[id].est.net === bestNet ? '#2d6a4f' : pv[id].est.net < 0 ? '#e63946' : '' } }, `${money(pv[id].est.net)}${pv[id].est.net === bestNet ? ' ★' : ''}`)),
+    row('', how)));
   fields.appendChild(h('p', { class: 'muted' }, `Facility score: ${facilityScore(s)}/100. Upgrades come with you if you move fields, but small fields can't use the fancy stuff.`));
 
   const ups = h('div', { class: 'box' }, h('h3', {}, '🔧 Upgrades (order online)'), h('p', {}, `You have ${money(s.money)}`));
