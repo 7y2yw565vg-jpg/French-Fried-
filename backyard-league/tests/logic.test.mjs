@@ -321,11 +321,12 @@ test('money: prices change how many people buy; teams can join mid-season', () =
 });
 
 test('creator: skill points, trait effects and no-trait option', () => {
-  const pts = { SPD: 15, EYE: 20, HUS: 3 }; // EYE is over the cap
+  const pts = { SPD: 15, EYE: 30, HUS: 3 }; // no per-skill cap
   const s = newGame({ ...opts(), perk: 'none', statPoints: pts });
   assert.equal(s.player.perk, 'none');
   assert.equal(s.player.stats.SPD, 65);
-  assert.equal(s.player.stats.EYE, 65); // capped at +15
+  assert.equal(s.player.stats.EYE, 80);
+  assert.equal(newGame({ ...opts(), perk: 'gymrat', statPoints: { SPD: 50 } }).player.stats.SPD, 99); // tops out at 99
   assert.equal(s.player.stats.HUS, 53);
   assert.equal(s.player.stats.AGI, 50);
   const g = newGame({ ...opts(), perk: 'gymrat', statPoints: pts });
@@ -385,4 +386,24 @@ test('teammates who missed a drill get tested at practice', async () => {
   assert.match(msg, /Cone Weave/);
   assert.equal(s.kids[kid].rev.AGI, 'range');
   assert.equal(untestedDrills(s).length, 0);
+});
+
+test('your own character improves from workouts and practice', async () => {
+  const { soloWorkout, workoutCheck, applyPractice } = await import('../src/game/team.js');
+  const s = newGame({ ...opts(), perk: 'none', statPoints: { SPD: 10 } });
+  s.loc = 'home'; s.time.minute = 16 * 60;
+  const before = statsOf(s, 'PLAYER', { raw: true }).SPD;
+  assert.equal(soloWorkout(s, 'AGI').ok, false); // no cones yet
+  const r = soloWorkout(s, 'SPD');
+  assert.equal(r.ok, true);
+  assert.ok(r.gain > 0);
+  assert.equal(workoutCheck(s).ok, false); // once a day
+  for (let d = 2; d < 12; d++) { s.time.day = d; s.time.minute = 16 * 60; assert.equal(soloWorkout(s, 'SPD').ok, true); }
+  if (!s.team.roster.includes('PLAYER')) s.team.roster.push('PLAYER');
+  s.team.practice.focus = 'SPD';
+  applyPractice(s);
+  assert.ok(statsOf(s, 'PLAYER', { raw: true }).SPD >= before + 6);
+  // Old saves without player training still load.
+  const old = JSON.parse(serialize(s)); delete old.player.train;
+  assert.deepEqual(deserialize(JSON.stringify(old)).player.train, {});
 });

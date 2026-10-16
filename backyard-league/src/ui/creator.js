@@ -6,7 +6,7 @@ import { buildArena } from '../world3d/arenas.js';
 import { buildLogo } from './logo.js';
 import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, SHOE_COLORS } from '../world3d/kidModel.js';
 import { HAIR_STYLES } from '../world3d/hair.js';
-import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT_POINT_CAP, PLAYER_BASE_STAT } from '../data/world.js';
+import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT_MAX, PLAYER_BASE_STAT } from '../data/world.js';
 import { KIDS } from '../data/kids.js';
 import { loadFromStorage, deserialize } from '../game/state.js';
 import { sfx } from './audio.js';
@@ -213,7 +213,7 @@ export function showCreator(engine, onDone) {
         btn('−', () => { if (cfg.statPoints[c] > 0) { cfg.statPoints[c]--; drawStats(); } }, 'small white', v ? {} : { disabled: true }),
         h('div', { class: 'bar' }, h('i', { style: { width: `${val}%` } })),
         h('b', { class: 'stat-val' }, `${val}`),
-        btn('+', () => { if (left > 0 && cfg.statPoints[c] < STAT_POINT_CAP) { cfg.statPoints[c]++; drawStats(); } }, 'small white', left > 0 && v < STAT_POINT_CAP ? {} : { disabled: true })));
+        btn('+', () => { if (left > 0 && val < STAT_MAX) { cfg.statPoints[c]++; drawStats(); } }, 'small white', left > 0 && val < STAT_MAX ? {} : { disabled: true })));
     }
     statBox.append(grid);
   };

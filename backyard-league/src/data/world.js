@@ -427,10 +427,12 @@ export const PERKS = {
   smooth: { name: 'Smooth Talker', desc: 'Start with more charisma: chats go better, friendships grow faster and more kids say yes to hanging out.' },
   teacherskid: { name: "Teacher's Kid", desc: 'Quizzes come with an extra hint, but troublemakers and pranksters warm up to you more slowly.' },
   hustler: { name: 'Born Hustler', desc: 'Every job (lemonade, mowing, paper route) pays 25% more.' },
-  gymrat: { name: 'Gym Rat', desc: '+5 to every one of your own sports skills.' },
+  gymrat: { name: 'Gym Rat', desc: '+5 to every one of your own sports skills, and your workouts and practices count 25% more.' },
   sneaky: { name: 'Sneaky Pete', desc: 'Start with more sneakiness: notes, dares and hall sneaking get caught less.' },
 };
-/** Skill points to spend in the character creator (each skill can go up to +STAT_POINT_CAP). */
+/** Skill points to spend in the character creator: put them anywhere, as many in one skill as you like (up to 99). */
 export const STAT_POINTS = 50;
-export const STAT_POINT_CAP = 15;
 export const PLAYER_BASE_STAT = 50;
+export const STAT_MAX = 99;
+/** How far training (practice + solo workouts) can raise each of your own skills. */
+export const PLAYER_TRAIN_CAP = 30;

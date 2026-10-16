@@ -1,6 +1,6 @@
 // Save state: creation, lookups, persistence.
 import { KIDS, KID_BY_ID } from '../data/kids.js';
-import { SPORTS, UPGRADE_IDS, STAT_CODES, GEAR, GEAR_IDS, STAT_POINT_CAP, PLAYER_BASE_STAT } from '../data/world.js';
+import { SPORTS, UPGRADE_IDS, STAT_CODES, GEAR, GEAR_IDS, STAT_MAX, PLAYER_BASE_STAT } from '../data/world.js';
 import { kidGradeNow, kidStats, kidHeight } from './stats.js';
 import { DAY_START } from './time.js';
 import { hashString } from './rng.js';
@@ -21,8 +21,8 @@ export function newGame(opts) {
   // (Old configs without a point spread get a little random variety instead.)
   const pstats = {};
   for (const code of STAT_CODES) {
-    const spent = opts.statPoints ? Math.min(STAT_POINT_CAP, Math.max(0, opts.statPoints[code] || 0)) : (hashString(`${seed}${code}`) % 8);
-    pstats[code] = PLAYER_BASE_STAT + spent + (opts.perk === 'gymrat' ? 5 : 0);
+    const spent = opts.statPoints ? Math.max(0, opts.statPoints[code] || 0) : (hashString(`${seed}${code}`) % 8);
+    pstats[code] = Math.min(STAT_MAX, PLAYER_BASE_STAT + spent + (opts.perk === 'gymrat' ? 5 : 0));
   }
   const upgrades = Object.fromEntries(UPGRADE_IDS.map((u) => [u, 0]));
   return {
@@ -30,7 +30,7 @@ export function newGame(opts) {
     seed,
     player: {
       name: opts.name || 'Rookie', look: opts.look, perk: opts.perk || 'none', hood: opts.hood || 'maple',
-      section: seed % 2, stats: pstats,
+      section: seed % 2, stats: pstats, train: {}, workoutDay: 0,
       charisma: opts.perk === 'smooth' ? 60 : 45, sneak: opts.perk === 'sneaky' ? 60 : 40,
       smarts: opts.perk === 'teacherskid' ? 60 : 45, rep: 0,
     },
@@ -110,7 +110,8 @@ export function statsOf(state, id, opts = {}) {
   if (id === 'PLAYER') {
     const g = playerGrade(state);
     out = {};
-    for (const code of STAT_CODES) out[code] = Math.min(99, state.player.stats[code] + (g - 3) * 3);
+    const tr = state.player.train || {};
+    for (const code of STAT_CODES) out[code] = Math.min(99, Math.round(state.player.stats[code] + (g - 3) * 3 + (tr[code] || 0)));
   } else out = kidStats(KID_BY_ID.get(id), kidGrade(state, id), state.kids[id].train);
   if (opts.raw) return out;
   const boost = gearBoost(state, id);
@@ -160,6 +161,7 @@ export function deserialize(text) {
   if (!s || s.v !== SAVE_VERSION || !s.kids || !s.team) throw new Error('Not a Recess Rivals save');
   // Saves from before class sections existed.
   if (s.player.section == null) s.player.section = s.seed % 2;
+  if (!s.player.train) s.player.train = {}; // saves from before you could train yourself
   if (!s.team.gear) s.team.gear = Object.fromEntries(GEAR_IDS.map((g) => [g, 0]));
   for (const u of UPGRADE_IDS) if (s.team.upgrades[u] == null) s.team.upgrades[u] = 0; // new upgrade lines (merch)
   return s;

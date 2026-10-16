@@ -1,9 +1,9 @@
 // The phone: team management, kid notebook, field & staff, league, school, money, settings.
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
-import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR } from '../data/world.js';
+import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR, PLAYER_TRAIN_CAP } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
-import { orderDrillGear, practiceStats, untestedDrills, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
+import { orderDrillGear, practiceStats, untestedDrills, soloWorkout, workoutCheck, WORKOUT_MINUTES, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
 import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
@@ -222,7 +222,33 @@ function trainingTab(game, root, redraw) {
   const testing = h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, '🧪 Practice testing'),
     h('p', { class: 'muted' }, 'Teammates who joined before you unlocked a drill can run it at practice, so you learn their grades without another tryout.'),
     practiceTestRow(s, redraw));
-  root.append(h('div', { class: 'grid2' }, h('div', {}, fac, h('div', { style: { height: '10px' } }), extra, testing), list));
+  root.append(h('div', { class: 'grid2' }, h('div', {}, workoutBox(game, redraw), h('div', { style: { height: '10px' } }), fac, h('div', { style: { height: '10px' } }), extra, testing), list));
+}
+
+/** Train yourself: a solo workout once a day at home, plus whatever practice focuses on. */
+function workoutBox(game, redraw) {
+  const s = game.state;
+  const stats = practiceStats(s);
+  const tr = s.player.train || {};
+  if (!stats.includes(s.player.workoutFocus)) s.player.workoutFocus = stats[0];
+  const mine = statsOf(s, 'PLAYER', { raw: true });
+  const sel = h('select', { onchange: (e) => { s.player.workoutFocus = e.target.value; redraw(); } },
+    ...stats.map((c) => h('option', { value: c, selected: s.player.workoutFocus === c ? true : null }, `${STAT_NAMES[c]} (${letter(mine[c])})`)));
+  const chk = workoutCheck(s);
+  const go = btn(`💪 Work out (${WORKOUT_MINUTES} min)`, () => {
+    const r = soloWorkout(s, s.player.workoutFocus);
+    if (!r.ok) { sfx('bad'); toast(r.reason, 'bad'); return; }
+    game.skip(WORKOUT_MINUTES);
+    sfx('good');
+    toast(`Good sweat! ${STAT_NAMES[s.player.workoutFocus]} training +${r.gain}${r.after > r.before ? ` (now ${r.after})` : ''}. It's ${formatTime(s.time.minute)}.`, 'good');
+    game.hud.render(); redraw();
+  }, 'small green', chk.ok ? {} : { disabled: true, title: chk.reason });
+  const trained = STAT_CODES.filter((c) => tr[c] > 0);
+  return h('div', { class: 'box' }, h('h3', {}, '💪 Train yourself'),
+    h('p', { class: 'muted' }, `Work out in your backyard once a day, and you improve at team practice too (in its focus skill). Training can add up to +${PLAYER_TRAIN_CAP} to each skill; a better training facility makes it count more.`),
+    h('div', { class: 'row' }, 'Skill:', sel, go),
+    !chk.ok ? h('p', { class: 'muted' }, chk.reason) : null,
+    trained.length ? h('p', {}, h('b', {}, 'Your training so far: '), trained.map((c) => `${STAT_NAMES[c]} +${(+tr[c]).toFixed(1)}`).join(', ')) : null);
 }
 
 // -------------------------------------------------------------- contacts --

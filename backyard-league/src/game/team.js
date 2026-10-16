@@ -1,5 +1,5 @@
 // Your team: registration, roster, eligibility, lineup, tryouts, practice, facilities.
-import { DRILLS, FIELDS, ITEMS, SPORTS, UPGRADES, STAT_CODES, GEAR } from '../data/world.js';
+import { DRILLS, FIELDS, ITEMS, SPORTS, UPGRADES, STAT_CODES, GEAR, PLAYER_TRAIN_CAP, STAT_NAMES } from '../data/world.js';
 import { KID_BY_ID, shortName } from '../data/kids.js';
 import { addItem, addLog, getKid, hasItem, heightOf, kidGrade, playerGrade, statsOf, yearOf } from './state.js';
 import { bestPosition, heightScore, letter, letterRange, positionRating } from './stats.js';
@@ -264,7 +264,41 @@ export function applyPractice(state) {
     ks.f = Math.min(100, ks.f + 1);
     gains.push({ id, g });
   }
+  if (state.team.roster.includes('PLAYER')) trainPlayer(state, focus, 0.4 * mult);
   return gains;
+}
+
+/** Raise one of your own skills through training. Gym Rats get 25% more out of it. Returns the gain. */
+export function trainPlayer(state, code, amount) {
+  const tr = state.player.train || (state.player.train = {});
+  const before = tr[code] || 0;
+  const g = amount * (state.player.perk === 'gymrat' ? 1.25 : 1);
+  tr[code] = Math.min(PLAYER_TRAIN_CAP, +(before + g).toFixed(2));
+  return +(tr[code] - before).toFixed(2);
+}
+
+export const WORKOUT_MINUTES = 60;
+/** Can you do a solo workout right now? (Once a day, at home, outside school hours.) */
+export function workoutCheck(state) {
+  if (state.loc !== 'home') return { ok: false, reason: 'Head home to work out in your backyard.' };
+  if (state.player.workoutDay === state.time.day) return { ok: false, reason: "You already worked out today. Muscles need rest!" };
+  const info = dayInfo(state.time.day);
+  if (info.isSchoolDay && state.time.minute >= 7 * 60 + 30 && state.time.minute < 14 * 60) return { ok: false, reason: 'Not during school!' };
+  return { ok: true };
+}
+
+/** A one-hour solo workout at home on any skill you have a drill for. */
+export function soloWorkout(state, code) {
+  const c = workoutCheck(state);
+  if (!c.ok) return c;
+  if (!practiceStats(state).includes(code)) return { ok: false, reason: 'You need the drill gear for that skill first.' };
+  if ((state.player.train?.[code] || 0) >= PLAYER_TRAIN_CAP) return { ok: false, reason: `Your ${STAT_NAMES[code]} is maxed out from training.` };
+  const mult = UPGRADES.training.growth[state.team.upgrades.training];
+  const before = statsOf(state, 'PLAYER', { raw: true })[code];
+  const gain = trainPlayer(state, code, 0.6 * mult);
+  state.player.workoutDay = state.time.day;
+  const after = statsOf(state, 'PLAYER', { raw: true })[code];
+  return { ok: true, gain, before, after };
 }
 
 // --------------------------------------------------------- facilities ---
