@@ -3,7 +3,7 @@ import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
-import { orderDrillGear, practiceStats, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
+import { orderDrillGear, practiceStats, untestedDrills, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
 import { standings, weekGames, kitBottoms } from '../game/league.js';
 import { letter } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
@@ -126,9 +126,24 @@ function practiceBox(game, redraw) {
   return h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, '📅 Practice'),
     h('p', { class: 'muted' }, 'Practice is 3:30-5:00 PM in your backyard. Show up and your teammates get better at the focus skill (and like you more). Skip it and they get grumpy.'),
     days, h('div', { class: 'row', style: { marginTop: '8px' } }, 'Focus:', focus, h('span', { class: 'muted' }, 'Unlock more in 🏋️ Training.')),
+    practiceTestRow(s, redraw),
     h('h3', { style: { marginTop: '12px' } }, '📋 Starting lineup'),
     h('div', { class: 'row' }, 'You play:', posSel),
     h('table', { class: 'list' }, ...lineup.map((x) => h('tr', {}, h('td', {}, POSITIONS[sport][x.pos].name), h('td', {}, x.id ? (x.id === 'PLAYER' ? 'You' : shortName(KID_BY_ID.get(x.id))) : h('span', { class: 'pill bad' }, 'EMPTY'))))));
+}
+
+/** Toggle + summary for testing teammates at practice on drills they missed at tryouts. */
+function practiceTestRow(s, redraw) {
+  const p = s.team.practice;
+  const pending = untestedDrills(s);
+  const kids = new Set(pending.flatMap((t) => t.ids)).size;
+  const box = h('div', { style: { marginTop: '8px' } },
+    h('label', { class: 'row' }, h('input', { type: 'checkbox', checked: p.testDrills !== false ? true : null, onchange: (e) => { p.testDrills = e.target.checked; redraw(); } }),
+      '🧪 Test teammates on drills they missed'));
+  box.appendChild(h('p', { class: 'muted' }, pending.length
+    ? `${kids} teammate${kids > 1 ? 's' : ''} still need${kids > 1 ? '' : 's'}: ${pending.map((t) => `${t.drill.name} (${t.ids.length})`).join(', ')}. ${p.testDrills !== false ? 'They\'ll run them at the next practice you attend.' : 'Turn this on to run them at practice.'}`
+    : 'Everyone on the team has run every drill you\'ve unlocked.'));
+  return box;
 }
 
 export function kidDetail(game, id, after) {
@@ -192,7 +207,7 @@ function trainingTab(game, root, redraw) {
         return btn(`${it.icon} ${money(it.price + DELIVERY_FEE)}`, () => {
           const r = orderDrillGear(s, n);
           sfx(r.ok ? 'coin' : 'bad');
-          toast(r.ok ? `Ordered ${r.name}! It's in your garage.` : r.reason, r.ok ? 'good' : 'bad');
+          toast(r.ok ? `Ordered ${r.name}! It's in your garage.${s.team.roster.length > 1 ? ' Teammates who missed this drill will run it at practice.' : ''}` : r.reason, r.ok ? 'good' : 'bad');
           game.hud.render(); redraw();
         }, 'small green', s.money + 1e-9 < it.price + DELIVERY_FEE ? { disabled: true, title: it.name } : { title: it.name });
       }));
@@ -204,7 +219,10 @@ function trainingTab(game, root, redraw) {
   const lg = ITEMS.laser_gates;
   extra.appendChild(h('div', { class: 'row' }, h('div', { style: { flex: 1 } }, h('b', {}, `${lg.icon} ${lg.name}`), h('div', { class: 'muted' }, lg.desc)),
     s.inv.items.laser_gates > 0 ? h('span', { class: 'pill good' }, 'Owned') : btn(money(lg.price + DELIVERY_FEE), () => { const r = orderDrillGear(s, 'laser_gates'); sfx(r.ok ? 'coin' : 'bad'); toast(r.ok ? `Ordered ${r.name}!` : r.reason, r.ok ? 'good' : 'bad'); game.hud.render(); redraw(); }, 'small green', s.money + 1e-9 < lg.price + DELIVERY_FEE ? { disabled: true } : {})));
-  root.append(h('div', { class: 'grid2' }, h('div', {}, fac, h('div', { style: { height: '10px' } }), extra), list));
+  const testing = h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, '🧪 Practice testing'),
+    h('p', { class: 'muted' }, 'Teammates who joined before you unlocked a drill can run it at practice, so you learn their grades without another tryout.'),
+    practiceTestRow(s, redraw));
+  root.append(h('div', { class: 'grid2' }, h('div', {}, fac, h('div', { style: { height: '10px' } }), extra, testing), list));
 }
 
 // -------------------------------------------------------------- contacts --

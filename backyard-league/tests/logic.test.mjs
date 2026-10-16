@@ -364,3 +364,25 @@ test('training gear can be ordered from the phone and unlocks drills', async () 
   assert.equal(orderDrillGear(s, 'team_shirt').ok, false);
   assert.ok(Array.isArray(practiceStats(s)));
 });
+
+test('teammates who missed a drill get tested at practice', async () => {
+  const { untestedDrills, orderDrillGear } = await import('../src/game/team.js');
+  const { finishPractice } = await import('../src/game/clock.js');
+  const s = newGame({ name: 'T', seed: 3 });
+  const kid = KIDS.find((k) => !s.kids[k.id].team).id;
+  s.team.roster.push(kid);
+  s.kids[kid].rev = { SPD: 'range' };
+  s.money = 50;
+  orderDrillGear(s, 'cones');
+  const pending = untestedDrills(s);
+  assert.ok(pending.some((t) => t.drill.id === 'cones' && t.ids.includes(kid)));
+  assert.ok(!pending.some((t) => t.drill.id === 'sprints'));
+  s.team.practice.testDrills = false;
+  finishPractice(s, true);
+  assert.equal(s.kids[kid].rev.AGI, undefined);
+  s.team.practice.testDrills = true;
+  const msg = finishPractice(s, true);
+  assert.match(msg, /Cone Weave/);
+  assert.equal(s.kids[kid].rev.AGI, 'range');
+  assert.equal(untestedDrills(s).length, 0);
+});

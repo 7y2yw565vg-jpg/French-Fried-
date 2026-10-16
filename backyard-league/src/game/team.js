@@ -215,6 +215,23 @@ export function runDrill(state, drillId, ids) {
   });
 }
 
+/** Unlocked drills each teammate still needs to run (drill gear bought after they joined, or Laser Gates bought since). */
+export function untestedDrills(state) {
+  const exact = hasItem(state, 'laser_gates');
+  const out = [];
+  for (const d of availableDrills(state)) {
+    const ids = state.team.roster.filter((id) => id !== 'PLAYER'
+      && d.stats.some((c) => { const r = state.kids[id].rev[c]; return !r || (exact && r !== 'exact'); }));
+    if (ids.length) out.push({ drill: d, ids });
+  }
+  return out;
+}
+
+/** Practice-time testing: runs every pending drill on the teammates who missed it. */
+export function practiceTesting(state) {
+  return untestedDrills(state).map(({ drill, ids }) => ({ drill, ids, results: runDrill(state, drill.id, ids) }));
+}
+
 /** Sprint time over 40 yards for a speed stat, for the tryout stopwatch. */
 export function sprintTime(speed, grade) {
   return +(9.8 - speed * 0.045 - (grade - 3) * 0.12).toFixed(2);

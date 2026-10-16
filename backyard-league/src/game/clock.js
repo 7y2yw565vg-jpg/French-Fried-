@@ -6,7 +6,7 @@ import { addLog, addNews, playerGrade, yearOf } from './state.js';
 import { dayInfo, CURFEW, DAY_START } from './time.js';
 import { weeklyGradeCheck } from './school.js';
 import { ensureSeason, aiRecruit, finalizeSchedule, simOtherGames, startPlayoffs, scheduleFinal, endSeason, maybeScandalOffer, playerGameThisWeek, forfeitResult, recordResult } from './league.js';
-import { applyPractice, practiceToday, eligibility } from './team.js';
+import { applyPractice, practiceToday, eligibility, practiceTesting } from './team.js';
 import { checkPassiveHooks } from './social.js';
 
 export const GAME_TIME = 10 * 60;
@@ -112,7 +112,16 @@ export function finishPractice(state, attended) {
   if (state.school.sportsBan) return 'You\'re grounded from sports, so practice was canceled.';
   const gains = applyPractice(state);
   addLog(state, `Practice: ${gains.length} kids worked on ${state.team.practice.focus}.`);
-  return `Great practice! ${gains.length} kids got a little better at ${state.team.practice.focus} (and like you more).`;
+  let msg = `Great practice! ${gains.length} kids got a little better at ${state.team.practice.focus} (and like you more).`;
+  if (state.team.practice.testDrills !== false) {
+    const tests = practiceTesting(state);
+    if (tests.length) {
+      const kids = new Set(tests.flatMap((t) => t.ids)).size;
+      msg += ` You also ran ${tests.map((t) => t.drill.name).join(', ')} for ${kids} teammate${kids > 1 ? 's' : ''} who hadn't done ${tests.length > 1 ? 'them' : 'it'} yet. Check their new grades in the Kids tab.`;
+      addLog(state, `Practice testing: ${tests.map((t) => `${t.drill.name} (${t.ids.length})`).join(', ')}.`);
+    }
+  }
+  return msg;
 }
 
 export function rosterMinimumMet(state) {
