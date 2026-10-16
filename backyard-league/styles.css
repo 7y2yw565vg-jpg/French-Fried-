@@ -431,3 +431,11 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .slot-info .muted { font-size: 13px; }
 .slot-card .btn-row { flex-wrap: nowrap; }
 @media (max-width: 520px) { .slot-card { flex-wrap: wrap; } .slot-card .btn-row { width: 100%; justify-content: flex-end; } }
+
+/* Character-bible sheet of your kid (creator preview corner + phone "You" sheet) */
+.bible-card { position: absolute; top: 12px; left: 12px; width: 112px; padding: 6px 4px 4px; border: 3px solid var(--ink); border-radius: 14px; background: #F7F4EA; box-shadow: 0 4px 0 var(--ink); cursor: zoom-in; display: flex; flex-direction: column; align-items: center; gap: 2px; font: 800 11px var(--font-body, sans-serif); color: #2A1E1A; transition: width 0.2s ease; z-index: 2; }
+.bible-card.big { width: 230px; cursor: zoom-out; }
+.bible-card svg { display: block; width: 100%; height: auto; }
+.bible-card.static { position: static; width: 120px; cursor: default; box-shadow: none; flex-shrink: 0; }
+@media (max-width: 760px) { .bible-card { width: 84px; } .bible-card.big { width: 170px; } }
+@media (prefers-reduced-motion: reduce) { .bible-card { transition: none; } }

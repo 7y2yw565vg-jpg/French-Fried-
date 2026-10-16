@@ -102,6 +102,39 @@ export function kidSpec(k, opts = {}) {
   };
 }
 
+/** A character-creator look (the player's kid) in bible terms. */
+const LOOK_TOP = { tee: 'tee', 'graphic tee': 'tee', polo: 'polo', raglan: 'raglan', hoodie: 'hoodie', sweater: 'longsleeve', flannel: 'longsleeve', jacket: 'windbreaker', jersey: 'jersey', tank: 'tank', overalls: 'overalls' };
+const LOOK_BOTTOM = { shorts: 'shorts', 'cargo shorts': 'cargo', jeans: 'jeans', joggers: 'track', khakis: 'slacks', leggings: 'leggings', skirt: 'skirt' };
+const LOOK_PANTS = { denim: 'denim', 'dark denim': 'navy', 'light denim': 'sky', khaki: 'khaki', black: 'charcoal', gray: 'gray', navy: 'navy', olive: 'olive', maroon: 'red', purple: 'purple', pink: 'pink', white: 'white', red: 'red' };
+const LOOK_SHOE = { sneakers: 'low', 'high-tops': 'high', 'slip-ons': 'slip', cleats: 'low', boots: 'boots', 'rain boots': 'rain', sandals: 'slip' };
+const LOOK_SHOE_COLOR = { white: 'white', black: 'charcoal', red: 'red', blue: 'blue', yellow: 'yellow', purple: 'purple', green: 'green', brown: 'brownc', pink: 'pink', gray: 'gray' };
+const PERK_FACE = { none: ['soft', 'smile'], smooth: ['high', 'grin'], teacherskid: ['level', 'smile'], hustler: ['cocked', 'grin'], gymrat: ['level', 'grin'], sneaky: ['sly', 'smirk'] };
+
+export function lookSpec(look, { grade = 3, id = 'PLAYER', name = 'You', perk = 'none', heightIn } = {}) {
+  const band = BAND(grade);
+  const [main, pattern] = FAVORITE[look.shirt] || ['red'];
+  const acc = (look.accessories || []).map((a) => (a === 'baseball cap' ? 'ball cap' : a));
+  const has = (a) => acc.includes(a);
+  let top = LOOK_TOP[look.top] || 'tee';
+  if (has('dinosaur hoodie')) top = 'dino';
+  const bottom = top === 'overalls' ? 'overall' : (LOOK_BOTTOM[look.bottom] || 'shorts');
+  const pants = LOOK_PANTS[look.pants] || 'denim';
+  const shoeKey = LOOK_SHOE_COLOR[look.shoeColor] || 'white';
+  const [brow, mouth] = PERK_FACE[perk] || PERK_FACE.none;
+  const second = main === 'white' ? 'navy' : 'white';
+  return {
+    id, name, grade, band, personality: 'Player', heads: BAND_HEADS[band], f: Math.max(0.92, Math.min(1.08, (heightIn || AVG_IN[Math.min(8, grade)] || 51) / (AVG_IN[Math.min(8, grade)] || 51))),
+    build: BUILD[look.build] || BUILD.average, shoulder: BAND_SHOULDER[band],
+    skin: SKIN[look.skin] || SKIN.tan, hairStyle: look.hairStyle, hair: HAIR[look.hairColor] || HAIR.brown, dye: null, eyes: EYES[look.eyeColor] || EYES.brown,
+    top, bottom, shoe: has('light-up sneakers') ? 'lightup' : (LOOK_SHOE[look.shoes] || 'low'),
+    main: CLOTH[main], pattern: look.top === 'flannel' ? 'plaid' : pattern, second: CLOTH[second],
+    bottomColor: CLOTH[look.top === 'overalls' ? 'denim' : pants], leggings: CLOTH.charcoal,
+    shoeUpper: CLOTH[look.shoes === 'boots' ? 'brownc' : shoeKey], sole: CLOTH[shoeKey === 'white' ? 'navy' : 'white'],
+    accent: CLOTH[main === 'red' ? 'yellow' : 'red'], emblem: look.top === 'graphic tee' ? 'bolt' : 'star', number: 1,
+    brow, mouth, eyeMod: null, acc, seed: hash(id + (look.hairStyle || '')), mud: false,
+  };
+}
+
 // ------------------------------------------------------------ parts ---
 const DIGITS = { // 7-segment-ish strokes in a 16x26 box
   0: 'M0 0H16V26H0Z', 1: 'M8 0V26', 2: 'M0 0H16V13H0V26H16', 3: 'M0 0H16V26H0M0 13H16', 4: 'M0 0V13H16M16 0V26',
@@ -163,7 +196,7 @@ function quadAt(A, C, W, t) {
 function shoeSvg(type, lx, G, up, sole, side) {
   let s = '';
   const glow = type === 'lightup';
-  if (type === 'rain') {
+  if (type === 'rain' || type === 'boots') {
     s += shape(`M${lx - 17} ${G - 74} L${lx + 17} ${G - 74} L${lx + 18} ${G - 26} Q${lx + 34} ${G - 22} ${lx + 32} ${G} L${lx - 32} ${G} Q${lx - 34} ${G - 22} ${lx - 18} ${G - 26} Z`, up[0]);
     s += fillOnly(`M${lx + 8} ${G - 72} L${lx + 17} ${G - 72} L${lx + 18} ${G - 26} Q${lx + 32} ${G - 22} ${lx + 30} ${G - 2} L${lx + 20} ${G - 2} Q${lx + 22} ${G - 18} ${lx + 10} ${G - 24} Z`, up[1]);
     s += line(`M${lx - 17} ${G - 66} L${lx + 17} ${G - 66}`, up[1], 3);
@@ -341,7 +374,7 @@ export function renderCharacter(sp) {
 
   // ---------- legs, socks, shoes
   const longBottom = ['jeans', 'track', 'slacks', 'scrubs'].includes(sp.bottom);
-  const legCol = sp.bottom === 'skirt' ? sp.leggings : skin;
+  const legCol = sp.bottom === 'skirt' ? sp.leggings : sp.bottom === 'leggings' ? sp.bottomColor : skin;
   {
     for (const d of [-1, 1]) s += limb(`M${r1(CX + d * legX)} ${r1(crotchY - 10)} L${r1(CX + d * legX)} ${r1(G - 32)}`, lw, legCol[0], legCol[1], 6);
     // knee details
@@ -362,7 +395,9 @@ export function renderCharacter(sp) {
   // ---------- bottoms
   const bc = sp.bottomColor;
   const shade = (x0) => ({ shadeX: x0, y0: waistY, y1: G });
-  if (sp.bottom === 'skirt') {
+  if (sp.bottom === 'leggings') {
+    s += garment(uid, `M${r1(CX - T - 4)} ${r1(waistY)} L${r1(CX + T + 4)} ${r1(waistY)} L${r1(CX + T + 6)} ${r1(waistY + 14)} L${r1(CX - T - 6)} ${r1(waistY + 14)} Z`, bc, { key: 'band', shadeX: CX + T * 0.6, y0: waistY, y1: waistY + 14 });
+  } else if (sp.bottom === 'skirt') {
     const hem = 181 + 0.6 * L;
     s += garment(uid, `M${r1(CX - T - 4)} ${r1(waistY)} L${r1(CX + T + 4)} ${r1(waistY)} L${r1(CX + T + 24)} ${r1(hem)} Q${CX} ${r1(hem + 8)} ${r1(CX - T - 24)} ${r1(hem)} Z`, bc, { key: 'skirt', ...shade(CX + T * 0.6), y1: hem + 8 })
       + line(`M${r1(CX - T - 22)} ${r1(hem - 8)} Q${CX} ${r1(hem)} ${r1(CX + T + 22)} ${r1(hem - 8)}`, bc[1], 2.5);
@@ -456,6 +491,11 @@ export function renderCharacter(sp) {
       topSvg += circle(CX - 28, armpit - 11, 5, CLOTH.yellow[0], 2.5) + circle(CX + 28, armpit - 11, 5, CLOTH.yellow[0], 2.5);
       break;
     }
+    case 'tank': {
+      const tank = `M${r1(CX - T + 4)} 202 L${CX - 22} 200 Q${CX} 224 ${CX + 22} 200 L${r1(CX + T - 4)} 202 Q${r1(CX + T - 6)} ${r1(armpit - 10)} ${r1(CX + T + 8)} ${r1(armpit + 2)} L${r1(CX + T + 4)} ${r1(hemTop)} L${r1(CX - T - 4)} ${r1(hemTop)} L${r1(CX - T - 8)} ${r1(armpit + 2)} Q${r1(CX - T + 6)} ${r1(armpit - 10)} ${r1(CX - T + 4)} 202 Z`;
+      topSvg = garment(uid, tank, sp.main, { key: 'tank', ...tShade, ...tPat, extra: sp.pattern ? '' : embl(armpit + 26) });
+      break;
+    }
     case 'cardigan': case 'suit': {
       const shirt = sp.top === 'suit' ? CLOTH.white : sp.second;
       const isSuit = sp.top === 'suit';
@@ -513,7 +553,7 @@ export function renderCharacter(sp) {
     s += line(`M${r1(p0.x - 4)} ${r1(p0.y + 10)} q4 -4 8 0 M${r1(p0.x - 8)} ${r1(p0.y + 24)} l7 -3`, CLOTH.blue[0], 2) + line(`M${r1(p0.x - 2)} ${r1(p0.y + 34)} q4 3 7 -1`, CLOTH.red[0], 2) + `<path d="M${r1(p0.x - 9)} ${r1(p0.y + 16)} l2 -4 l2 4 z" fill="${CLOTH.green[0]}"/>`;
   }
   // collar
-  if (!['vest', 'polo', 'jersey', 'dino', 'tie', 'suit', 'labcoat', 'scrubs', 'track', 'windbreaker', 'cardigan'].includes(sp.top)) s += line('M180 195 Q200 210 220 195', INK, 9) + line('M180 195 Q200 210 220 195', sp.top === 'raglan' ? sp.second[0] : sp.top === 'hoodie' ? sp.main[1] : sp.main[0], 4);
+  if (!['vest', 'polo', 'jersey', 'tank', 'dino', 'tie', 'suit', 'labcoat', 'scrubs', 'track', 'windbreaker', 'cardigan'].includes(sp.top)) s += line('M180 195 Q200 210 220 195', INK, 9) + line('M180 195 Q200 210 220 195', sp.top === 'raglan' ? sp.second[0] : sp.top === 'hoodie' ? sp.main[1] : sp.main[0], 4);
   // scarf / bandana
   if (a('scarf')) s += shape(`M${CX - 30} 192 Q${CX} 212 ${CX + 30} 192 L${CX + 30} 206 Q${CX} 226 ${CX - 30} 206 Z`, sp.accent[0]) + shape(`M${CX - 22} 210 L${CX - 30} 262 L${CX - 12} 264 L${CX - 8} 214 Z`, sp.accent[0]) + line(`M${CX - 29} 240 L${CX - 12} 242 M${CX - 30} 252 L${CX - 12} 254 M${CX - 18} 197 L${CX - 18} 212 M${CX + 10} 199 L${CX + 10} 214`, sp.accent[1], 3);
   if (a('bandana')) s += shape(`M${CX - 24} 194 Q${CX} 188 ${CX + 24} 194 L${CX + 12} 222 Q${CX} 232 ${CX - 12} 222 Z`, sp.accent[0]) + fillOnly(`M${CX + 14} 196 L${CX + 24} 194 L${CX + 12} 222 Q${CX + 6} 228 ${CX} 229 Q${CX + 10} 214 ${CX + 14} 196 Z`, sp.accent[1]) + [[-8, 204], [4, 210], [-4, 219], [10, 200]].map(([x, y]) => circle(CX + x, y, 2.2, CLOTH.white[0])).join('');

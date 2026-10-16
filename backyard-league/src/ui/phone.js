@@ -15,6 +15,7 @@ import { SCHOOL_BLOCKS } from '../data/world.js';
 import { portrait, openTalk } from './talk.js';
 import { touchPref, setTouchPref } from './input.js';
 import { setVolume, getVolume, sfx } from './audio.js';
+import { lookSpec, renderCharacter } from '../../art/charstyle/figure.js';
 
 const TABS = [['team', '🏟️ Team'], ['training', '🏋️ Training'], ['contacts', '📞 Contacts'], ['kids', '📒 Kids'], ['field', '🔧 Field & Staff'], ['league', '🏆 League'], ['school', '🏫 School'], ['money', '💰 Money & Stuff'], ['settings', '⚙️ Settings']];
 
@@ -185,7 +186,12 @@ export function kidDetail(game, id, after) {
   const k = getKid(s, id);
   const isMe = id === 'PLAYER';
   const grid = h('div', { class: 'stat-grid' }, ...STAT_CODES.map((c) => h('div', {}, h('span', {}, STAT_NAMES[c]), gradeChip(revealLabel(s, id, c), 1))));
+  const g = playerGrade(s);
+  const mine = isMe && s.player.look ? h('div', { class: 'row', style: { alignItems: 'flex-start' } },
+    h('div', { class: 'bible-card static', html: renderCharacter(lookSpec(s.player.look, { grade: g, perk: s.player.perk, heightIn: 50 + (g - 3) * 2.3 })).replace(' width="400" height="720"', '').replace('viewBox="0 0 400 720"', 'viewBox="30 56 340 640"') }),
+    h('div', {}, h('b', {}, s.player.name), h('div', { class: 'muted' }, `Grade ${g} · drawn to the character bible`))) : null;
   const body = h('div', {},
+    mine,
     !isMe ? h('div', { class: 'row' }, portrait(k, 70), h('div', {}, h('b', {}, kidName(k)), h('div', { class: 'muted' }, `${k.personality} - Grade ${kidGrade(s, id)} - ${k.routine.school}`), h('div', { class: 'muted' }, `Friendship: ${friendshipLabel(s.kids[id].f)} (${s.kids[id].f})`))) : null,
     h('h3', { style: { margin: '10px 0 4px' } }, 'Stats'), grid,
     !isMe ? h('p', { class: 'muted' }, 'Unknown stats show "?". Run more tryout drills to reveal them. Laser Timing Gates make the grades exact.') : null,

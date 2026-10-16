@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { texture, TEX_SIZE } from './textures.js';
+import * as BIBLE from '../../art/charstyle/palette.js';
 
 // --------------------------------------------------------------- materials
 const MAT_DEFS = {
@@ -198,22 +199,18 @@ export const PRISM = (() => { // triangular prism for gables: base 1 wide, 1 tal
 })();
 
 // ----------------------------------------------------------- palettes ---
-export const SKIN = {
-  porcelain: '#f6d2bf', fair: '#efc3a4', light: '#e8b48c', 'light-olive': '#e4b083', olive: '#d19c6c',
-  tan: '#c58a58', 'golden-brown': '#ab6f40', brown: '#8c5532', 'deep-brown': '#6c3e22', ebony: '#4f2b17',
-};
+// Colors come from the Character Design Bible palette (art/charstyle/palette.js) so the
+// 3D models, the creator swatches and the bible character art all agree.
+const B = (map) => Object.fromEntries(Object.entries(map).map(([k, v]) => [k, v[0]]));
+export const SKIN = B(BIBLE.SKIN);
 export const HAIR = {
-  black: '#1f1a1a', 'dark brown': '#3d2618', brown: '#62391d', 'light brown': '#8e5e33', auburn: '#94381a',
-  ginger: '#cf5d1f', 'strawberry blonde': '#e39b5d', blonde: '#ecc565', 'platinum blonde': '#f6ebc8',
-  'dyed blue tips': '#2b2b38', 'dyed pink streak': '#3d2a22', 'dyed green streak': '#3d2a22',
+  ...Object.fromEntries(['black', 'dark brown', 'brown', 'light brown', 'auburn', 'ginger', 'strawberry blonde', 'blonde', 'platinum blonde'].map((k) => [k, BIBLE.HAIR[k][0]])),
+  'dyed blue tips': BIBLE.HAIR['dark brown'][0], 'dyed pink streak': BIBLE.HAIR.brown[0], 'dyed green streak': BIBLE.HAIR.brown[0],
 };
-export const HAIR_ACCENT = { 'dyed blue tips': '#3d7bff', 'dyed pink streak': '#ff5fa8', 'dyed green streak': '#3bd16f' };
-export const EYES = { brown: '#6b4224', 'dark brown': '#3a2414', hazel: '#8a6d33', green: '#3f8c3f', blue: '#3a78d4', gray: '#7d8b96', amber: '#c08425' };
-export const OUTFIT = {
-  red: '#e63946', orange: '#f4842a', yellow: '#f9d342', lime: '#a3e048', green: '#2fa35b', teal: '#1fb5a8',
-  'sky blue': '#5ec2f2', navy: '#24427a', purple: '#8a5cd6', pink: '#f27eb5', black: '#2b2b2f', white: '#f4f4f0',
-  gray: '#9aa0a6', 'tie-dye': '#e65cc0', camo: '#5f7a3a', plaid: '#c0392b', 'polka dot': '#3a7bd5', striped: '#f4842a',
-};
+export const HAIR_ACCENT = { 'dyed blue tips': BIBLE.DYE.blue[0], 'dyed pink streak': BIBLE.DYE.pink[0], 'dyed green streak': BIBLE.DYE.green[0] };
+export const EYES = { ...BIBLE.EYES };
+export const OUTFIT = Object.fromEntries(['red', 'orange', 'yellow', 'lime', 'green', 'teal', 'sky blue', 'navy', 'purple', 'pink', 'black', 'white', 'gray', 'tie-dye', 'camo', 'plaid', 'polka dot', 'striped']
+  .map((k) => [k, BIBLE.CLOTH[BIBLE.FAVORITE[k][0]][0]]));
 
 export function shade(hex, f) {
   const c = new THREE.Color(hex);

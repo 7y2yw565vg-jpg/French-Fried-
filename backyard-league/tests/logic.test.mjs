@@ -499,3 +499,22 @@ test('four save slots: continue picks the most recent, slots stay separate', asy
   assert.equal(loadSlot(2, st), null);
   assert.equal(freeSlot(st), 2);
 });
+
+test('the player\'s created look renders in the character bible style for every option', async () => {
+  const { lookSpec, renderCharacter } = await import('../art/charstyle/figure.js');
+  const { HAIR_STYLES } = await import('../src/world3d/hair.js');
+  const { TOPS, BOTTOMS, SHOE_TYPES, PANTS_COLORS, SHOE_COLORS } = await import('../src/world3d/kidModel.js');
+  const { SKIN, HAIR, EYES, OUTFIT } = await import('../src/world3d/toon.js');
+  const pick = (o, i) => { const k = Object.keys(o); return k[i % k.length]; };
+  const n = Math.max(HAIR_STYLES.length, TOPS.length, BOTTOMS.length, SHOE_TYPES.length, Object.keys(OUTFIT).length);
+  for (let i = 0; i < n; i++) {
+    const look = {
+      skin: pick(SKIN, i), hairStyle: HAIR_STYLES[i % HAIR_STYLES.length], hairColor: pick(HAIR, i % 9), eyeColor: pick(EYES, i), build: 'average',
+      top: TOPS[i % TOPS.length], shirt: pick(OUTFIT, i), bottom: BOTTOMS[i % BOTTOMS.length], pants: pick(PANTS_COLORS, i),
+      shoes: SHOE_TYPES[i % SHOE_TYPES.length], shoeColor: pick(SHOE_COLORS, i), accessories: [['baseball cap', 'beanie', 'glasses', 'superhero cape'][i % 4]],
+    };
+    const svg = renderCharacter(lookSpec(look, { grade: 3 + (i % 6), perk: ['none', 'smooth', 'sneaky'][i % 3] }));
+    assert.ok(svg.startsWith('<svg') && svg.length > 4000, `look ${i} rendered`);
+    assert.ok(!/undefined|NaN/.test(svg), `look ${i} has no broken values: ${JSON.stringify(look)}`);
+  }
+});

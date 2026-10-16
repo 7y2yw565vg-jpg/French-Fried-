@@ -237,11 +237,33 @@ export const HAIR_STYLES = {
     tips: [[160, 176], [240, 176]],
   }),
 
+  'crew cut': (h) => ({ front: capped(h, 100, 118, 0) + line('M176 86 l3 5 M190 82 l3 5 M206 82 l3 5 M220 86 l3 5', h.shade, 2), tips: [] }),
+
+  'faux hawk': (h) => ({
+    front: capped(h, 100, 120, -2) + shape('M182 98 C180 80 184 64 190 56 L196 64 L200 46 L206 62 L212 54 C218 66 220 82 218 98 Z', h.base)
+      + fillOnly('M206 62 L212 54 C218 66 220 82 218 98 L210 98 C212 84 210 72 206 62 Z', h.shade),
+    tips: [[200, 46], [190, 56], [212, 54]],
+  }),
+
+  pixie: (h) => ({
+    front: capped(h, 104, 124, 4) + shape('M240 80 C220 70 190 72 170 88 C162 96 156 108 154 118 C164 108 172 104 182 104 C178 110 176 116 176 122 C186 110 196 102 210 98 C224 94 236 92 246 98 C246 90 244 84 240 80 Z', h.base)
+      + fillOnly('M236 84 C242 88 246 92 246 98 C240 95 234 94 228 94 Z', h.shade),
+    tips: [[154, 118], [176, 122]],
+  }),
+
+  cornrows: (h) => {
+    let rows = '';
+    for (const dx of [-30, -15, 0, 15, 30]) rows += line(`M${200 + dx} 98 Q${200 + dx * 1.05} 80 ${200 + dx * 0.7} 66`, h.shade, 4, ' stroke-dasharray="4 3"');
+    return { front: shape(cap(h, 98, 120, -3), h.base, 2.5) + rows + fillOnly(capShade(h, 98, 120, -3), h.shade, ' opacity="0.6"'), tips: [] };
+  },
+
   bun: (h) => ({
     back: '',
     front: clumps([[200, 52, 20], [188, 46, 11], [212, 46, 11], [200, 36, 11]], h.base, h.shade, 6, 2) + capped(h, 98, 124, 4) + line('M180 74 Q200 66 220 74', h.shade, 2.5),
     tips: [[200, 30]],
   }),
+
+  'top bun': (h) => HAIR_STYLES.bun(h),
 
   bald: (h) => ({ front: fillOnly('M154 128 C150 112 152 100 156 96 L160 128 Z M246 128 C250 112 248 100 244 96 L240 128 Z', h.base) + fillOnly('M172 88 C180 82 190 80 196 80 C188 84 180 88 176 94 Z', '#FFFFFF', ' opacity="0.35"'), tips: [] }),
 };

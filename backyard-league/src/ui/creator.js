@@ -11,6 +11,7 @@ import { KIDS } from '../data/kids.js';
 import { loadFromStorage, deserialize, listSlots, deleteSlot, freeSlot, saveToStorage, playerGrade, yearOf } from '../game/state.js';
 import { dayInfo, formatTime } from '../game/time.js';
 import { sfx } from './audio.js';
+import { lookSpec, renderCharacter } from '../../art/charstyle/figure.js';
 
 const BUILDS = ['average', 'skinny', 'lanky', 'stocky', 'sturdy', 'round', 'wiry'];
 const HATS = ['none', 'baseball cap', 'backwards cap', 'beanie', 'bucket hat'];
@@ -216,9 +217,17 @@ export function showCreator(engine, onDone) {
   group.add(b.mesh({ outline: 0.03 }));
   engine.loadWorld({ group, colliders: [], interact: [], zones: {}, spawn: { x: 0, z: 0, rot: 0 } }, { x: 0, z: 0, rot: 0 });
   engine.setTimeOfDay(13 * 60, false);
+  // The bible-style character sheet of your kid, redrawn with every change.
+  const sheet = h('button', { type: 'button', class: 'bible-card', title: 'Your character sheet (tap to enlarge)' });
+  const drawSheet = () => {
+    sheet.innerHTML = renderCharacter(lookSpec(look, { grade: 3, perk: cfg.perk, heightIn: 50 })).replace(' width="400" height="720"', '').replace('viewBox="0 0 400 720"', 'viewBox="30 56 340 640"') + '<span>Character sheet</span>';
+  };
+  sheet.addEventListener('click', (e) => { e.stopPropagation(); sheet.classList.toggle('big'); });
+  sheet.addEventListener('pointerdown', (e) => e.stopPropagation());
   const refresh = () => {
     engine.setPlayer({ id: 'PLAYER', ...look, heightIn: 50, grade: 3 });
     engine.player.root.visible = true;
+    drawSheet();
   };
   refresh();
   engine.cinematic({ x: 0, z: 0 }, 3.3, { height: 1.2, spin: 0, angle: 0 }); // faces you; the player turns it
@@ -275,7 +284,7 @@ export function showCreator(engine, onDone) {
   const perkCards = h('div', { class: 'sport-cards' });
   for (const [id, p] of Object.entries(PERKS)) {
     const c = h('div', { class: `sport-card ${cfg.perk === id ? 'sel' : ''}`, onclick: () => {
-      cfg.perk = id; sfx('click'); drawStats();
+      cfg.perk = id; sfx('click'); drawStats(); drawSheet();
       perkCards.querySelectorAll('.sport-card').forEach((x) => x.classList.remove('sel')); c.classList.add('sel');
     } }, h('h4', {}, p.name), h('p', {}, p.desc));
     perkCards.appendChild(c);
@@ -311,7 +320,7 @@ export function showCreator(engine, onDone) {
       turnBtn('⟲', -Math.PI / 4, 'Turn left'),
       h('span', { class: 'preview-hint' }, 'Drag to turn'),
       turnBtn('⟳', Math.PI / 4, 'Turn right'),
-      btn('Front', () => { if (engine.cine) engine.cine.angle = 0; }, 'small white', { title: 'Face front' })));
+      btn('Front', () => { if (engine.cine) engine.cine.angle = 0; }, 'small white', { title: 'Face front' })), sheet);
   let dragX = null;
   preview.addEventListener('pointerdown', (e) => { if (e.target.closest('.btn')) return; dragX = e.clientX; preview.setPointerCapture(e.pointerId); preview.classList.add('dragging'); });
   preview.addEventListener('pointermove', (e) => { if (dragX == null) return; turn(-(e.clientX - dragX) * 0.012); dragX = e.clientX; });

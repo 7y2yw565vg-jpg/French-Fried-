@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { Builder, CAPSULE, SPHERE, CYL, BOX, RBOX, TORUS, HALF_TORUS, CONE, SKIN, HAIR, HAIR_ACCENT, EYES, OUTFIT, shade, mix, matFor } from './toon.js';
 import { softDot } from './textures.js';
+import { CLOTH as BIBLE_CLOTH } from '../../art/charstyle/palette.js';
 import { buildHair, addHat, hairBulk, STYLE_ALIASES, hairMaterial as buildHairMaterial } from './hair.js';
 import { hashString, mulberry32 } from '../game/rng.js';
 
@@ -14,10 +15,12 @@ export const BOTTOMS = ['shorts', 'cargo shorts', 'jeans', 'joggers', 'khakis', 
 /** Footwear styles. Kids pick from the first list; grown-ups mostly from the second. */
 export const SHOE_TYPES = ['sneakers', 'high-tops', 'slip-ons', 'cleats', 'boots', 'rain boots', 'sandals'];
 export const ADULT_SHOES = ['dress shoes', 'loafers', 'boots', 'sneakers', 'flats'];
-export const SHOE_COLORS = { white: '#ffffff', black: '#222222', red: '#e63946', blue: '#3a86ff', yellow: '#ffb703', purple: '#8338ec', green: '#06d6a0', brown: '#7a4a2a', pink: '#f27eb5', gray: '#8d939a' };
+// Bible palette (art/charstyle/palette.js).
+const C = BIBLE_CLOTH;
+export const SHOE_COLORS = { white: C.white[0], black: C.charcoal[0], red: C.red[0], blue: C.blue[0], yellow: C.yellow[0], purple: C.purple[0], green: C.green[0], brown: C.brownc[0], pink: C.pink[0], gray: C.gray[0] };
 export const PANTS_COLORS = {
-  denim: '#3d5f8f', 'dark denim': '#2a3d5e', 'light denim': '#7d9cc4', khaki: '#c8b37a', black: '#2b2b2f', gray: '#7d8188',
-  navy: '#2f3e66', olive: '#6b7445', maroon: '#7a2f3a', purple: '#5a4a8a', pink: '#e58fb5', white: '#ecebe6', red: '#c0392b',
+  denim: C.denim[0], 'dark denim': C.navy[0], 'light denim': C.sky[0], khaki: C.khaki[0], black: C.charcoal[0], gray: C.gray[0],
+  navy: C.navy[1], olive: C.olive[0], maroon: C.red[1], purple: C.purple[1], pink: C.pink[0], white: C.white[0], red: C.red[0],
 };
 const PERSONA_TOPS = {
   Jock: ['jersey', 'raglan', 'tank', 'hoodie'], Bookworm: ['sweater', 'polo', 'tee'], Gamer: ['hoodie', 'graphic tee', 'tee'],
