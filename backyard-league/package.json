@@ -19,7 +19,8 @@
     "dist:mac": "npm run build && electron-builder --mac --publish never",
     "dist:linux": "npm run build && electron-builder --linux --publish never",
     "art": "node art/charstyle/build.mjs",
-    "art:png": "node art/charstyle/png.mjs"
+    "art:png": "node art/charstyle/png.mjs",
+    "art:prompts": "node art/charstyle/prompts.mjs"
   },
   "dependencies": {
     "three": "0.170.0"
