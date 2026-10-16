@@ -1,0 +1,2775 @@
+{
+ "kids": [
+  {
+   "id": "KID-001",
+   "name": "Ximena Sprinkle",
+   "grade": 3,
+   "personality": "Troublemaker",
+   "hair": "long wavy",
+   "accessories": [
+    "scarf (even in summer)"
+   ],
+   "file": "kids/KID-001.svg"
+  },
+  {
+   "id": "KID-002",
+   "name": "Pax Barnaby",
+   "grade": 2,
+   "personality": "Class Clown",
+   "hair": "fade",
+   "accessories": [
+    "bucket hat"
+   ],
+   "file": "kids/KID-002.svg"
+  },
+  {
+   "id": "KID-003",
+   "name": "Darius Barnaby",
+   "grade": 5,
+   "personality": "Shy",
+   "hair": "messy mop",
+   "accessories": [
+    "knee pads"
+   ],
+   "file": "kids/KID-003.svg"
+  },
+  {
+   "id": "KID-004",
+   "name": "Tobias Lopez",
+   "grade": 4,
+   "personality": "Rule Follower",
+   "hair": "ponytail",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-004.svg"
+  },
+  {
+   "id": "KID-005",
+   "name": "Bea Kapoor",
+   "grade": 5,
+   "personality": "Jock",
+   "hair": "ponytail",
+   "accessories": [
+    "glasses",
+    "sweatband"
+   ],
+   "file": "kids/KID-005.svg"
+  },
+  {
+   "id": "KID-006",
+   "name": "Cody Kapoor",
+   "grade": 6,
+   "personality": "Daydreamer",
+   "hair": "curtains",
+   "accessories": [
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-006.svg"
+  },
+  {
+   "id": "KID-007",
+   "name": "Mo Ollerton",
+   "grade": 3,
+   "personality": "Social Butterfly",
+   "hair": "twists",
+   "accessories": [
+    "eye patch (pirate phase)",
+    "beanie"
+   ],
+   "file": "kids/KID-007.svg"
+  },
+  {
+   "id": "KID-008",
+   "name": "Miles Ollerton",
+   "grade": 3,
+   "personality": "Shy",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "lucky socks"
+   ],
+   "file": "kids/KID-008.svg"
+  },
+  {
+   "id": "KID-009",
+   "name": "Rory Sandoval",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "twists",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-009.svg"
+  },
+  {
+   "id": "KID-010",
+   "name": "Noor Fizzwater",
+   "grade": 4,
+   "personality": "Artist",
+   "hair": "twists",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-010.svg"
+  },
+  {
+   "id": "KID-011",
+   "name": "Jada Kettleworth",
+   "grade": 6,
+   "personality": "Drama Kid",
+   "hair": "long straight",
+   "accessories": [
+    "missing front tooth"
+   ],
+   "file": "kids/KID-011.svg"
+  },
+  {
+   "id": "KID-012",
+   "name": "Silas Kettleworth",
+   "grade": 3,
+   "personality": "Prankster",
+   "hair": "bowl cut",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-012.svg"
+  },
+  {
+   "id": "KID-013",
+   "name": "Juno Xiong",
+   "grade": 4,
+   "personality": "Troublemaker",
+   "hair": "messy mop",
+   "accessories": [
+    "eye patch (pirate phase)",
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-013.svg"
+  },
+  {
+   "id": "KID-014",
+   "name": "Isla Xiong",
+   "grade": 3,
+   "personality": "Hothead",
+   "hair": "curly top",
+   "accessories": [
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-014.svg"
+  },
+  {
+   "id": "KID-015",
+   "name": "Omar Kowalski",
+   "grade": 2,
+   "personality": "Artist",
+   "hair": "pigtails",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-015.svg"
+  },
+  {
+   "id": "KID-016",
+   "name": "June Iyer",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "french braid",
+   "accessories": [
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-016.svg"
+  },
+  {
+   "id": "KID-017",
+   "name": "Dex Iyer",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "high puff",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-017.svg"
+  },
+  {
+   "id": "KID-018",
+   "name": "Benji O'Malley",
+   "grade": 3,
+   "personality": "Hothead",
+   "hair": "spiky",
+   "accessories": [
+    "giant backpack",
+    "superhero cape"
+   ],
+   "file": "kids/KID-018.svg"
+  },
+  {
+   "id": "KID-019",
+   "name": "Kip Gonzalez",
+   "grade": 4,
+   "personality": "Prankster",
+   "hair": "box braids",
+   "accessories": [
+    "cast with signatures"
+   ],
+   "file": "kids/KID-019.svg"
+  },
+  {
+   "id": "KID-020",
+   "name": "Lucy Crumb",
+   "grade": 5,
+   "personality": "Rule Follower",
+   "hair": "pigtails",
+   "accessories": [
+    "rolled-up sleeves"
+   ],
+   "file": "kids/KID-020.svg"
+  },
+  {
+   "id": "KID-021",
+   "name": "Nova Schmidt",
+   "grade": 3,
+   "personality": "Gamer",
+   "hair": "long wavy",
+   "accessories": [
+    "fanny pack",
+    "sweatband"
+   ],
+   "file": "kids/KID-021.svg"
+  },
+  {
+   "id": "KID-022",
+   "name": "Ines Erikson",
+   "grade": 5,
+   "personality": "Class Clown",
+   "hair": "bowl cut",
+   "accessories": [
+    "scarf (even in summer)"
+   ],
+   "file": "kids/KID-022.svg"
+  },
+  {
+   "id": "KID-023",
+   "name": "Mae Jackson",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "messy mop",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-023.svg"
+  },
+  {
+   "id": "KID-024",
+   "name": "Luca Oduya",
+   "grade": 3,
+   "personality": "Hothead",
+   "hair": "spiky",
+   "accessories": [
+    "lucky socks",
+    "glasses"
+   ],
+   "file": "kids/KID-024.svg"
+  },
+  {
+   "id": "KID-025",
+   "name": "Gigi Oduya",
+   "grade": 5,
+   "personality": "Rule Follower",
+   "hair": "french braid",
+   "accessories": [
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-025.svg"
+  },
+  {
+   "id": "KID-026",
+   "name": "Fatima Diaz",
+   "grade": 3,
+   "personality": "Bookworm",
+   "hair": "mohawk",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-026.svg"
+  },
+  {
+   "id": "KID-027",
+   "name": "Arlo Lumpkin",
+   "grade": 6,
+   "personality": "Collector",
+   "hair": "high puff",
+   "accessories": [
+    "backwards cap",
+    "lucky socks"
+   ],
+   "file": "kids/KID-027.svg"
+  },
+  {
+   "id": "KID-028",
+   "name": "Vera Lark",
+   "grade": 3,
+   "personality": "Artist",
+   "hair": "locs",
+   "accessories": [
+    "bandana"
+   ],
+   "file": "kids/KID-028.svg"
+  },
+  {
+   "id": "KID-029",
+   "name": "Malik Delgado",
+   "grade": 4,
+   "personality": "Rule Follower",
+   "hair": "cowlick",
+   "accessories": [
+    "backwards cap"
+   ],
+   "file": "kids/KID-029.svg"
+  },
+  {
+   "id": "KID-030",
+   "name": "Vik Delgado",
+   "grade": 3,
+   "personality": "Gamer",
+   "hair": "long straight",
+   "accessories": [
+    "star earrings",
+    "backwards cap"
+   ],
+   "file": "kids/KID-030.svg"
+  },
+  {
+   "id": "KID-031",
+   "name": "Ira Upton",
+   "grade": 3,
+   "personality": "Drama Kid",
+   "hair": "curtains",
+   "accessories": [
+    "lucky socks",
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-031.svg"
+  },
+  {
+   "id": "KID-032",
+   "name": "Tariq McNugget",
+   "grade": 3,
+   "personality": "Animal Lover",
+   "hair": "twists",
+   "accessories": [
+    "knee pads",
+    "fanny pack"
+   ],
+   "file": "kids/KID-032.svg"
+  },
+  {
+   "id": "KID-033",
+   "name": "Nico Hughes",
+   "grade": 4,
+   "personality": "Conspiracy Kid",
+   "hair": "long straight",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-033.svg"
+  },
+  {
+   "id": "KID-034",
+   "name": "Selah Nakamura",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "side part",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-034.svg"
+  },
+  {
+   "id": "KID-035",
+   "name": "Rhea Grubb",
+   "grade": 3,
+   "personality": "Jock",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-035.svg"
+  },
+  {
+   "id": "KID-036",
+   "name": "Zoey Grubb",
+   "grade": 2,
+   "personality": "Gamer",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "glasses"
+   ],
+   "file": "kids/KID-036.svg"
+  },
+  {
+   "id": "KID-037",
+   "name": "Leilani Snodgrass",
+   "grade": 4,
+   "personality": "Gamer",
+   "hair": "long straight",
+   "accessories": [
+    "cast with signatures",
+    "wheelchair (sports chair upgrade unlockable)"
+   ],
+   "file": "kids/KID-037.svg"
+  },
+  {
+   "id": "KID-038",
+   "name": "Rex Ahmed",
+   "grade": 5,
+   "personality": "Sweetheart",
+   "hair": "long straight",
+   "accessories": [
+    "sport goggles"
+   ],
+   "file": "kids/KID-038.svg"
+  },
+  {
+   "id": "KID-039",
+   "name": "Gemma Ahmed",
+   "grade": 5,
+   "personality": "Class Clown",
+   "hair": "french braid",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-039.svg"
+  },
+  {
+   "id": "KID-040",
+   "name": "Lola Nguyen",
+   "grade": 5,
+   "personality": "Sweetheart",
+   "hair": "braids",
+   "accessories": [
+    "rolled-up sleeves"
+   ],
+   "file": "kids/KID-040.svg"
+  },
+  {
+   "id": "KID-041",
+   "name": "Rafa Huckabee",
+   "grade": 3,
+   "personality": "Class Clown",
+   "hair": "space buns",
+   "accessories": [
+    "missing front tooth"
+   ],
+   "file": "kids/KID-041.svg"
+  },
+  {
+   "id": "KID-042",
+   "name": "Eamon Abbott",
+   "grade": 4,
+   "personality": "Class Clown",
+   "hair": "curly top",
+   "accessories": [
+    "backwards cap",
+    "star earrings"
+   ],
+   "file": "kids/KID-042.svg"
+  },
+  {
+   "id": "KID-043",
+   "name": "Aubrey Gupta",
+   "grade": 6,
+   "personality": "Rule Follower",
+   "hair": "box braids",
+   "accessories": [
+    "bandana"
+   ],
+   "file": "kids/KID-043.svg"
+  },
+  {
+   "id": "KID-044",
+   "name": "Biscuit Gallagher",
+   "grade": 6,
+   "personality": "Drama Kid",
+   "hair": "bob",
+   "accessories": [
+    "superhero cape",
+    "star earrings"
+   ],
+   "file": "kids/KID-044.svg"
+  },
+  {
+   "id": "KID-045",
+   "name": "Jago Gallagher",
+   "grade": 6,
+   "personality": "Shy",
+   "hair": "high puff",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-045.svg"
+  },
+  {
+   "id": "KID-046",
+   "name": "Emeka Finch",
+   "grade": 2,
+   "personality": "Drama Kid",
+   "hair": "braids",
+   "accessories": [
+    "glasses"
+   ],
+   "file": "kids/KID-046.svg"
+  },
+  {
+   "id": "KID-047",
+   "name": "Brielle Finch",
+   "grade": 2,
+   "personality": "Artist",
+   "hair": "space buns",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-047.svg"
+  },
+  {
+   "id": "KID-048",
+   "name": "Kiara Featherstone",
+   "grade": 4,
+   "personality": "Drama Kid",
+   "hair": "twists",
+   "accessories": [
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-048.svg"
+  },
+  {
+   "id": "KID-049",
+   "name": "Bianca Vega",
+   "grade": 5,
+   "personality": "Prankster",
+   "hair": "french braid",
+   "accessories": [
+    "scarf (even in summer)"
+   ],
+   "file": "kids/KID-049.svg"
+  },
+  {
+   "id": "KID-050",
+   "name": "Adrian Thistlewood",
+   "grade": 2,
+   "personality": "Teacher's Pet",
+   "hair": "braids",
+   "accessories": [
+    "friendship bracelets",
+    "sport goggles"
+   ],
+   "file": "kids/KID-050.svg"
+  },
+  {
+   "id": "KID-051",
+   "name": "Amir Thistlewood",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "curly top",
+   "accessories": [
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-051.svg"
+  },
+  {
+   "id": "KID-052",
+   "name": "Kamala Carver",
+   "grade": 5,
+   "personality": "Social Butterfly",
+   "hair": "high puff",
+   "accessories": [
+    "lucky socks",
+    "wheelchair (sports chair upgrade unlockable)"
+   ],
+   "file": "kids/KID-052.svg"
+  },
+  {
+   "id": "KID-053",
+   "name": "Grayson Kowal",
+   "grade": 3,
+   "personality": "Troublemaker",
+   "hair": "high puff",
+   "accessories": [
+    "rolled-up sleeves",
+    "giant backpack"
+   ],
+   "file": "kids/KID-053.svg"
+  },
+  {
+   "id": "KID-054",
+   "name": "Lark Funk",
+   "grade": 6,
+   "personality": "Gamer",
+   "hair": "space buns",
+   "accessories": [
+    "bandana",
+    "star earrings"
+   ],
+   "file": "kids/KID-054.svg"
+  },
+  {
+   "id": "KID-055",
+   "name": "Caleb Tran",
+   "grade": 2,
+   "personality": "Sweetheart",
+   "hair": "bowl cut",
+   "accessories": [
+    "rolled-up sleeves",
+    "fanny pack"
+   ],
+   "file": "kids/KID-055.svg"
+  },
+  {
+   "id": "KID-056",
+   "name": "Gil Tran",
+   "grade": 3,
+   "personality": "Bookworm",
+   "hair": "long wavy",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-056.svg"
+  },
+  {
+   "id": "KID-057",
+   "name": "Tank Banks",
+   "grade": 3,
+   "personality": "Drama Kid",
+   "hair": "bowl cut",
+   "accessories": [
+    "freckles",
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-057.svg"
+  },
+  {
+   "id": "KID-058",
+   "name": "Beatrix Tuttle",
+   "grade": 4,
+   "personality": "Gamer",
+   "hair": "french braid",
+   "accessories": [
+    "backwards cap"
+   ],
+   "file": "kids/KID-058.svg"
+  },
+  {
+   "id": "KID-059",
+   "name": "Cassius Chen",
+   "grade": 3,
+   "personality": "Rule Follower",
+   "hair": "fade",
+   "accessories": [
+    "wheelchair (sports chair upgrade unlockable)"
+   ],
+   "file": "kids/KID-059.svg"
+  },
+  {
+   "id": "KID-060",
+   "name": "Chloe Chen",
+   "grade": 2,
+   "personality": "Bookworm",
+   "hair": "box braids",
+   "accessories": [
+    "sport goggles",
+    "bandana"
+   ],
+   "file": "kids/KID-060.svg"
+  },
+  {
+   "id": "KID-061",
+   "name": "Hank Quintero",
+   "grade": 4,
+   "personality": "Class Clown",
+   "hair": "bob",
+   "accessories": [
+    "wheelchair (sports chair upgrade unlockable)"
+   ],
+   "file": "kids/KID-061.svg"
+  },
+  {
+   "id": "KID-062",
+   "name": "Kai Villanueva",
+   "grade": 3,
+   "personality": "Bookworm",
+   "hair": "long wavy",
+   "accessories": [
+    "cast with signatures",
+    "hearing aids"
+   ],
+   "file": "kids/KID-062.svg"
+  },
+  {
+   "id": "KID-063",
+   "name": "Anika Villanueva",
+   "grade": 6,
+   "personality": "Conspiracy Kid",
+   "hair": "pigtails",
+   "accessories": [
+    "wheelchair (sports chair upgrade unlockable)",
+    "sport goggles"
+   ],
+   "file": "kids/KID-063.svg"
+  },
+  {
+   "id": "KID-064",
+   "name": "Keanu Ueda",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "twists",
+   "accessories": [
+    "eye patch (pirate phase)",
+    "cast with signatures"
+   ],
+   "file": "kids/KID-064.svg"
+  },
+  {
+   "id": "KID-065",
+   "name": "Cece Fairweather",
+   "grade": 2,
+   "personality": "Class Clown",
+   "hair": "ponytail",
+   "accessories": [
+    "cast with signatures",
+    "glasses"
+   ],
+   "file": "kids/KID-065.svg"
+  },
+  {
+   "id": "KID-066",
+   "name": "Stella Jones",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "french braid",
+   "accessories": [
+    "glasses",
+    "band-aid on knee"
+   ],
+   "file": "kids/KID-066.svg"
+  },
+  {
+   "id": "KID-067",
+   "name": "Eden Goldberg",
+   "grade": 5,
+   "personality": "Animal Lover",
+   "hair": "bowl cut",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-067.svg"
+  },
+  {
+   "id": "KID-068",
+   "name": "Ada Noodleman",
+   "grade": 6,
+   "personality": "Artist",
+   "hair": "curtains",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-068.svg"
+  },
+  {
+   "id": "KID-069",
+   "name": "Hector Ito",
+   "grade": 4,
+   "personality": "Know-It-All",
+   "hair": "mohawk",
+   "accessories": [
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-069.svg"
+  },
+  {
+   "id": "KID-070",
+   "name": "Odette Wong",
+   "grade": 3,
+   "personality": "Drama Kid",
+   "hair": "mohawk",
+   "accessories": [
+    "bucket hat"
+   ],
+   "file": "kids/KID-070.svg"
+  },
+  {
+   "id": "KID-071",
+   "name": "Pip Wong",
+   "grade": 6,
+   "personality": "Hothead",
+   "hair": "spiky",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-071.svg"
+  },
+  {
+   "id": "KID-072",
+   "name": "Abel Larkin",
+   "grade": 6,
+   "personality": "Artist",
+   "hair": "pigtails",
+   "accessories": [
+    "missing front tooth"
+   ],
+   "file": "kids/KID-072.svg"
+  },
+  {
+   "id": "KID-073",
+   "name": "Aaliyah Larkin",
+   "grade": 5,
+   "personality": "Hothead",
+   "hair": "bob",
+   "accessories": [
+    "band-aid on knee",
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-073.svg"
+  },
+  {
+   "id": "KID-074",
+   "name": "Gideon Patel",
+   "grade": 5,
+   "personality": "Sweetheart",
+   "hair": "ponytail",
+   "accessories": [
+    "sport goggles"
+   ],
+   "file": "kids/KID-074.svg"
+  },
+  {
+   "id": "KID-075",
+   "name": "Bao Rhodes",
+   "grade": 4,
+   "personality": "Entrepreneur",
+   "hair": "braids",
+   "accessories": [
+    "glasses",
+    "rolled-up sleeves"
+   ],
+   "file": "kids/KID-075.svg"
+  },
+  {
+   "id": "KID-076",
+   "name": "Trixie Rhodes",
+   "grade": 2,
+   "personality": "Sweetheart",
+   "hair": "shaggy",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-076.svg"
+  },
+  {
+   "id": "KID-077",
+   "name": "Paloma Vandermeer",
+   "grade": 4,
+   "personality": "Class Clown",
+   "hair": "braids",
+   "accessories": [
+    "rolled-up sleeves",
+    "cast with signatures"
+   ],
+   "file": "kids/KID-077.svg"
+  },
+  {
+   "id": "KID-078",
+   "name": "Nadia Ortiz",
+   "grade": 2,
+   "personality": "Class Clown",
+   "hair": "mohawk",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-078.svg"
+  },
+  {
+   "id": "KID-079",
+   "name": "Wren Zamora",
+   "grade": 3,
+   "personality": "Prankster",
+   "hair": "shaggy",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-079.svg"
+  },
+  {
+   "id": "KID-080",
+   "name": "Ziggy Espinoza",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "curly afro",
+   "accessories": [
+    "bandana"
+   ],
+   "file": "kids/KID-080.svg"
+  },
+  {
+   "id": "KID-081",
+   "name": "Sage Espinoza",
+   "grade": 3,
+   "personality": "Shy",
+   "hair": "curly top",
+   "accessories": [
+    "backwards cap"
+   ],
+   "file": "kids/KID-081.svg"
+  },
+  {
+   "id": "KID-082",
+   "name": "Yuki Pumpernickel",
+   "grade": 2,
+   "personality": "Know-It-All",
+   "hair": "buzz cut",
+   "accessories": [
+    "light-up sneakers",
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-082.svg"
+  },
+  {
+   "id": "KID-083",
+   "name": "Sadie Pumpernickel",
+   "grade": 3,
+   "personality": "Drama Kid",
+   "hair": "locs",
+   "accessories": [
+    "band-aid on knee",
+    "rolled-up sleeves"
+   ],
+   "file": "kids/KID-083.svg"
+  },
+  {
+   "id": "KID-084",
+   "name": "Violet Kim",
+   "grade": 4,
+   "personality": "Daydreamer",
+   "hair": "space buns",
+   "accessories": [
+    "sweatband"
+   ],
+   "file": "kids/KID-084.svg"
+  },
+  {
+   "id": "KID-085",
+   "name": "Mina Murphy",
+   "grade": 6,
+   "personality": "Artist",
+   "hair": "ponytail",
+   "accessories": [
+    "band-aid on knee"
+   ],
+   "file": "kids/KID-085.svg"
+  },
+  {
+   "id": "KID-086",
+   "name": "Aiden Murphy",
+   "grade": 3,
+   "personality": "Hothead",
+   "hair": "curtains",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-086.svg"
+  },
+  {
+   "id": "KID-087",
+   "name": "Elsa Reyes",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "locs",
+   "accessories": [
+    "lucky socks"
+   ],
+   "file": "kids/KID-087.svg"
+  },
+  {
+   "id": "KID-088",
+   "name": "Zeke Castellano",
+   "grade": 4,
+   "personality": "Rule Follower",
+   "hair": "long straight",
+   "accessories": [
+    "fanny pack",
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-088.svg"
+  },
+  {
+   "id": "KID-089",
+   "name": "Dante Castellano",
+   "grade": 3,
+   "personality": "Class Clown",
+   "hair": "fade",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-089.svg"
+  },
+  {
+   "id": "KID-090",
+   "name": "Percy Higgins",
+   "grade": 6,
+   "personality": "Animal Lover",
+   "hair": "locs",
+   "accessories": [
+    "sweatband",
+    "wheelchair (sports chair upgrade unlockable)"
+   ],
+   "file": "kids/KID-090.svg"
+  },
+  {
+   "id": "KID-091",
+   "name": "Yusuf Abernathy",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "buzz cut",
+   "accessories": [
+    "giant backpack",
+    "knee pads"
+   ],
+   "file": "kids/KID-091.svg"
+  },
+  {
+   "id": "KID-092",
+   "name": "Esme Jenkins",
+   "grade": 3,
+   "personality": "Jock",
+   "hair": "high puff",
+   "accessories": [
+    "lucky socks"
+   ],
+   "file": "kids/KID-092.svg"
+  },
+  {
+   "id": "KID-093",
+   "name": "Sora Quackenbush",
+   "grade": 4,
+   "personality": "Shy",
+   "hair": "mohawk",
+   "accessories": [
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-093.svg"
+  },
+  {
+   "id": "KID-094",
+   "name": "Gus Quackenbush",
+   "grade": 3,
+   "personality": "Bookworm",
+   "hair": "high puff",
+   "accessories": [
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-094.svg"
+  },
+  {
+   "id": "KID-095",
+   "name": "Yara Vasquez",
+   "grade": 6,
+   "personality": "Hothead",
+   "hair": "curly top",
+   "accessories": [
+    "sweatband"
+   ],
+   "file": "kids/KID-095.svg"
+  },
+  {
+   "id": "KID-096",
+   "name": "Junie Vasquez",
+   "grade": 3,
+   "personality": "Jock",
+   "hair": "braids",
+   "accessories": [
+    "sweatband"
+   ],
+   "file": "kids/KID-096.svg"
+  },
+  {
+   "id": "KID-097",
+   "name": "Clementine Ivanova",
+   "grade": 2,
+   "personality": "Rule Follower",
+   "hair": "curtains",
+   "accessories": [
+    "dinosaur hoodie"
+   ],
+   "file": "kids/KID-097.svg"
+  },
+  {
+   "id": "KID-098",
+   "name": "Benny Ivanova",
+   "grade": 4,
+   "personality": "Gamer",
+   "hair": "box braids",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-098.svg"
+  },
+  {
+   "id": "KID-099",
+   "name": "Santi Nash",
+   "grade": 4,
+   "personality": "Teacher's Pet",
+   "hair": "side part",
+   "accessories": [
+    "eye patch (pirate phase)",
+    "hearing aids"
+   ],
+   "file": "kids/KID-099.svg"
+  },
+  {
+   "id": "KID-100",
+   "name": "Felix Bellweather",
+   "grade": 2,
+   "personality": "Sweetheart",
+   "hair": "fade",
+   "accessories": [
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-100.svg"
+  },
+  {
+   "id": "KID-101",
+   "name": "Roscoe Park",
+   "grade": 3,
+   "personality": "Shy",
+   "hair": "twists",
+   "accessories": [
+    "band-aid on knee",
+    "hearing aids"
+   ],
+   "file": "kids/KID-101.svg"
+  },
+  {
+   "id": "KID-102",
+   "name": "Reza Park",
+   "grade": 5,
+   "personality": "Class Clown",
+   "hair": "twists",
+   "accessories": [
+    "lucky socks",
+    "headphones"
+   ],
+   "file": "kids/KID-102.svg"
+  },
+  {
+   "id": "KID-103",
+   "name": "Bodhi Ramirez",
+   "grade": 3,
+   "personality": "Prankster",
+   "hair": "high puff",
+   "accessories": [
+    "backwards cap"
+   ],
+   "file": "kids/KID-103.svg"
+  },
+  {
+   "id": "KID-104",
+   "name": "Desmond Pickering",
+   "grade": 5,
+   "personality": "Social Butterfly",
+   "hair": "long straight",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-104.svg"
+  },
+  {
+   "id": "KID-105",
+   "name": "Rufus Jumbo",
+   "grade": 5,
+   "personality": "Social Butterfly",
+   "hair": "messy mop",
+   "accessories": [
+    "glasses",
+    "bandana"
+   ],
+   "file": "kids/KID-105.svg"
+  },
+  {
+   "id": "KID-106",
+   "name": "Hattie Doolittle",
+   "grade": 5,
+   "personality": "Drama Kid",
+   "hair": "french braid",
+   "accessories": [
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-106.svg"
+  },
+  {
+   "id": "KID-107",
+   "name": "Mags Mbeki",
+   "grade": 4,
+   "personality": "Teacher's Pet",
+   "hair": "space buns",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-107.svg"
+  },
+  {
+   "id": "KID-108",
+   "name": "Frankie Flores",
+   "grade": 2,
+   "personality": "Teacher's Pet",
+   "hair": "braids",
+   "accessories": [
+    "knee pads"
+   ],
+   "file": "kids/KID-108.svg"
+  },
+  {
+   "id": "KID-109",
+   "name": "Xander Flores",
+   "grade": 5,
+   "personality": "Jock",
+   "hair": "ponytail",
+   "accessories": [
+    "freckles"
+   ],
+   "file": "kids/KID-109.svg"
+  },
+  {
+   "id": "KID-110",
+   "name": "Layla Zabriskie",
+   "grade": 3,
+   "personality": "Troublemaker",
+   "hair": "space buns",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-110.svg"
+  },
+  {
+   "id": "KID-111",
+   "name": "Toby Dibble",
+   "grade": 4,
+   "personality": "Collector",
+   "hair": "locs",
+   "accessories": [
+    "sport goggles"
+   ],
+   "file": "kids/KID-111.svg"
+  },
+  {
+   "id": "KID-112",
+   "name": "Hugo Choi",
+   "grade": 2,
+   "personality": "Sweetheart",
+   "hair": "curly top",
+   "accessories": [
+    "cast with signatures"
+   ],
+   "file": "kids/KID-112.svg"
+  },
+  {
+   "id": "KID-113",
+   "name": "Rocco Mahoney",
+   "grade": 4,
+   "personality": "Jock",
+   "hair": "curly afro",
+   "accessories": [
+    "bandana",
+    "scarf (even in summer)"
+   ],
+   "file": "kids/KID-113.svg"
+  },
+  {
+   "id": "KID-114",
+   "name": "Atticus Mahoney",
+   "grade": 3,
+   "personality": "Collector",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "backwards cap",
+    "beanie"
+   ],
+   "file": "kids/KID-114.svg"
+  },
+  {
+   "id": "KID-115",
+   "name": "Penny Waffleton",
+   "grade": 5,
+   "personality": "Bookworm",
+   "hair": "bob",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-115.svg"
+  },
+  {
+   "id": "KID-116",
+   "name": "Ozzie Yoon",
+   "grade": 4,
+   "personality": "Teacher's Pet",
+   "hair": "fade",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-116.svg"
+  },
+  {
+   "id": "KID-117",
+   "name": "Oscar Yoon",
+   "grade": 5,
+   "personality": "Jock",
+   "hair": "french braid",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-117.svg"
+  },
+  {
+   "id": "KID-118",
+   "name": "Zara Tibbs",
+   "grade": 2,
+   "personality": "Drama Kid",
+   "hair": "ponytail",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-118.svg"
+  },
+  {
+   "id": "KID-119",
+   "name": "Sasha Truong",
+   "grade": 5,
+   "personality": "Prankster",
+   "hair": "space buns",
+   "accessories": [
+    "bucket hat"
+   ],
+   "file": "kids/KID-119.svg"
+  },
+  {
+   "id": "KID-120",
+   "name": "Gabe Cooper",
+   "grade": 3,
+   "personality": "Gamer",
+   "hair": "bowl cut",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-120.svg"
+  },
+  {
+   "id": "KID-121",
+   "name": "Lulu Okafor",
+   "grade": 2,
+   "personality": "Shy",
+   "hair": "space buns",
+   "accessories": [
+    "lucky socks"
+   ],
+   "file": "kids/KID-121.svg"
+  },
+  {
+   "id": "KID-122",
+   "name": "Lincoln Baker",
+   "grade": 3,
+   "personality": "Class Clown",
+   "hair": "ponytail",
+   "accessories": [
+    "superhero cape",
+    "band-aid on knee"
+   ],
+   "file": "kids/KID-122.svg"
+  },
+  {
+   "id": "KID-123",
+   "name": "Imani Vasquez",
+   "grade": 4,
+   "personality": "Troublemaker",
+   "hair": "buzz cut",
+   "accessories": [
+    "braces",
+    "glasses"
+   ],
+   "file": "kids/KID-123.svg"
+  },
+  {
+   "id": "KID-124",
+   "name": "Ezra Doolittle",
+   "grade": 6,
+   "personality": "Teacher's Pet",
+   "hair": "long wavy",
+   "accessories": [
+    "bandana"
+   ],
+   "file": "kids/KID-124.svg"
+  },
+  {
+   "id": "KID-125",
+   "name": "Walt Whitaker",
+   "grade": 3,
+   "personality": "Troublemaker",
+   "hair": "curly top",
+   "accessories": [
+    "glasses"
+   ],
+   "file": "kids/KID-125.svg"
+  },
+  {
+   "id": "KID-126",
+   "name": "Jiho Xiong",
+   "grade": 4,
+   "personality": "Class Clown",
+   "hair": "messy mop",
+   "accessories": [
+    "headphones",
+    "band-aid on knee"
+   ],
+   "file": "kids/KID-126.svg"
+  },
+  {
+   "id": "KID-127",
+   "name": "Remy Barnaby",
+   "grade": 5,
+   "personality": "Daydreamer",
+   "hair": "box braids",
+   "accessories": [
+    "wheelchair (sports chair upgrade unlockable)",
+    "bandana"
+   ],
+   "file": "kids/KID-127.svg"
+  },
+  {
+   "id": "KID-128",
+   "name": "Lila Jackson",
+   "grade": 6,
+   "personality": "Teacher's Pet",
+   "hair": "high puff",
+   "accessories": [
+    "knee pads"
+   ],
+   "file": "kids/KID-128.svg"
+  },
+  {
+   "id": "KID-129",
+   "name": "Kaleb Silva",
+   "grade": 6,
+   "personality": "Class Clown",
+   "hair": "braids",
+   "accessories": [
+    "freckles"
+   ],
+   "file": "kids/KID-129.svg"
+  },
+  {
+   "id": "KID-130",
+   "name": "Tilly Patel",
+   "grade": 3,
+   "personality": "Bookworm",
+   "hair": "bob",
+   "accessories": [
+    "band-aid on knee"
+   ],
+   "file": "kids/KID-130.svg"
+  },
+  {
+   "id": "KID-131",
+   "name": "Della Diaz",
+   "grade": 3,
+   "personality": "Bookworm",
+   "hair": "mohawk",
+   "accessories": [
+    "bucket hat",
+    "braces"
+   ],
+   "file": "kids/KID-131.svg"
+  },
+  {
+   "id": "KID-132",
+   "name": "Milo Rosenberg",
+   "grade": 3,
+   "personality": "Gamer",
+   "hair": "long straight",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-132.svg"
+  },
+  {
+   "id": "KID-133",
+   "name": "Quinn Rivera",
+   "grade": 3,
+   "personality": "Conspiracy Kid",
+   "hair": "shaggy",
+   "accessories": [
+    "backwards cap"
+   ],
+   "file": "kids/KID-133.svg"
+  },
+  {
+   "id": "KID-134",
+   "name": "Talia Bumble",
+   "grade": 5,
+   "personality": "Rule Follower",
+   "hair": "curly top",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-134.svg"
+  },
+  {
+   "id": "KID-135",
+   "name": "Ali Ollerton",
+   "grade": 4,
+   "personality": "Bookworm",
+   "hair": "pigtails",
+   "accessories": [
+    "scarf (even in summer)",
+    "sweatband"
+   ],
+   "file": "kids/KID-135.svg"
+  },
+  {
+   "id": "KID-136",
+   "name": "Dottie Underhill",
+   "grade": 3,
+   "personality": "Jock",
+   "hair": "buzz cut",
+   "accessories": [
+    "beanie",
+    "glasses"
+   ],
+   "file": "kids/KID-136.svg"
+  },
+  {
+   "id": "KID-137",
+   "name": "Fern Kowalski",
+   "grade": 2,
+   "personality": "Teacher's Pet",
+   "hair": "curly top",
+   "accessories": [
+    "bucket hat",
+    "dinosaur hoodie"
+   ],
+   "file": "kids/KID-137.svg"
+  },
+  {
+   "id": "KID-138",
+   "name": "Diego Iyer",
+   "grade": 6,
+   "personality": "Jock",
+   "hair": "pigtails",
+   "accessories": [
+    "freckles"
+   ],
+   "file": "kids/KID-138.svg"
+  },
+  {
+   "id": "KID-139",
+   "name": "Lottie Ivanova",
+   "grade": 3,
+   "personality": "Hothead",
+   "hair": "ponytail",
+   "accessories": [
+    "sweatband"
+   ],
+   "file": "kids/KID-139.svg"
+  },
+  {
+   "id": "KID-140",
+   "name": "Lorenzo Banks",
+   "grade": 5,
+   "personality": "Gamer",
+   "hair": "messy mop",
+   "accessories": [
+    "glasses"
+   ],
+   "file": "kids/KID-140.svg"
+  },
+  {
+   "id": "KID-141",
+   "name": "Maya Jumbo",
+   "grade": 5,
+   "personality": "Gamer",
+   "hair": "high puff",
+   "accessories": [
+    "braces",
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-141.svg"
+  },
+  {
+   "id": "KID-142",
+   "name": "Nina Jablonski",
+   "grade": 4,
+   "personality": "Artist",
+   "hair": "box braids",
+   "accessories": [
+    "scarf (even in summer)"
+   ],
+   "file": "kids/KID-142.svg"
+  },
+  {
+   "id": "KID-143",
+   "name": "Eli Kim",
+   "grade": 4,
+   "personality": "Teacher's Pet",
+   "hair": "french braid",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-143.svg"
+  },
+  {
+   "id": "KID-144",
+   "name": "Finn Moreno",
+   "grade": 4,
+   "personality": "Know-It-All",
+   "hair": "shaggy",
+   "accessories": [
+    "bandana",
+    "superhero cape"
+   ],
+   "file": "kids/KID-144.svg"
+  },
+  {
+   "id": "KID-145",
+   "name": "Rosa Underhill",
+   "grade": 3,
+   "personality": "Entrepreneur",
+   "hair": "shaggy",
+   "accessories": [
+    "cast with signatures"
+   ],
+   "file": "kids/KID-145.svg"
+  },
+  {
+   "id": "KID-146",
+   "name": "Nash Underhill",
+   "grade": 5,
+   "personality": "Animal Lover",
+   "hair": "spiky",
+   "accessories": [
+    "wheelchair (sports chair upgrade unlockable)",
+    "fanny pack"
+   ],
+   "file": "kids/KID-146.svg"
+  },
+  {
+   "id": "KID-147",
+   "name": "Ivan Diaz",
+   "grade": 5,
+   "personality": "Drama Kid",
+   "hair": "ponytail",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-147.svg"
+  },
+  {
+   "id": "KID-148",
+   "name": "Sunny Underhill",
+   "grade": 3,
+   "personality": "Rule Follower",
+   "hair": "curly afro",
+   "accessories": [
+    "sweatband",
+    "missing front tooth"
+   ],
+   "file": "kids/KID-148.svg"
+  },
+  {
+   "id": "KID-149",
+   "name": "Levi Ramirez",
+   "grade": 2,
+   "personality": "Hothead",
+   "hair": "box braids",
+   "accessories": [
+    "backwards cap",
+    "superhero cape"
+   ],
+   "file": "kids/KID-149.svg"
+  },
+  {
+   "id": "KID-150",
+   "name": "Bruno Villanueva",
+   "grade": 4,
+   "personality": "Animal Lover",
+   "hair": "bob",
+   "accessories": [
+    "giant backpack",
+    "beanie"
+   ],
+   "file": "kids/KID-150.svg"
+  },
+  {
+   "id": "KID-151",
+   "name": "Dina Bloom",
+   "grade": 5,
+   "personality": "Collector",
+   "hair": "mohawk",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-151.svg"
+  },
+  {
+   "id": "KID-152",
+   "name": "Wade Sprinkle",
+   "grade": 2,
+   "personality": "Collector",
+   "hair": "twists",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-152.svg"
+  },
+  {
+   "id": "KID-153",
+   "name": "Cora Vega",
+   "grade": 4,
+   "personality": "Teacher's Pet",
+   "hair": "braids",
+   "accessories": [
+    "light-up sneakers",
+    "sweatband"
+   ],
+   "file": "kids/KID-153.svg"
+  },
+  {
+   "id": "KID-154",
+   "name": "Sonny Okafor",
+   "grade": 3,
+   "personality": "Prankster",
+   "hair": "fade",
+   "accessories": [
+    "backwards cap"
+   ],
+   "file": "kids/KID-154.svg"
+  },
+  {
+   "id": "KID-155",
+   "name": "Otis Barnaby",
+   "grade": 4,
+   "personality": "Rule Follower",
+   "hair": "space buns",
+   "accessories": [
+    "light-up sneakers",
+    "knee pads"
+   ],
+   "file": "kids/KID-155.svg"
+  },
+  {
+   "id": "KID-156",
+   "name": "Andre Gallagher",
+   "grade": 4,
+   "personality": "Hothead",
+   "hair": "shaggy",
+   "accessories": [
+    "glasses"
+   ],
+   "file": "kids/KID-156.svg"
+  },
+  {
+   "id": "KID-157",
+   "name": "Opal Snodgrass",
+   "grade": 3,
+   "personality": "Know-It-All",
+   "hair": "bowl cut",
+   "accessories": [
+    "band-aid on knee",
+    "glasses"
+   ],
+   "file": "kids/KID-157.svg"
+  },
+  {
+   "id": "KID-158",
+   "name": "Kit Jenkins",
+   "grade": 3,
+   "personality": "Jock",
+   "hair": "french braid",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-158.svg"
+  },
+  {
+   "id": "KID-159",
+   "name": "Ruby Kaur",
+   "grade": 5,
+   "personality": "Bookworm",
+   "hair": "twists",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-159.svg"
+  },
+  {
+   "id": "KID-160",
+   "name": "Blake Iyer",
+   "grade": 5,
+   "personality": "Animal Lover",
+   "hair": "buzz cut",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-160.svg"
+  },
+  {
+   "id": "KID-161",
+   "name": "Dmitri Park",
+   "grade": 2,
+   "personality": "Prankster",
+   "hair": "side part",
+   "accessories": [
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-161.svg"
+  },
+  {
+   "id": "KID-162",
+   "name": "Alana Waffleton",
+   "grade": 2,
+   "personality": "Troublemaker",
+   "hair": "high puff",
+   "accessories": [
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-162.svg"
+  },
+  {
+   "id": "KID-163",
+   "name": "Jasper Iyer",
+   "grade": 5,
+   "personality": "Drama Kid",
+   "hair": "spiky",
+   "accessories": [
+    "headphones"
+   ],
+   "file": "kids/KID-163.svg"
+  },
+  {
+   "id": "KID-164",
+   "name": "Delia Honeycutt",
+   "grade": 5,
+   "personality": "Drama Kid",
+   "hair": "bob",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-164.svg"
+  },
+  {
+   "id": "KID-165",
+   "name": "Dakota Grubb",
+   "grade": 2,
+   "personality": "Class Clown",
+   "hair": "twists",
+   "accessories": [
+    "sport goggles"
+   ],
+   "file": "kids/KID-165.svg"
+  },
+  {
+   "id": "KID-166",
+   "name": "Asha Villanueva",
+   "grade": 4,
+   "personality": "Hothead",
+   "hair": "high puff",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-166.svg"
+  },
+  {
+   "id": "KID-167",
+   "name": "Camila Jenkins",
+   "grade": 3,
+   "personality": "Conspiracy Kid",
+   "hair": "long straight",
+   "accessories": [
+    "star earrings"
+   ],
+   "file": "kids/KID-167.svg"
+  },
+  {
+   "id": "KID-168",
+   "name": "Wally Dumpling",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "cowlick",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-168.svg"
+  },
+  {
+   "id": "KID-169",
+   "name": "Leo Okafor",
+   "grade": 3,
+   "personality": "Artist",
+   "hair": "bowl cut",
+   "accessories": [
+    "superhero cape",
+    "bandana"
+   ],
+   "file": "kids/KID-169.svg"
+  },
+  {
+   "id": "KID-170",
+   "name": "Manny Crumb",
+   "grade": 3,
+   "personality": "Social Butterfly",
+   "hair": "long straight",
+   "accessories": [
+    "backwards cap",
+    "cast with signatures"
+   ],
+   "file": "kids/KID-170.svg"
+  },
+  {
+   "id": "KID-171",
+   "name": "Nell Funk",
+   "grade": 3,
+   "personality": "Rule Follower",
+   "hair": "curtains",
+   "accessories": [
+    "bandana"
+   ],
+   "file": "kids/KID-171.svg"
+  },
+  {
+   "id": "KID-172",
+   "name": "Sami Finch",
+   "grade": 3,
+   "personality": "Prankster",
+   "hair": "shaggy",
+   "accessories": [
+    "headphones"
+   ],
+   "file": "kids/KID-172.svg"
+  },
+  {
+   "id": "KID-173",
+   "name": "Axel Upton",
+   "grade": 4,
+   "personality": "Sweetheart",
+   "hair": "pigtails",
+   "accessories": [
+    "beanie",
+    "sport goggles"
+   ],
+   "file": "kids/KID-173.svg"
+  },
+  {
+   "id": "KID-174",
+   "name": "Chidi Waffleton",
+   "grade": 3,
+   "personality": "Drama Kid",
+   "hair": "braids",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-174.svg"
+  },
+  {
+   "id": "KID-175",
+   "name": "Alejandro Jenkins",
+   "grade": 5,
+   "personality": "Prankster",
+   "hair": "pigtails",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-175.svg"
+  },
+  {
+   "id": "KID-176",
+   "name": "Enzo Baker",
+   "grade": 6,
+   "personality": "Artist",
+   "hair": "bowl cut",
+   "accessories": [
+    "knee pads",
+    "giant backpack"
+   ],
+   "file": "kids/KID-176.svg"
+  },
+  {
+   "id": "KID-177",
+   "name": "Carmen Jumbo",
+   "grade": 5,
+   "personality": "Prankster",
+   "hair": "bowl cut",
+   "accessories": [
+    "rolled-up sleeves",
+    "freckles"
+   ],
+   "file": "kids/KID-177.svg"
+  },
+  {
+   "id": "KID-178",
+   "name": "Uma Ivanova",
+   "grade": 5,
+   "personality": "Entrepreneur",
+   "hair": "messy mop",
+   "accessories": [
+    "knee pads"
+   ],
+   "file": "kids/KID-178.svg"
+  },
+  {
+   "id": "KID-179",
+   "name": "Olu Vandermeer",
+   "grade": 4,
+   "personality": "Social Butterfly",
+   "hair": "messy mop",
+   "accessories": [
+    "eye patch (pirate phase)"
+   ],
+   "file": "kids/KID-179.svg"
+  },
+  {
+   "id": "KID-180",
+   "name": "Kofi Novak",
+   "grade": 5,
+   "personality": "Teacher's Pet",
+   "hair": "braids",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-180.svg"
+  },
+  {
+   "id": "KID-181",
+   "name": "Alma Espinoza",
+   "grade": 5,
+   "personality": "Sweetheart",
+   "hair": "buzz cut",
+   "accessories": [
+    "bandana"
+   ],
+   "file": "kids/KID-181.svg"
+  },
+  {
+   "id": "KID-182",
+   "name": "Chet Nakamura",
+   "grade": 2,
+   "personality": "Animal Lover",
+   "hair": "box braids",
+   "accessories": [
+    "bandana",
+    "lucky socks"
+   ],
+   "file": "kids/KID-182.svg"
+  },
+  {
+   "id": "KID-183",
+   "name": "Mei Lopez",
+   "grade": 3,
+   "personality": "Jock",
+   "hair": "cowlick",
+   "accessories": [
+    "light-up sneakers",
+    "bucket hat"
+   ],
+   "file": "kids/KID-183.svg"
+  },
+  {
+   "id": "KID-184",
+   "name": "Fiona Ramirez",
+   "grade": 5,
+   "personality": "Shy",
+   "hair": "curly top",
+   "accessories": [
+    "freckles"
+   ],
+   "file": "kids/KID-184.svg"
+  },
+  {
+   "id": "KID-185",
+   "name": "Frida Tibbs",
+   "grade": 5,
+   "personality": "Shy",
+   "hair": "buzz cut",
+   "accessories": [
+    "rolled-up sleeves",
+    "freckles"
+   ],
+   "file": "kids/KID-185.svg"
+  },
+  {
+   "id": "KID-186",
+   "name": "Ava Gupta",
+   "grade": 3,
+   "personality": "Entrepreneur",
+   "hair": "french braid",
+   "accessories": [
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-186.svg"
+  },
+  {
+   "id": "KID-187",
+   "name": "Greta Barnaby",
+   "grade": 6,
+   "personality": "Prankster",
+   "hair": "buzz cut",
+   "accessories": [
+    "fanny pack"
+   ],
+   "file": "kids/KID-187.svg"
+  },
+  {
+   "id": "KID-188",
+   "name": "Yosef Honeycutt",
+   "grade": 4,
+   "personality": "Jock",
+   "hair": "spiky",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-188.svg"
+  },
+  {
+   "id": "KID-189",
+   "name": "Pepper Baker",
+   "grade": 4,
+   "personality": "Shy",
+   "hair": "box braids",
+   "accessories": [
+    "headphones"
+   ],
+   "file": "kids/KID-189.svg"
+  },
+  {
+   "id": "KID-190",
+   "name": "Margo Kowal",
+   "grade": 3,
+   "personality": "Class Clown",
+   "hair": "fade",
+   "accessories": [
+    "hearing aids"
+   ],
+   "file": "kids/KID-190.svg"
+  },
+  {
+   "id": "KID-191",
+   "name": "Dolly Waffleton",
+   "grade": 6,
+   "personality": "Rule Follower",
+   "hair": "cowlick",
+   "accessories": [
+    "rolled-up sleeves",
+    "bandana"
+   ],
+   "file": "kids/KID-191.svg"
+  },
+  {
+   "id": "KID-192",
+   "name": "Tess Larkin",
+   "grade": 4,
+   "personality": "Animal Lover",
+   "hair": "pigtails",
+   "accessories": [
+    "braces",
+    "bandana"
+   ],
+   "file": "kids/KID-192.svg"
+  },
+  {
+   "id": "KID-193",
+   "name": "Amara Honeycutt",
+   "grade": 4,
+   "personality": "Rule Follower",
+   "hair": "twists",
+   "accessories": [
+    "superhero cape",
+    "friendship bracelets"
+   ],
+   "file": "kids/KID-193.svg"
+  },
+  {
+   "id": "KID-194",
+   "name": "Emmett Schmidt",
+   "grade": 3,
+   "personality": "Artist",
+   "hair": "braids",
+   "accessories": [
+    "headphones",
+    "wheelchair (sports chair upgrade unlockable)"
+   ],
+   "file": "kids/KID-194.svg"
+  },
+  {
+   "id": "KID-195",
+   "name": "Tuck Yoon",
+   "grade": 6,
+   "personality": "Troublemaker",
+   "hair": "twists",
+   "accessories": [
+    "sweatband"
+   ],
+   "file": "kids/KID-195.svg"
+  },
+  {
+   "id": "KID-196",
+   "name": "Ivy Noodleman",
+   "grade": 6,
+   "personality": "Drama Kid",
+   "hair": "long straight",
+   "accessories": [
+    "sport goggles"
+   ],
+   "file": "kids/KID-196.svg"
+  },
+  {
+   "id": "KID-197",
+   "name": "Priya Kowal",
+   "grade": 5,
+   "personality": "Prankster",
+   "hair": "bob",
+   "accessories": [
+    "backwards cap",
+    "missing front tooth"
+   ],
+   "file": "kids/KID-197.svg"
+  },
+  {
+   "id": "KID-198",
+   "name": "Arjun Tibbs",
+   "grade": 2,
+   "personality": "Animal Lover",
+   "hair": "shaggy",
+   "accessories": [
+    "beanie"
+   ],
+   "file": "kids/KID-198.svg"
+  },
+  {
+   "id": "KID-199",
+   "name": "Javi Rhodes",
+   "grade": 5,
+   "personality": "Teacher's Pet",
+   "hair": "bowl cut",
+   "accessories": [
+    "freckles",
+    "dinosaur hoodie"
+   ],
+   "file": "kids/KID-199.svg"
+  },
+  {
+   "id": "KID-200",
+   "name": "Zion Quackenbush",
+   "grade": 2,
+   "personality": "Know-It-All",
+   "hair": "braids",
+   "accessories": [
+    "sport goggles",
+    "knee pads"
+   ],
+   "file": "kids/KID-200.svg"
+  },
+  {
+   "id": "KID-201",
+   "name": "Harper Rivera",
+   "grade": 3,
+   "personality": "Entrepreneur",
+   "hair": "locs",
+   "accessories": [
+    "glasses"
+   ],
+   "file": "kids/KID-201.svg"
+  },
+  {
+   "id": "KID-202",
+   "name": "Ollie Gupta",
+   "grade": 4,
+   "personality": "Teacher's Pet",
+   "hair": "twists",
+   "accessories": [
+    "braces"
+   ],
+   "file": "kids/KID-202.svg"
+  },
+  {
+   "id": "KID-203",
+   "name": "Ravi Goldberg",
+   "grade": 2,
+   "personality": "Artist",
+   "hair": "high puff",
+   "accessories": [
+    "bucket hat",
+    "sweatband"
+   ],
+   "file": "kids/KID-203.svg"
+  },
+  {
+   "id": "KID-204",
+   "name": "Hollis Flores",
+   "grade": 5,
+   "personality": "Hothead",
+   "hair": "curly top",
+   "accessories": [
+    "sport goggles"
+   ],
+   "file": "kids/KID-204.svg"
+  },
+  {
+   "id": "KID-205",
+   "name": "Cyrus Puddington",
+   "grade": 4,
+   "personality": "Rule Follower",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-205.svg"
+  },
+  {
+   "id": "KID-206",
+   "name": "Daphne Ueda",
+   "grade": 3,
+   "personality": "Shy",
+   "hair": "messy mop",
+   "accessories": [
+    "fanny pack",
+    "beanie"
+   ],
+   "file": "kids/KID-206.svg"
+  },
+  {
+   "id": "KID-207",
+   "name": "Zuri Castellano",
+   "grade": 4,
+   "personality": "Prankster",
+   "hair": "bob",
+   "accessories": [
+    "lucky socks"
+   ],
+   "file": "kids/KID-207.svg"
+  },
+  {
+   "id": "KID-208",
+   "name": "Tomas Kowal",
+   "grade": 3,
+   "personality": "Shy",
+   "hair": "box braids",
+   "accessories": [
+    "giant backpack"
+   ],
+   "file": "kids/KID-208.svg"
+  },
+  {
+   "id": "KID-209",
+   "name": "Hana Lindgren",
+   "grade": 2,
+   "personality": "Troublemaker",
+   "hair": "pigtails",
+   "accessories": [
+    "band-aid on knee"
+   ],
+   "file": "kids/KID-209.svg"
+  },
+  {
+   "id": "KID-210",
+   "name": "Jamal Tran",
+   "grade": 2,
+   "personality": "Artist",
+   "hair": "curtains",
+   "accessories": [
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-210.svg"
+  },
+  {
+   "id": "KID-211",
+   "name": "Wesley Nash",
+   "grade": 3,
+   "personality": "Collector",
+   "hair": "shaggy",
+   "accessories": [
+    "dinosaur hoodie"
+   ],
+   "file": "kids/KID-211.svg"
+  },
+  {
+   "id": "KID-212",
+   "name": "Tad Pumpernickel",
+   "grade": 5,
+   "personality": "Sweetheart",
+   "hair": "fade",
+   "accessories": [
+    "eye patch (pirate phase)",
+    "knee pads"
+   ],
+   "file": "kids/KID-212.svg"
+  },
+  {
+   "id": "KID-213",
+   "name": "Aiko Yoon",
+   "grade": 6,
+   "personality": "Rule Follower",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "superhero cape"
+   ],
+   "file": "kids/KID-213.svg"
+  },
+  {
+   "id": "KID-214",
+   "name": "Birdie Whitaker",
+   "grade": 3,
+   "personality": "Sweetheart",
+   "hair": "space buns",
+   "accessories": [
+    "backwards cap",
+    "light-up sneakers"
+   ],
+   "file": "kids/KID-214.svg"
+  },
+  {
+   "id": "KID-215",
+   "name": "Theo Haddad",
+   "grade": 4,
+   "personality": "Troublemaker",
+   "hair": "headband + ponytail",
+   "accessories": [
+    "missing front tooth"
+   ],
+   "file": "kids/KID-215.svg"
+  },
+  {
+   "id": "KID-216",
+   "name": "Mabel Waffleton",
+   "grade": 5,
+   "personality": "Sweetheart",
+   "hair": "pigtails",
+   "accessories": [
+    "sweatband"
+   ],
+   "file": "kids/KID-216.svg"
+  }
+ ],
+ "adults": [
+  {
+   "id": "ADULT-MsPuddle",
+   "name": "Ms. Puddle",
+   "role": "Grade 2 Math",
+   "props": [
+    "counting fingers"
+   ],
+   "file": "adults/ADULT-MsPuddle.svg"
+  },
+  {
+   "id": "ADULT-MrHopper",
+   "name": "Mr. Hopper",
+   "role": "Grade 2 Language Arts",
+   "props": [
+    "glasses",
+    "bowtie",
+    "book"
+   ],
+   "file": "adults/ADULT-MrHopper.svg"
+  },
+  {
+   "id": "ADULT-MrsGlitter",
+   "name": "Mrs. Glitter",
+   "role": "Grade 2 Science",
+   "props": [
+    "stickers"
+   ],
+   "file": "adults/ADULT-MrsGlitter.svg"
+  },
+  {
+   "id": "ADULT-MrDabney",
+   "name": "Mr. Dabney",
+   "role": "Grade 2 History",
+   "props": [
+    "mustache",
+    "top hat"
+   ],
+   "file": "adults/ADULT-MrDabney.svg"
+  },
+  {
+   "id": "ADULT-MrsBramblebee",
+   "name": "Mrs. Bramblebee",
+   "role": "Grade 3 Math",
+   "props": [
+    "glasses"
+   ],
+   "file": "adults/ADULT-MrsBramblebee.svg"
+  },
+  {
+   "id": "ADULT-MrOkonkwo",
+   "name": "Mr. Okonkwo",
+   "role": "Grade 3 Language Arts",
+   "props": [
+    "beard"
+   ],
+   "file": "adults/ADULT-MrOkonkwo.svg"
+  },
+  {
+   "id": "ADULT-MsValdez",
+   "name": "Ms. Valdez",
+   "role": "Grade 3 Science",
+   "props": [
+    "goggles up"
+   ],
+   "file": "adults/ADULT-MsValdez.svg"
+  },
+  {
+   "id": "ADULT-MrPemberton",
+   "name": "Mr. Pemberton",
+   "role": "Grade 3 History",
+   "props": [
+    "beard",
+    "book"
+   ],
+   "file": "adults/ADULT-MrPemberton.svg"
+  },
+  {
+   "id": "ADULT-MrFussbudget",
+   "name": "Mr. Fussbudget",
+   "role": "Grade 4 Math",
+   "props": [
+    "glasses",
+    "clipboard"
+   ],
+   "file": "adults/ADULT-MrFussbudget.svg"
+  },
+  {
+   "id": "ADULT-MrsTanaka",
+   "name": "Mrs. Tanaka",
+   "role": "Grade 4 Language Arts",
+   "props": [
+    "note"
+   ],
+   "file": "adults/ADULT-MrsTanaka.svg"
+  },
+  {
+   "id": "ADULT-MsFeatherly",
+   "name": "Ms. Featherly",
+   "role": "Grade 4 Science",
+   "props": [
+    "lizard"
+   ],
+   "file": "adults/ADULT-MsFeatherly.svg"
+  },
+  {
+   "id": "ADULT-MrsKowalski",
+   "name": "Mrs. Kowalski",
+   "role": "Grade 4 History",
+   "props": [
+    "glasses",
+    "pointer"
+   ],
+   "file": "adults/ADULT-MrsKowalski.svg"
+  },
+  {
+   "id": "ADULT-MrSparks",
+   "name": "Mr. Sparks",
+   "role": "Grade 5 Math",
+   "props": [
+    "whistle"
+   ],
+   "file": "adults/ADULT-MrSparks.svg"
+  },
+  {
+   "id": "ADULT-MrsGrumbleton",
+   "name": "Mrs. Grumbleton",
+   "role": "Grade 5 Language Arts",
+   "props": [
+    "glasses"
+   ],
+   "file": "adults/ADULT-MrsGrumbleton.svg"
+  },
+  {
+   "id": "ADULT-MsAbara",
+   "name": "Ms. Abara",
+   "role": "Grade 5 Science",
+   "props": [
+    "goggles up"
+   ],
+   "file": "adults/ADULT-MsAbara.svg"
+  },
+  {
+   "id": "ADULT-MrLindqvist",
+   "name": "Mr. Lindqvist",
+   "role": "Grade 5 History",
+   "props": [
+    "beard",
+    "viking helmet"
+   ],
+   "file": "adults/ADULT-MrLindqvist.svg"
+  },
+  {
+   "id": "ADULT-MrKrantz",
+   "name": "Mr. Krantz",
+   "role": "Grade 6 Math",
+   "props": [
+    "mustache"
+   ],
+   "file": "adults/ADULT-MrKrantz.svg"
+  },
+  {
+   "id": "ADULT-MsRuiz",
+   "name": "Ms. Ruiz",
+   "role": "Grade 6 Language Arts",
+   "props": [
+    "book"
+   ],
+   "file": "adults/ADULT-MsRuiz.svg"
+  },
+  {
+   "id": "ADULT-DrOsei",
+   "name": "Dr. Osei",
+   "role": "Grade 6 Science",
+   "props": [
+    "glasses",
+    "badge"
+   ],
+   "file": "adults/ADULT-DrOsei.svg"
+  },
+  {
+   "id": "ADULT-MrsDelacroix",
+   "name": "Mrs. Delacroix",
+   "role": "Grade 6 History",
+   "props": [
+    "red marker"
+   ],
+   "file": "adults/ADULT-MrsDelacroix.svg"
+  },
+  {
+   "id": "ADULT-MrsHargrove",
+   "name": "Mrs. Hargrove",
+   "role": "Grade 7 Math",
+   "props": [
+    "glasses",
+    "clipboard"
+   ],
+   "file": "adults/ADULT-MrsHargrove.svg"
+  },
+  {
+   "id": "ADULT-MrBellweather",
+   "name": "Mr. Bellweather",
+   "role": "Grade 7 Language Arts",
+   "props": [
+    "scarf"
+   ],
+   "file": "adults/ADULT-MrBellweather.svg"
+  },
+  {
+   "id": "ADULT-MsNakamura",
+   "name": "Ms. Nakamura",
+   "role": "Grade 7 Science",
+   "props": [
+    "goggles up",
+    "robot"
+   ],
+   "file": "adults/ADULT-MsNakamura.svg"
+  },
+  {
+   "id": "ADULT-CoachBriggs",
+   "name": "Coach Briggs",
+   "role": "Grade 7 History + Gym",
+   "props": [
+    "mustache",
+    "whistle",
+    "ball cap"
+   ],
+   "file": "adults/ADULT-CoachBriggs.svg"
+  },
+  {
+   "id": "ADULT-MrPetrakis",
+   "name": "Mr. Petrakis",
+   "role": "Grade 8 Math",
+   "props": [
+    "glasses"
+   ],
+   "file": "adults/ADULT-MrPetrakis.svg"
+  },
+  {
+   "id": "ADULT-MsOduya",
+   "name": "Ms. Oduya",
+   "role": "Grade 8 Language Arts",
+   "props": [],
+   "file": "adults/ADULT-MsOduya.svg"
+  },
+  {
+   "id": "ADULT-MrVance",
+   "name": "Mr. Vance",
+   "role": "Grade 8 Science",
+   "props": [
+    "goggles up"
+   ],
+   "file": "adults/ADULT-MrVance.svg"
+  },
+  {
+   "id": "ADULT-MrsWhitlock",
+   "name": "Mrs. Whitlock",
+   "role": "Grade 8 History",
+   "props": [
+    "glasses"
+   ],
+   "file": "adults/ADULT-MrsWhitlock.svg"
+  },
+  {
+   "id": "ADULT-CoachDave",
+   "name": "Coach Dave",
+   "role": "Assistant coach for hire",
+   "props": [
+    "beard",
+    "whistle",
+    "ball cap"
+   ],
+   "file": "adults/ADULT-CoachDave.svg"
+  },
+  {
+   "id": "ADULT-MrsPham",
+   "name": "Mrs. Pham",
+   "role": "Scout for hire",
+   "props": [
+    "ball cap",
+    "softball"
+   ],
+   "file": "adults/ADULT-MrsPham.svg"
+  },
+  {
+   "id": "ADULT-PrincipalPlunkett",
+   "name": "Principal Plunkett",
+   "role": "Principal",
+   "props": [
+    "mustache",
+    "glasses"
+   ],
+   "file": "adults/ADULT-PrincipalPlunkett.svg"
+  },
+  {
+   "id": "ADULT-NursePatty",
+   "name": "Nurse Patty",
+   "role": "School nurse",
+   "props": [
+    "stethoscope"
+   ],
+   "file": "adults/ADULT-NursePatty.svg"
+  },
+  {
+   "id": "ADULT-Mom",
+   "name": "Mom",
+   "role": "Your mom",
+   "props": [],
+   "file": "adults/ADULT-Mom.svg"
+  },
+  {
+   "id": "ADULT-Dad",
+   "name": "Dad",
+   "role": "Your dad",
+   "props": [
+    "mustache"
+   ],
+   "file": "adults/ADULT-Dad.svg"
+  }
+ ]
+}
