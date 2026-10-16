@@ -12,4 +12,10 @@ npm run art   # -> art/characters/{kids,adults}/*.svg + manifest.json
 - `figure.js` — proportions by grade band, builds, outfits by personality and favorite color, accessories, faces.
 - `adults.js` — the 34 named adults (teachers, coaches, principal, nurse, parents), each specified by hand.
 
-Kids are drawn at their roster `grade_at_start`. These are design references only; the in-game 3D models are unchanged.
+Kids are drawn at their roster `grade_at_start`. The in-game procedural 3D models follow the same proportions, faces and palette.
+
+```
+npm run art:png   # -> art/characters/png/*.png + reference-pack.zip (cropped, transparent; for 3D modelling)
+```
+
+See `3d/MODEL_SPEC.md` for how the sheets become real 3D models.

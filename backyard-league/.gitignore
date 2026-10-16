@@ -4,3 +4,5 @@ release/
 test-screens/
 *.log
 steam_appid.txt
+art/characters/png/
+art/characters/reference-pack.zip
