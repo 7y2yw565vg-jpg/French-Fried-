@@ -12,6 +12,7 @@ import { lookFromKid, adultLook, ball as ballMesh } from '../world3d/kidModel.js
 import { clutch } from './minigames.js';
 import { playerLook } from './game.js';
 import { sfx } from './audio.js';
+import { makeDirector, stagePlay } from './matchPlays.js';
 import { mulberry32, hashString } from '../game/rng.js';
 
 export function startMatchFlow(game, g, opp) {
@@ -143,31 +144,38 @@ export function playMatch(game, g, opp, week) {
     const n = e.addNPC({ id: `FAN-${i}`, look, x: sp.x, z: sp.z, rot: 0, mode: sp.standing ? 'stand' : 'sit' });
     n.char.root.position.y = sp.standing ? 0 : sp.y - 0.25;
   }
-  // ball
+  // ball + the director that acts out each play
   const ball = ballMesh(sport);
+  ball.userData.dribble = sport === 'basketball';
+  ball.userData.carryY = sport === 'soccer' ? 0.15 : 0.9;
   ball.position.set(f.cx, 0.15, f.cz);
   game.desc.group.add(ball);
-  let ballFrom = ball.position.clone(); let ballTo = ball.position.clone(); let ballT = 1; let ballArc = 0;
-  const moveBall = (x, z, arc = 1.5) => { ballFrom = ball.position.clone(); ballTo = new THREE.Vector3(x, 0.15, z); ballT = 0; ballArc = arc; };
+  const speedRef = { v: 1 };
+  const d = makeDirector(e, ball, speedRef);
+  const camAt = new THREE.Vector3(f.cx, 0, f.cz);
   const updater = (dt) => {
-    if (ballT < 1) {
-      ballT = Math.min(1, ballT + dt * 1.6);
-      ball.position.lerpVectors(ballFrom, ballTo, ballT);
-      ball.position.y = 0.15 + Math.sin(ballT * Math.PI) * ballArc;
-      ball.rotation.x += dt * 8;
+    d.update(dt);
+    // Broadcast camera: stays on the sideline and drifts with the ball.
+    if (e.cine) {
+      const bx = sport === 'baseball' ? f.cx + (ball.position.x - f.cx) * 0.5 : f.cx + (ball.position.x - f.cx) * 0.7;
+      camAt.lerp(new THREE.Vector3(bx, 0, f.cz + (ball.position.z - f.cz) * 0.4), Math.min(1, dt * 1.6));
+      e.cine.center.copy(camAt);
+      e.cine.look.set(camAt.x, 0.6, camAt.z);
     }
   };
   e.extraUpdaters.add(updater);
-  e.cinematic({ x: f.cx, z: f.cz + 2 }, Math.max(f.L, f.W) * 0.95, { height: Math.max(f.L, f.W) * 0.55, spin: 0.015, angle: 0.35 });
+  e.cinematic({ x: f.cx, z: f.cz }, Math.max(f.L, f.W) * 0.62, { height: Math.max(f.L, f.W) * 0.42, spin: 0, angle: sport === 'baseball' ? -0.6 : 0 });
 
   // overlay
   const sbNames = [g.home, g.away];
   if (game.desc.setScore) game.desc.setScore(0, 0, g.playoff || 'Jr League', sbNames);
   const scoreEl = h('div', { class: 'score' }, h('span', { class: 'team' }, g.home), h('span', {}, '0 - 0'), h('span', { class: 'team' }, g.away));
   const speedBtns = h('div', { class: 'btn-row' });
-  let speed = 1; let skipping = false;
-  const setSpeed = (v) => { speed = v; drawSpeed(); };
-  const drawSpeed = () => speedBtns.replaceChildren(btn('1x', () => setSpeed(1), `small ${speed === 1 ? '' : 'white'}`), btn('2x', () => setSpeed(2.5), `small ${speed === 2.5 ? '' : 'white'}`), btn('Skip ⏭', () => { skipping = true; }, 'small red'));
+  let skipping = false;
+  const setSpeed = (v) => { speedRef.v = v; drawSpeed(); };
+  const drawSpeed = () => speedBtns.replaceChildren(
+    ...[1, 2, 4].map((v) => btn(`${v}x`, () => setSpeed(v), `small ${speedRef.v === v ? '' : 'white'}`)),
+    btn('Skip ⏭', () => { skipping = true; d.instant = true; d.flush(); }, 'small red'));
   drawSpeed();
   const hud = h('div', { class: 'match-hud' }, scoreEl, speedBtns);
   const lineEl = h('div', { class: 'line' });
@@ -178,6 +186,18 @@ export function playMatch(game, g, opp, week) {
 
   let res = simGame(s, g, week);
   const playerSide = g.home === s.team.name ? 'home' : 'away';
+  const lineups = { home: sides.home.lineup.filter((p) => p.id), away: sides.away.lineup.filter((p) => p.id) };
+  const homeSpot = new Map();
+  for (const side of ['home', 'away']) for (const p of lineups[side]) { const n = e.npc(`M-${side}-${p.id}`); if (n) homeSpot.set(n.id, { ...n.home }); }
+  const ctx = { sport, f, d, lineups, homeSpot, spots: (side, phase) => formation(sport, f, lineups[side], side, phase), reveal: () => {} };
+  const show = (ev) => {
+    lineEl.replaceChildren(h('span', { class: 'clock' }, ev.t), ev.text);
+    scoreEl.children[1].textContent = `${ev.score[0]} - ${ev.score[1]}`;
+    if (game.desc.setScore) game.desc.setScore(ev.score[0], ev.score[1], ev.t, sbNames);
+    if (ev.points && ev.type !== 'xp') sfx(ev.side === playerSide ? 'cheer' : 'boo');
+    else if (['half', 'end', 'start'].includes(ev.type)) sfx('whistle');
+    else if (['save', 'tackle', 'steal', 'strikeout', 'pick', 'stop'].includes(ev.type)) sfx('kick');
+  };
   const run = async () => {
     sfx('whistle');
     let i = 0;
@@ -193,17 +213,15 @@ export function playMatch(game, g, opp, week) {
         continue;
       }
       if (!skipping) {
-        animateEvent(e, sport, f, ev, ids, moveBall);
-        lineEl.replaceChildren(h('span', { class: 'clock' }, ev.t), ev.text);
-        scoreEl.children[1].textContent = `${ev.score[0]} - ${ev.score[1]}`;
-        if (game.desc.setScore) game.desc.setScore(ev.score[0], ev.score[1], ev.t, sbNames);
-        if (['goal', 'bucket', 'three', 'td', 'homer'].includes(ev.type) || (ev.type === 'hit' && ev.points)) sfx(ev.side === playerSide ? 'cheer' : 'boo');
-        else if (['half', 'end', 'start'].includes(ev.type)) sfx('whistle');
-        else if (['save', 'tackle', 'steal', 'strikeout', 'pick', 'stop'].includes(ev.type)) sfx('kick');
-        await wait((['goal', 'td', 'homer', 'three'].includes(ev.type) ? 2600 : 1700) / speed);
+        let shown = false;
+        ctx.reveal = () => { if (!shown) { shown = true; show(ev); } };
+        await stagePlay(ctx, ev);
+        ctx.reveal();
+        await d.wait(ev.minor ? 200 : ['goal', 'td', 'homer', 'three'].includes(ev.type) ? 1200 : 700);
       }
       i++;
     }
+    d.instant = true; d.flush();
     finish();
   };
 
@@ -236,35 +254,6 @@ export function playMatch(game, g, opp, week) {
     });
   };
   run();
-}
-
-function animateEvent(e, sport, f, ev, ids, moveBall) {
-  const bx = f.cx - f.L / 2 + (ev.x ?? 0.5) * f.L;
-  const scoring = ['goal', 'bucket', 'three', 'td'].includes(ev.type);
-  let tx = bx; let tz = f.cz + (Math.random() - 0.5) * f.W * 0.5;
-  if (sport === 'soccer' && (scoring || ev.type === 'save' || ev.type === 'miss')) { tx = ev.side === 'home' ? f.cx + f.L / 2 : f.cx - f.L / 2; tz = f.cz + (ev.type === 'miss' ? (Math.random() < 0.5 ? -3 : 3) : (Math.random() - 0.5) * 2); }
-  if (sport === 'basketball' && (scoring || ev.type === 'brick')) { tx = f.cx + (ev.side === 'home' ? 1 : -1) * (f.L / 2 - 1.3); tz = f.cz; }
-  if (sport === 'football' && ev.type === 'td') { tx = f.cx + (ev.side === 'home' ? 1 : -1) * (f.L / 2 - 1.5); }
-  if (sport === 'baseball') {
-    if (['hit', 'double', 'triple', 'homer'].includes(ev.type)) { tx = f.home.x + 8 + Math.random() * 14 + (ev.type === 'homer' ? 10 : 0); tz = f.home.z + (Math.random() - 0.5) * 16; }
-    else { tx = f.home.x; tz = f.home.z; }
-  }
-  moveBall(tx, tz, sport === 'basketball' && scoring ? 2.4 : sport === 'baseball' && ev.type === 'homer' ? 8 : 1.5);
-  // players drift toward the action
-  for (const side of ['home', 'away']) {
-    for (const nid of ids[side]) {
-      const n = e.npc(nid);
-      if (!n || !n.home) continue;
-      if (sport === 'baseball') {
-        if (n.pid === ev.actor && ev.side === side) e.walkNPC(nid, f.home.x - 0.4, f.home.z + 0.8, 3).then(() => { n.char.root.rotation.y = Math.PI / 2; });
-        continue;
-      }
-      const pull = n.pid === ev.actor ? 0.85 : 0.25 + Math.random() * 0.2;
-      const x = n.home.x + (tx - n.home.x) * pull + (Math.random() - 0.5) * 1.5;
-      const z = n.home.z + (tz - n.home.z) * pull * 0.6 + (Math.random() - 0.5) * 1.5;
-      e.walkNPC(nid, x, z, 4.5).then(() => { if (scoring && n.pid === ev.actor) { n.animOverride = 'cheer'; setTimeout(() => { n.animOverride = null; }, 1500); } });
-    }
-  }
 }
 
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }

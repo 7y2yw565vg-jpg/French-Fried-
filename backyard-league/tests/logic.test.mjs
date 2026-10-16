@@ -423,3 +423,24 @@ test('upcoming events for passing time', async () => {
   s.time.minute = 18 * 60;
   assert.deepEqual(upcomingEvents(s).map((e) => e.label), ['Bedtime']);
 });
+
+test('sim events carry enough detail to act out every play', () => {
+  const POS = { soccer: ['GK', 'DEF', 'DEF', 'MID', 'MID', 'FWD', 'FWD'], basketball: ['PG', 'SG', 'SF', 'PF', 'C'], football: ['QB', 'RB', 'WR', 'WR', 'DB', 'LB', 'DB'], baseball: ['P', 'C', 'IF', 'IF', 'IF', 'IF', 'OF', 'OF', 'OF'] };
+  for (const sport of Object.keys(POS)) {
+    const mk = (n) => ({ name: n, bonus: 0, lineup: POS[sport].map((p, i) => ({ id: `${n}${i}`, pos: p, name: `${n}${i}`, rating: 45 + i * 4, stats: {}, isPlayer: false })) });
+    for (let seed = 1; seed < 6; seed++) {
+      const r = simulateMatch({ sport, home: mk('H'), away: mk('A'), seed });
+      const pts = [0, 0];
+      for (const e of r.events) {
+        if (['start', 'end', 'half'].includes(e.type)) continue;
+        assert.ok(e.off === 'home' || e.off === 'away', `${sport} ${e.type} has an offense`);
+        assert.ok(e.text, `${sport} ${e.type} has commentary`);
+        if (sport === 'baseball' && e.batter) {
+          assert.equal(e.bases.length, 3);
+          pts[e.off === 'home' ? 0 : 1] += e.scored.length;
+        } else if (e.points) pts[e.off === 'home' ? 0 : 1] += e.points;
+      }
+      assert.deepEqual(pts, r.score, `${sport} seed ${seed}: plays add up to the final score`);
+    }
+  }
+});

@@ -156,14 +156,18 @@ function soccer(ctx) {
       const p = onTarget ? clamp(0.42 + (attacker.rating - gk.rating) / 110, 0.1, 0.85) : 0.05;
       const goal = decide(ctx, attacker, p, i >= T / 3 && diff <= 2);
       const vars = { a: nm(attacker), d: nm(goal ? defender : gk), t: att.name };
+      const who = { off: side, def: defender.id, gk: gk.id };
       if (goal) {
         ctx.score[si] += 1;
-        push(ctx, { t: minute, side, type: 'goal', actor: attacker.id, points: 1, x, text: line(rng, 'goal', ctx.tier, vars) });
+        push(ctx, { t: minute, side, type: 'goal', actor: attacker.id, points: 1, x, ...who, text: line(rng, 'goal', ctx.tier, vars) });
       } else {
-        push(ctx, { t: minute, side, type: onTarget ? 'save' : 'miss', actor: attacker.id, x, text: line(rng, onTarget ? 'save' : 'miss', ctx.tier, { ...vars, d: nm(gk) }) });
+        push(ctx, { t: minute, side, type: onTarget ? 'save' : 'miss', actor: attacker.id, x, ...who, text: line(rng, onTarget ? 'save' : 'miss', ctx.tier, { ...vars, d: nm(gk) }) });
       }
     } else if (rng() < 0.5) {
-      push(ctx, { t: minute, side, type: 'tackle', actor: defender.id, x: 0.5 + (rng() - 0.5) * 0.4, text: line(rng, 'tackle', ctx.tier, { a: nm(attacker), d: nm(defender) }) });
+      push(ctx, { t: minute, side, type: 'tackle', actor: defender.id, victim: attacker.id, off: side, x: 0.5 + (rng() - 0.5) * 0.4, text: line(rng, 'tackle', ctx.tier, { a: nm(attacker), d: nm(defender) }) });
+    } else {
+      // Nothing comes of it: the ball just moves around midfield.
+      push(ctx, { t: minute, side, type: 'keep', actor: attacker.id, off: side, x: 0.5, text: `${att.name} knock it around in midfield.`, minor: true });
     }
   }
 }
@@ -185,7 +189,8 @@ function basketball(ctx) {
     const x = side === 'home' ? 0.85 : 0.15;
     if (!players.length) continue;
     if (rng() < clamp(0.16 - ((pg.stats.BCL || 50) - 50) / 300 + ((thief.stats.AGI || 50) - 50) / 500, 0.04, 0.35)) {
-      if (rng() < 0.5) push(ctx, { t, side: side === 'home' ? 'away' : 'home', type: 'steal', actor: thief.id, x: 0.5, text: line(rng, 'steal', ctx.tier, { a: nm(pg), d: nm(thief) }) });
+      const loud = rng() < 0.5;
+      push(ctx, { t, side: side === 'home' ? 'away' : 'home', type: 'steal', actor: thief.id, victim: pg.id, off: side, x: 0.5, minor: !loud, text: loud ? line(rng, 'steal', ctx.tier, { a: nm(pg), d: nm(thief) }) : `${nm(thief)} pokes it away from ${nm(pg)}. Turnover.` });
       continue;
     }
     for (let shot = 0; shot < 2; shot++) {
@@ -196,14 +201,17 @@ function basketball(ctx) {
       const diff = Math.abs(ctx.score[0] - ctx.score[1]);
       const made = decide(ctx, shooter, p, i >= P / 2 && diff <= 12);
       const vars = { a: nm(shooter), d: nm(defender) };
+      const who = { off: side, def: defender.id, pg: pg.id, three };
       if (made) {
         const pts = three ? 3 : 2;
         ctx.score[si] += pts;
-        push(ctx, { t, side, type: three ? 'three' : 'bucket', actor: shooter.id, points: pts, x, text: line(rng, three ? 'three' : 'bucket', ctx.tier, vars) });
+        push(ctx, { t, side, type: three ? 'three' : 'bucket', actor: shooter.id, points: pts, x, ...who, text: line(rng, three ? 'three' : 'bucket', ctx.tier, vars) });
         break;
       }
-      if (rng() < 0.45 || shooter.isPlayer) push(ctx, { t, side, type: 'brick', actor: shooter.id, x, text: line(rng, 'brick', ctx.tier, vars) });
-      if (rng() > 0.3) break; // no offensive rebound
+      const loud = rng() < 0.45 || shooter.isPlayer;
+      const offReb = !(rng() > 0.3);
+      push(ctx, { t, side, type: 'brick', actor: shooter.id, x, ...who, offReb: offReb && shot === 0, minor: !loud, text: loud ? line(rng, 'brick', ctx.tier, vars) : `${nm(shooter)} misses${offReb && shot === 0 ? ', but ' + off.name + ' grab the rebound' : ''}.` });
+      if (!offReb) break; // no offensive rebound
     }
   }
 }
@@ -220,8 +228,9 @@ function baseball(ctx) {
       const pitcher = byPos(def, 'P')[0] || def.lineup.find((p) => p.id) || ghost;
       const lineup = order[side];
       if (!lineup.length) continue;
-      let outs = 0; let runs = 0; let bases = [0, 0, 0];
+      let outs = 0; let runs = 0; let bases = [null, null, null];
       const t = `${side === 'away' ? 'Top' : 'Bot'} ${inning}`;
+      push(ctx, { t, side, type: 'side', off: side, text: `${t}: the ${off.name} come up to bat.`, minor: true });
       while (outs < 3 && runs < 5) {
         const batter = lineup[idx[side] % lineup.length];
         idx[side] += 1;
@@ -234,57 +243,72 @@ function baseball(ctx) {
         const before = runs;
         const diff = Math.abs(ctx.score[0] - ctx.score[1]);
         const clutchy = inning >= 3 && diff <= 4;
+        const pa = { off: side, batter: batter.id, pitcher: pitcher.id };
+        const flavor = (list) => list[ctx.events.length % list.length];
         if (r < pWalk) {
-          bases = advance(bases, 1, true);
-          runs += bases[3] || 0; bases.length = 3;
-          if (rng() < 0.4) push(ctx, { t, side, type: 'walk', actor: batter.id, x: 0.5, text: line(rng, 'walk', ctx.tier, vars) });
+          const res = walkRunners(bases, batter.id);
+          bases = res.bases; runs += res.scored.length;
+          const loud = rng() < 0.4;
+          ctx.score[si] += runs - before;
+          push(ctx, { t, side, type: 'walk', actor: batter.id, ...pa, x: 0.5, bases: [...bases], scored: res.scored, outs, points: runs - before, minor: !loud, text: loud ? line(rng, 'walk', ctx.tier, vars) : `Ball four. ${nm(batter)} takes first.` });
+          continue;
         } else if (decide(ctx, batter, pHit / (1 - pWalk), clutchy)) {
           const str = batter.stats.STR || 50;
           const h = rng();
           const kind = h < 0.04 + (str - 50) / 600 ? 4 : h < 0.08 ? 3 : h < 0.26 + (str - 50) / 400 ? 2 : 1;
-          const res = advanceHit(bases, kind);
-          bases = res.bases; runs += res.runs;
+          const res = advanceHit(bases, kind, batter.id);
+          bases = res.bases; runs += res.scored.length;
           const type = ['hit', 'hit', 'double', 'triple', 'homer'][kind];
           ctx.score[si] += runs - before;
-          push(ctx, { t, side, type, actor: batter.id, points: runs - before, x: 0.5, text: line(rng, type, ctx.tier, vars) + (runs > before ? ` (${runs - before} run${runs - before > 1 ? 's' : ''} score!)` : '') });
+          push(ctx, { t, side, type, actor: batter.id, ...pa, points: runs - before, x: 0.5, bases: [...bases], scored: res.scored, outs, text: line(rng, type, ctx.tier, vars) + (runs > before ? ` (${runs - before} run${runs - before > 1 ? 's' : ''} score!)` : '') });
           continue;
         } else if (rng() < 0.12) {
           // Kid-league error: everybody advances, nobody is out.
-          const res = advanceHit(bases, 1);
-          bases = res.bases; runs += res.runs;
-          if (rng() < 0.5) push(ctx, { t, side, type: 'walk', actor: batter.id, x: 0.5, text: `${nm(batter)} hits a grounder... and it rolls right between the fielder's legs! Everybody runs!` });
+          const res = advanceHit(bases, 1, batter.id);
+          bases = res.bases; runs += res.scored.length;
+          const loud = rng() < 0.5;
+          ctx.score[si] += runs - before;
+          push(ctx, { t, side, type: 'error', actor: batter.id, ...pa, x: 0.5, bases: [...bases], scored: res.scored, outs, points: runs - before, minor: !loud, text: loud ? `${nm(batter)} hits a grounder... and it rolls right between the fielder's legs! Everybody runs!` : `Error! ${nm(batter)} reaches first.` });
+          continue;
         } else {
           outs += 1;
-          if (rng() < 0.35 || batter.isPlayer) push(ctx, { t, side, type: 'strikeout', actor: pitcher.id, x: 0.5, text: line(rng, 'strikeout', ctx.tier, vars) });
+          const loud = rng() < 0.35 || batter.isPlayer;
+          const how = loud ? 'k' : flavor(['ground', 'pop', 'fly', 'k']);
+          const outText = { ground: `${nm(batter)} grounds out to the infield.`, pop: `${nm(batter)} pops it up. Caught!`, fly: `${nm(batter)} flies out to the outfield.`, k: `${nm(batter)} strikes out.` }[how];
+          push(ctx, { t, side, type: how === 'k' ? 'strikeout' : 'out', how, actor: loud ? pitcher.id : batter.id, ...pa, x: 0.5, bases: [...bases], scored: [], outs, minor: !loud, text: loud ? line(rng, 'strikeout', ctx.tier, vars) : outText });
+          continue;
         }
-        ctx.score[si] += runs - before;
       }
     }
   }
 }
 
-function advance(bases, n, forced) {
-  // Walk: force runners only.
+/** Ball four: the batter takes first and only forced runners move up. Bases hold runner ids. */
+function walkRunners(bases, batter) {
   const b = [...bases];
-  if (forced) {
-    if (b[0] && b[1] && b[2]) return [1, 1, 1, 1];
-    if (b[0] && b[1]) return [1, 1, 1];
-    if (b[0]) return [1, 1, b[2]];
-    return [1, b[1], b[2]];
+  const scored = [];
+  if (b[0]) {
+    if (b[1]) {
+      if (b[2]) scored.push(b[2]);
+      b[2] = b[1];
+    }
+    b[1] = b[0];
   }
-  return b;
+  b[0] = batter;
+  return { bases: b, scored };
 }
 
-function advanceHit(bases, kind) {
-  let runs = 0;
-  const b = [0, 0, 0];
+/** A hit of `kind` bases (4 = homer): everyone moves up that many (a runner on 2nd scores on a single). */
+function advanceHit(bases, kind, batter) {
+  const scored = [];
+  const b = [null, null, null];
   for (let i = 2; i >= 0; i--) {
     if (!bases[i]) continue;
     const to = i + kind + (kind === 1 && i === 1 ? 1 : 0);
-    if (to >= 3) runs += 1; else b[to] = 1;
+    if (to >= 3) scored.push(bases[i]); else b[to] = bases[i];
   }
-  if (kind >= 4) runs += 1; else b[kind - 1] = 1;
-  return { bases: b, runs };
+  if (kind >= 4) scored.push(batter); else b[kind - 1] = batter;
+  return { bases: b, scored };
 }
 
 // ----------------------------------------------------------- football ---
@@ -306,7 +330,7 @@ function football(ctx) {
     const vars = { a: nm(target), d: nm(defender), t: off.name };
     const x = side === 'home' ? 0.9 : 0.1;
     if (rng() < clamp(0.13 - ((qb.stats.IQ || 50) - 50) / 400, 0.04, 0.3)) {
-      push(ctx, { t, side: side === 'home' ? 'away' : 'home', type: 'pick', actor: defender.id, x: 0.5, text: line(rng, 'pick', ctx.tier, vars) });
+      push(ctx, { t, side: side === 'home' ? 'away' : 'home', type: 'pick', actor: defender.id, off: side, qb: qb.id, target: target.id, x: 0.5, text: line(rng, 'pick', ctx.tier, vars) });
       continue;
     }
     const diff = Math.abs(ctx.score[0] - ctx.score[1]);
@@ -314,10 +338,10 @@ function football(ctx) {
     const actor = qb.isPlayer ? qb : target;
     if (decide(ctx, actor, p, i >= D / 2 && diff <= 14)) {
       ctx.score[si] += 6;
-      push(ctx, { t, side, type: 'td', actor: target.id, points: 6, x, text: line(rng, 'td', ctx.tier, vars) });
-      if (rng() < 0.6) { ctx.score[si] += 1; push(ctx, { t, side, type: 'xp', x, text: line(rng, 'xp', ctx.tier, vars) }); }
+      push(ctx, { t, side, type: 'td', actor: target.id, points: 6, x, off: side, qb: qb.id, target: target.id, def: defender.id, text: line(rng, 'td', ctx.tier, vars) });
+      if (rng() < 0.6) { ctx.score[si] += 1; push(ctx, { t, side, type: 'xp', x, off: side, actor: qb.id, points: 1, text: line(rng, 'xp', ctx.tier, vars) }); }
     } else {
-      push(ctx, { t, side: side === 'home' ? 'away' : 'home', type: 'stop', actor: defender.id, x: 0.5, text: line(rng, 'stop', ctx.tier, vars) });
+      push(ctx, { t, side: side === 'home' ? 'away' : 'home', type: 'stop', actor: defender.id, off: side, qb: qb.id, target: target.id, x: 0.5, text: line(rng, 'stop', ctx.tier, vars) });
     }
   }
 }
