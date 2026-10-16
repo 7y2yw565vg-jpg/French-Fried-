@@ -407,3 +407,19 @@ test('your own character improves from workouts and practice', async () => {
   const old = JSON.parse(serialize(s)); delete old.player.train;
   assert.deepEqual(deserialize(JSON.stringify(old)).player.train, {});
 });
+
+test('upcoming events for passing time', async () => {
+  const { upcomingEvents } = await import('../src/game/clock.js');
+  const s = newGame(opts());
+  let d = 1; while (!dayInfo(d).isSchoolDay) d++;
+  s.time.day = d; s.time.minute = 7 * 60 + 5;
+  const ev = upcomingEvents(s);
+  assert.equal(ev[0].label, 'School opens');
+  assert.ok(ev.some((e) => e.label === 'School lets out'));
+  assert.ok(!ev.some((e) => e.label === 'Class 2 starts')); // only listed once you're at school
+  s.loc = 'school';
+  assert.ok(upcomingEvents(s).some((e) => e.label === 'Class 2 starts'));
+  assert.ok(ev.every((e, i) => i === 0 || e.minute >= ev[i - 1].minute));
+  s.time.minute = 18 * 60;
+  assert.deepEqual(upcomingEvents(s).map((e) => e.label), ['Bedtime']);
+});

@@ -164,6 +164,7 @@ export function buildHome(opts) {
   hb.cyl(0.25, 0.3, 0.45, '#b5651d', 0.3, 0, -13.4, { mat: 'plastic' });
   P.bush(hb, 0.3, -13.4, 0.6, '#3f8a46');
   zone(sc, 'living room', -4, -11, 8, 5);
+  act(sc, 'tv', lx, -12.2, 'Couch: watch TV (pass time)');
   // garage
   P.car(hb, 5, -11.2, Math.PI, '#4a7bd0');
   hb.box(0.6, 2.2, 4.8, '#8d6e63', 8.55, 0, -11, { collide: true, mat: 'wood' });
@@ -373,6 +374,7 @@ export function buildHome(opts) {
   tf.box(1.6, 0.5, 0.45, '#3d3d42', 0, 0, 0, 'wood').box(1.5, 0.85, 0.06, '#111111', 0, 0.85, -0.05, 'plastic').box(1.4, 0.75, 0.01, '#ff6b9a', 0, 0.9, -0.015, 'glow');
   tf.box(0.36, 0.07, 0.25, '#f4f1ea', 0.45, 0.5, 0.05, 'plastic').solid(1.6, 0.45);
   P.sofa(bb, 49.3, -9.6, Math.PI / 2, '#c1121f', 2.2);
+  act(sc, 'tv', 50.4, -9.6, 'Couch: watch TV (pass time)');
   bb.box(0.55, 0.85, 0.55, '#e9ecef', 51.5, 0, -7.0, { mat: 'metal', collide: true });
   bb.box(0.02, 0.6, 0.03, '#9aa0a6', 51.2, 0.15, -6.8, { mat: 'metal' });
   for (let i = 0; i < 3; i++) bb.cyl(0.04, 0.04, 0.13, ['#e63946', '#06d6a0', '#ffbe0b'][i], 51.35 + i * 0.12, 0.85, -7.0, { mat: 'metal' });

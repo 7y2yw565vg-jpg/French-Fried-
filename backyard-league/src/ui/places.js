@@ -15,6 +15,7 @@ import { openMap } from './mapview.js';
 import { claw, quiz } from './minigames.js';
 import { startLemonade, startPaperRoute, startMowing } from './jobs.js';
 import { sfx } from './audio.js';
+import { openWait } from './wait.js';
 
 export function handleSpot(game, kind, data, spot) {
   const s = game.state;
@@ -71,6 +72,8 @@ const HANDLERS = {
       ].filter(Boolean),
     });
   },
+
+  tv(game) { openWait(game, { tv: true }); },
 
   bed(game) {
     const s = game.state;

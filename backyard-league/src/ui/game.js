@@ -21,6 +21,7 @@ import { openTalk, openAdult } from './talk.js';
 import { openMap, travelMinutes } from './mapview.js';
 import { openPhone } from './phone.js';
 import { handleSpot } from './places.js';
+import { openWait } from './wait.js';
 import { enterClass, exitClass, resumeClass } from './classroom.js';
 import { startMatchFlow } from './match.js';
 import { startTryout } from './tryout.js';
@@ -742,6 +743,7 @@ export class Game {
     }
     if (modalOpen() || this.talking) return;
     if (e.code === 'KeyM' && this.mode === 'free') openMap(this);
+    if (e.code === 'KeyZ' && this.mode === 'free' && !modalOpen()) openWait(this);
     if (e.code === 'Tab' && (this.mode === 'free' || this.mode === 'class')) { e.preventDefault(); openPhone(this); }
   }
 

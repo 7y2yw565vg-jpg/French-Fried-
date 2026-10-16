@@ -129,3 +129,25 @@ export function rosterMinimumMet(state) {
 }
 
 export { addNews };
+
+/** Things coming up later today, for "wait until..." (soonest first). */
+export function upcomingEvents(state) {
+  const now = state.time.minute;
+  const info = dayInfo(state.time.day);
+  const out = [];
+  const add = (minute, label) => { if (minute > now && minute < CURFEW) out.push({ minute, label }); };
+  if (info.isSchoolDay) {
+    add(SCHOOL_BLOCKS[0].start, 'School opens');
+    // The in-school schedule only matters once you're there.
+    if (state.loc === 'school') {
+      for (const b of SCHOOL_BLOCKS) if (b.kind === 'class') add(b.start, `Class ${b.period} starts`);
+      for (const b of SCHOOL_BLOCKS) if (b.kind === 'recess' || b.kind === 'lunch') add(b.start, b.label);
+    }
+    add(14 * 60, 'School lets out');
+  }
+  if (info.dow === 5 && playerGameThisWeek(state)) add(GAME_TIME, 'Game time!');
+  if (practiceToday(state) && state.team.roster.length > 1) add(state.team.practice.start, 'Team practice');
+  if (state.team.tryout && !state.team.tryout.done && state.team.tryout.day === state.time.day) add(state.team.tryout.minute, 'Tryouts');
+  add(19 * 60, 'Bedtime');
+  return out.sort((a, b) => a.minute - b.minute);
+}

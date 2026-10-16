@@ -1,5 +1,6 @@
 // Heads-up display: clock, money, grades, current school period, goal.
 import { $, h, clear, btn, money } from './dom.js';
+import { openWait } from './wait.js';
 import { dayInfo, formatTime, schoolBlockAt } from '../game/time.js';
 import { playerClass } from '../game/school.js';
 import { roomNumber } from '../data/world.js';
@@ -44,6 +45,7 @@ export class Hud {
     this.root.append(h('div', { class: 'hud-spacer' }));
     this.root.append(h('div', { class: 'hud-btns' },
       btn('🗺️ Map (M)', () => { if (g.mode === 'free') openMap(g); }, 'small white'),
+      btn('⏳ Wait (Z)', () => openWait(g), 'small white'),
       btn('📱 Phone (Tab)', () => { if (g.mode === 'free' || g.mode === 'class') openPhone(g); }, 'small white')));
     this.update();
   }
