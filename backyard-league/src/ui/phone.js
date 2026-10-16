@@ -2,10 +2,10 @@
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR, PLAYER_TRAIN_CAP } from '../data/world.js';
-import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog } from '../game/state.js';
-import { orderDrillGear, practiceStats, untestedDrills, soloWorkout, workoutCheck, WORKOUT_MINUTES, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, fieldPreview, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
+import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog, heightOf } from '../game/state.js';
+import { orderDrillGear, practiceStats, untestedDrills, soloWorkout, workoutCheck, WORKOUT_MINUTES, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, fieldPreview, setLineupSlot, lineupLocks, lineupTotal, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
 import { standings, weekGames, kitBottoms } from '../game/league.js';
-import { letter } from '../game/stats.js';
+import { letter, positionRating, heightScore } from '../game/stats.js';
 import { letterFor, playerClass, classmates } from '../game/school.js';
 import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game/social.js';
 import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
@@ -119,17 +119,51 @@ function practiceBox(game, redraw) {
   const okStats = practiceStats(s);
   if (!okStats.includes(p.focus)) p.focus = okStats[0] || 'SPD';
   const focus = h('select', { onchange: (e) => { p.focus = e.target.value; } }, ...okStats.map((c) => h('option', { value: c, selected: p.focus === c ? true : null }, STAT_NAMES[c])));
-  const sport = s.team.sport;
-  const posSel = h('select', { onchange: (e) => { s.team.playerPos = e.target.value || null; redraw(); } },
-    h('option', { value: '' }, 'Auto (my best spot)'), ...[...new Set(SPORTS[sport].lineup)].map((pos) => h('option', { value: pos, selected: s.team.playerPos === pos ? true : null }, POSITIONS[sport][pos].name)));
-  const { lineup } = bestLineup(s);
   return h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, '📅 Practice'),
     h('p', { class: 'muted' }, 'Practice is 3:30-5:00 PM in your backyard. Show up and your teammates get better at the focus skill (and like you more). Skip it and they get grumpy.'),
     days, h('div', { class: 'row', style: { marginTop: '8px' } }, 'Focus:', focus, h('span', { class: 'muted' }, 'Unlock more in 🏋️ Training.')),
     practiceTestRow(s, redraw),
+    lineupEditor(game, redraw));
+}
+
+/** Starting lineup: the coach fills it for the best team total; pin anyone anywhere with the dropdowns. */
+function lineupEditor(game, redraw) {
+  const s = game.state;
+  const sport = s.team.sport;
+  const { lineup, bench } = bestLineup(s);
+  const locks = lineupLocks(s);
+  // What the coach would do with no pins, to show what your changes cost.
+  const saved = s.team.lineupLocks; s.team.lineupLocks = {};
+  const auto = bestLineup(s).lineup;
+  s.team.lineupLocks = saved;
+  const known = (id) => id === 'PLAYER' || Object.keys(s.kids[id]?.rev || {}).length >= 3;
+  const who = (id) => (id === 'PLAYER' ? `${s.player.name} (You)` : shortName(KID_BY_ID.get(id)));
+  const eligible = s.team.roster.filter((id) => eligibility(s, id).ok);
+  const fit = (id, pos) => {
+    const st = statsOf(s, id);
+    return positionRating(st, sport, pos, heightScore(heightOf(s, id), kidGrade(s, id)));
+  };
+  const rows = lineup.map((x, i) => {
+    const sel = h('select', { onchange: (e) => { setLineupSlot(s, i, e.target.value || null); redraw(); } },
+      h('option', { value: '' }, `Coach picks${!locks[i] && x.id ? ` (${who(x.id)})` : ''}`),
+      ...eligible.map((id) => h('option', { value: id, selected: locks[i] === id ? true : null }, `${who(id)} · ${known(id) ? letter(fit(id, x.pos)) : '?'} here`)));
+    return h('tr', {},
+      h('td', {}, POSITIONS[sport][x.pos].name),
+      h('td', {}, x.id ? h('b', {}, who(x.id)) : h('span', { class: 'pill bad' }, 'EMPTY'), locks[i] ? ' 📌' : ''),
+      h('td', {}, x.id && known(x.id) ? gradeChip(letter(x.rating), x.rating) : gradeChip('?')),
+      h('td', {}, sel));
+  });
+  const pins = Object.keys(locks).length;
+  const diff = lineupTotal(lineup) - lineupTotal(auto);
+  return h('div', {},
     h('h3', { style: { marginTop: '12px' } }, '📋 Starting lineup'),
-    h('div', { class: 'row' }, 'You play:', posSel),
-    h('table', { class: 'list' }, ...lineup.map((x) => h('tr', {}, h('td', {}, POSITIONS[sport][x.pos].name), h('td', {}, x.id ? (x.id === 'PLAYER' ? 'You' : shortName(KID_BY_ID.get(x.id))) : h('span', { class: 'pill bad' }, 'EMPTY'))))));
+    h('p', { class: 'muted' }, 'The coach fills every spot to make the whole team as strong as possible. Pick someone in a dropdown to pin them to that spot (📌); the coach fills the rest around them.'),
+    h('table', { class: 'list' }, h('tr', {}, h('th', {}, 'Spot'), h('th', {}, 'Starting'), h('th', {}, 'Fit'), h('th', {}, 'Change')), ...rows),
+    bench.length ? h('p', {}, h('b', {}, 'Bench: '), bench.map(who).join(', ')) : null,
+    pins && diff < 0 ? h('p', { class: 'muted' }, `Your pins make the lineup a little weaker than the coach's pick (${diff} total rating).`) : null,
+    h('div', { class: 'row' },
+      h('label', { class: 'row' }, h('input', { type: 'checkbox', checked: s.team.benchMe ? true : null, onchange: (e) => { s.team.benchMe = e.target.checked; redraw(); } }), "Let the coach bench me if someone's better"),
+      pins ? btn('Reset to coach\'s lineup', () => { s.team.lineupLocks = {}; redraw(); }, 'small white') : null));
 }
 
 /** Toggle + summary for testing teammates at practice on drills they missed at tryouts. */

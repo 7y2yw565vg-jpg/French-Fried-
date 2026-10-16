@@ -44,41 +44,97 @@ export function eligibility(state, id) {
 }
 
 /** Greedy best-available lineup: fill the scarcest positions first. */
+/**
+ * The strongest lineup: every slot filled so the whole team's total rating is as high as possible
+ * (not just the best spot for one kid). For your own team, slots you pinned in the lineup editor
+ * stay put, and you start unless you've told the coach it's OK to bench you.
+ */
 export function bestLineup(state, ids = state.team.roster) {
   const sport = state.team.sport;
+  const mine = ids === state.team.roster;
   const pool = ids.filter((id) => eligibility(state, id).ok).map((id) => ({
     id, stats: statsOf(state, id), h: heightScore(heightOf(state, id), kidGrade(state, id)),
   }));
   const slots = SPORTS[sport].lineup.slice();
-  const lineup = [];
-  const order = slots.map((pos, i) => ({ pos, i })).sort((a, b) => scarcity(sport, b.pos) - scarcity(sport, a.pos));
-  const used = new Set();
+  const rate = (p, pos) => positionRating(p.stats, sport, pos, p.h);
   const placed = new Array(slots.length).fill(null);
-  // It's your team: you always start, at your chosen (or best) position.
-  const me = pool.find((p) => p.id === 'PLAYER');
-  if (me) {
-    const want = state.team.playerPos && slots.includes(state.team.playerPos) ? state.team.playerPos : bestPosition(me.stats, sport, me.h).pos;
-    const i = slots.indexOf(want);
-    placed[i] = { pos: want, id: 'PLAYER', rating: positionRating(me.stats, sport, want, me.h) };
-    used.add('PLAYER');
-  }
-  for (const { pos, i } of order) {
-    if (placed[i]) continue;
-    let best = null;
-    for (const p of pool) {
-      if (used.has(p.id)) continue;
-      const r = positionRating(p.stats, sport, pos, p.h);
-      if (!best || r > best.rating) best = { id: p.id, rating: r };
+  const used = new Set();
+  if (mine) {
+    for (const [k, id] of Object.entries(lineupLocks(state))) {
+      const i = +k; const p = pool.find((x) => x.id === id);
+      if (!p || used.has(id) || i >= slots.length) continue;
+      placed[i] = { pos: slots[i], id, rating: rate(p, slots[i]), locked: true };
+      used.add(id);
     }
-    if (best) { used.add(best.id); placed[i] = { pos, ...best }; } else placed[i] = { pos, id: null, rating: 0 };
   }
-  for (const p of placed) lineup.push(p);
+  const open = slots.map((pos, i) => i).filter((i) => !placed[i]);
+  const cands = pool.filter((p) => !used.has(p.id));
+  const mustStart = mine && !state.team.benchMe ? 'PLAYER' : null;
+  const pickIdx = assignMax(open.map((i) => cands.map((p) => rate(p, slots[i]) + (p.id === mustStart ? 10000 : 0))));
+  open.forEach((i, r) => {
+    const c = pickIdx[r];
+    if (c == null) { placed[i] = { pos: slots[i], id: null, rating: 0 }; return; }
+    const p = cands[c];
+    placed[i] = { pos: slots[i], id: p.id, rating: rate(p, slots[i]) };
+    used.add(p.id);
+  });
   const bench = pool.filter((p) => !used.has(p.id)).map((p) => p.id);
-  return { lineup, bench };
+  return { lineup: placed, bench };
 }
 
-function scarcity(sport, pos) {
-  return { GK: 3, P: 3, C: 2, QB: 3, PG: 2 }[pos] || 1;
+/** Your pinned lineup spots: { slotIndex: kidId }. */
+export function lineupLocks(state) {
+  return state.team.lineupLocks || (state.team.lineupLocks = {});
+}
+
+/** Pin a kid to a lineup slot (null = let the coach pick). Moving a pinned kid frees their old spot. */
+export function setLineupSlot(state, slot, id) {
+  const locks = lineupLocks(state);
+  if (id) for (const k of Object.keys(locks)) if (locks[k] === id) delete locks[k];
+  if (id) locks[slot] = id; else delete locks[slot];
+}
+
+/** Sum of position ratings of a lineup (for "your lineup vs the coach's best"). */
+export function lineupTotal(lineup) { return lineup.reduce((a, s) => a + (s.rating || 0), 0); }
+
+/**
+ * Maximum-weight assignment (Hungarian algorithm). w[r][c] = value of putting candidate c in row r.
+ * Returns, for each row, the chosen column (or null when there are more rows than candidates).
+ */
+export function assignMax(w) {
+  const n = w.length;
+  if (!n) return [];
+  const m0 = w[0].length;
+  const m = Math.max(n, m0);
+  // Square cost matrix (1-indexed for the classic algorithm); padding columns are "nobody" (value 0).
+  const big = Math.max(1, ...w.flat().map(Math.abs)) + 1;
+  const a = [null, ...w.map((row) => [null, ...Array.from({ length: m }, (_, c) => big - (c < m0 ? row[c] : 0))])];
+  const u = new Array(n + 1).fill(0); const v = new Array(m + 1).fill(0);
+  const pRow = new Array(m + 1).fill(0); const way = new Array(m + 1).fill(0);
+  for (let i = 1; i <= n; i++) {
+    pRow[0] = i;
+    let j0 = 0;
+    const minv = new Array(m + 1).fill(Infinity);
+    const usedC = new Array(m + 1).fill(false);
+    do {
+      usedC[j0] = true;
+      const i0 = pRow[j0]; let delta = Infinity; let j1 = 0;
+      for (let j = 1; j <= m; j++) {
+        if (usedC[j]) continue;
+        const cur = a[i0][j] - u[i0] - v[j];
+        if (cur < minv[j]) { minv[j] = cur; way[j] = j0; }
+        if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+      }
+      for (let j = 0; j <= m; j++) {
+        if (usedC[j]) { u[pRow[j]] += delta; v[j] -= delta; } else minv[j] -= delta;
+      }
+      j0 = j1;
+    } while (pRow[j0] !== 0);
+    do { const j1 = way[j0]; pRow[j0] = pRow[j1]; j0 = j1; } while (j0);
+  }
+  const out = new Array(n).fill(null);
+  for (let j = 1; j <= m; j++) if (pRow[j] && j <= m0) out[pRow[j] - 1] = j - 1;
+  return out;
 }
 
 export function lineupRating(state, lineup, ids) {

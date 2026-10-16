@@ -162,6 +162,12 @@ export function deserialize(text) {
   // Saves from before class sections existed.
   if (s.player.section == null) s.player.section = s.seed % 2;
   if (!s.player.train) s.player.train = {}; // saves from before you could train yourself
+  // Old "my position" setting becomes a pinned lineup spot.
+  if (!s.team.lineupLocks) {
+    s.team.lineupLocks = {};
+    const i = s.team.playerPos ? SPORTS[s.team.sport].lineup.indexOf(s.team.playerPos) : -1;
+    if (i >= 0) s.team.lineupLocks[i] = 'PLAYER';
+  }
   if (!s.team.gear) s.team.gear = Object.fromEntries(GEAR_IDS.map((g) => [g, 0]));
   for (const u of UPGRADE_IDS) if (s.team.upgrades[u] == null) s.team.upgrades[u] = 0; // new upgrade lines (merch)
   return s;

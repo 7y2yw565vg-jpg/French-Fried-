@@ -444,3 +444,36 @@ test('sim events carry enough detail to act out every play', () => {
     }
   }
 });
+
+test('lineup: optimal team total, pins respected, you start unless benching is allowed', async () => {
+  const { assignMax, bestLineup, setLineupSlot, lineupTotal } = await import('../src/game/team.js');
+  // Assignment matches brute force on small random cases.
+  let seed = 7; const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const perms = (arr, k) => (k === 0 ? [[]] : arr.flatMap((x, i) => perms(arr.filter((_, j) => j !== i), k - 1).map((p) => [x, ...p])));
+  for (let t = 0; t < 30; t++) {
+    const rows = 2 + Math.floor(r() * 3); const cols = rows + Math.floor(r() * 3);
+    const w = Array.from({ length: rows }, () => Array.from({ length: cols }, () => Math.round(r() * 100)));
+    const got = assignMax(w).reduce((a, c, i) => a + w[i][c], 0);
+    const best = Math.max(...perms([...Array(cols).keys()], rows).map((p) => p.reduce((a, c, i) => a + w[i][c], 0)));
+    assert.equal(got, best);
+  }
+  assert.deepEqual(assignMax([[5], [9], [1]]).filter((x) => x != null).length, 1); // more spots than kids
+  const s = newGame(opts());
+  const free = KIDS.filter((k) => !s.kids[k.id].team && k.grade_at_start >= 3 && k.grade_at_start <= 5).slice(0, 10).map((k) => k.id);
+  s.team.roster.push(...free);
+  const { lineup } = bestLineup(s);
+  assert.ok(lineup.some((x) => x.id === 'PLAYER'), 'you start by default');
+  // Pin a bench kid somewhere: they start there, everyone else still filled.
+  const benchKid = bestLineup(s).bench[0];
+  setLineupSlot(s, 0, benchKid);
+  const pinned = bestLineup(s).lineup;
+  assert.equal(pinned[0].id, benchKid);
+  assert.ok(pinned[0].locked);
+  assert.equal(new Set(pinned.map((x) => x.id)).size, pinned.length, 'no kid twice');
+  // Moving the same kid frees the old spot.
+  setLineupSlot(s, 1, benchKid);
+  assert.equal(s.team.lineupLocks[0], undefined);
+  s.team.lineupLocks = {};
+  s.team.benchMe = true;
+  assert.ok(lineupTotal(bestLineup(s).lineup) >= lineupTotal(lineup));
+});
