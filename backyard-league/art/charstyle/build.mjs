@@ -16,7 +16,7 @@ for (const k of KIDS) {
   fs.writeFileSync(path.join(root, 'kids', `${k.id}.svg`), svg);
   manifest.kids.push({
     id: k.id, name: `${k.first_name} ${k.last_name}`, grade: k.grade_at_start, personality: k.personality,
-    hair: k.looks.hair_style, accessories: k.looks.accessories, file: `kids/${k.id}.svg`,
+    hair: k.looks.hair_style, accessories: k.looks.accessories.filter((x) => !x.startsWith('wheelchair')), file: `kids/${k.id}.svg`,
   });
 }
 for (const a of ADULT_CAST) {

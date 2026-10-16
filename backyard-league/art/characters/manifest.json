@@ -413,8 +413,7 @@
    "personality": "Gamer",
    "hair": "long straight",
    "accessories": [
-    "cast with signatures",
-    "wheelchair (sports chair upgrade unlockable)"
+    "cast with signatures"
    ],
    "file": "kids/KID-037.svg"
   },
@@ -582,8 +581,7 @@
    "personality": "Social Butterfly",
    "hair": "high puff",
    "accessories": [
-    "lucky socks",
-    "wheelchair (sports chair upgrade unlockable)"
+    "lucky socks"
    ],
    "file": "kids/KID-052.svg"
   },
@@ -663,9 +661,7 @@
    "grade": 3,
    "personality": "Rule Follower",
    "hair": "fade",
-   "accessories": [
-    "wheelchair (sports chair upgrade unlockable)"
-   ],
+   "accessories": [],
    "file": "kids/KID-059.svg"
   },
   {
@@ -686,9 +682,7 @@
    "grade": 4,
    "personality": "Class Clown",
    "hair": "bob",
-   "accessories": [
-    "wheelchair (sports chair upgrade unlockable)"
-   ],
+   "accessories": [],
    "file": "kids/KID-061.svg"
   },
   {
@@ -710,7 +704,6 @@
    "personality": "Conspiracy Kid",
    "hair": "pigtails",
    "accessories": [
-    "wheelchair (sports chair upgrade unlockable)",
     "sport goggles"
    ],
    "file": "kids/KID-063.svg"
@@ -1017,8 +1010,7 @@
    "personality": "Animal Lover",
    "hair": "locs",
    "accessories": [
-    "sweatband",
-    "wheelchair (sports chair upgrade unlockable)"
+    "sweatband"
    ],
    "file": "kids/KID-090.svg"
   },
@@ -1435,7 +1427,6 @@
    "personality": "Daydreamer",
    "hair": "box braids",
    "accessories": [
-    "wheelchair (sports chair upgrade unlockable)",
     "bandana"
    ],
    "file": "kids/KID-127.svg"
@@ -1651,7 +1642,6 @@
    "personality": "Animal Lover",
    "hair": "spiky",
    "accessories": [
-    "wheelchair (sports chair upgrade unlockable)",
     "fanny pack"
    ],
    "file": "kids/KID-146.svg"
@@ -2197,8 +2187,7 @@
    "personality": "Artist",
    "hair": "braids",
    "accessories": [
-    "headphones",
-    "wheelchair (sports chair upgrade unlockable)"
+    "headphones"
    ],
    "file": "kids/KID-194.svg"
   },

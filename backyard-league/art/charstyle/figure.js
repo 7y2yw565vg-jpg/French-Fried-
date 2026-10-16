@@ -62,7 +62,8 @@ export function kidSpec(k, opts = {}) {
   const band = BAND(grade);
   const build = BUILD[L.build] || BUILD.average;
   const f = Math.max(0.92, Math.min(1.08, L.height_in / (AVG_IN[k.grade_at_start] || 52)));
-  const acc = L.accessories.slice();
+  // Wheelchairs are left out of the character art (art direction call); those kids are drawn standing.
+  const acc = L.accessories.filter((x) => !x.startsWith('wheelchair'));
   const has = (a) => acc.some((x) => x.startsWith(a));
   // Hair color + dye
   let hairName = L.hair_color; let dye = null;
