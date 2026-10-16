@@ -128,6 +128,7 @@ export class Engine {
       comp.addPass(this.grade);
       comp.addPass(new OutputPass());
       this.composer = comp;
+      this.applyPreviewPasses();
     }
     this.resize();
     this.onQualityChange(q);
@@ -148,8 +149,8 @@ export class Engine {
   }
 
   /**
-   * Crisp close-up mode for the character creator: full-resolution rendering
-   * and no bloom haze. Restores the normal quality settings when turned off.
+   * Crisp close-up mode for the character creator: full-resolution rendering,
+   * with no glow, ambient-occlusion or vignette haze. Restores the normal quality settings when turned off.
    */
   setPreviewMode(on) {
     this.previewMode = on;
@@ -157,8 +158,16 @@ export class Engine {
     const dpr = window.devicePixelRatio || 1;
     if (on) r.setPixelRatio(Math.min(2, dpr)); // the screen's own sharpness (no costly supersampling)
     else r.setPixelRatio(this.quality === 'low' ? 1 : Math.min(dpr, this.quality === 'high' ? 2 : 1.5));
-    if (this.bloom) this.bloom.enabled = !on;
+    this.applyPreviewPasses();
     this.resize();
+  }
+
+  /** In the creator, every haze-making effect is off: glow (bloom), ambient occlusion and the vignette darkening. */
+  applyPreviewPasses() {
+    const on = !!this.previewMode;
+    if (this.bloom) this.bloom.enabled = !on;
+    if (this.aoPass) this.aoPass.enabled = !on;
+    if (this.grade) this.grade.uniforms.vignette.value = on ? 0 : 0.32;
   }
 
   /** Render as if the screen's center were at pixel x (used to frame a preview box). */
