@@ -477,3 +477,25 @@ test('lineup: optimal team total, pins respected, you start unless benching is a
   s.team.benchMe = true;
   assert.ok(lineupTotal(bestLineup(s).lineup) >= lineupTotal(lineup));
 });
+
+test('four save slots: continue picks the most recent, slots stay separate', async () => {
+  const { saveToStorage, loadSlot, listSlots, loadFromStorage, deleteSlot, freeSlot, SAVE_KEY } = await import('../src/game/state.js');
+  const mem = new Map();
+  const st = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  assert.equal(freeSlot(st), 0);
+  const a = newGame({ ...opts(), name: 'Ann', slot: 0 });
+  const b = newGame({ ...opts(), name: 'Bo', slot: 2 });
+  saveToStorage(a, st);
+  assert.ok(mem.has(SAVE_KEY), 'slot 1 keeps the original key (old saves still load)');
+  saveToStorage(b, st);
+  b.savedAt = a.savedAt + 1000; mem.set(`${SAVE_KEY}-slot3`, serialize(b));
+  assert.equal(loadFromStorage(st).player.name, 'Bo');
+  assert.equal(freeSlot(st), 1);
+  assert.deepEqual(listSlots(st).map((x) => x.state && x.state.player.name), ['Ann', null, 'Bo', null]);
+  assert.equal(loadSlot(2, st).slot, 2);
+  for (const i of [1, 3]) saveToStorage(newGame({ ...opts(), slot: i }), st);
+  assert.equal(freeSlot(st), -1, 'all four full');
+  deleteSlot(2, st);
+  assert.equal(loadSlot(2, st), null);
+  assert.equal(freeSlot(st), 2);
+});

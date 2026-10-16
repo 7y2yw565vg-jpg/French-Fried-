@@ -419,3 +419,15 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .field-compare th, .field-compare td { vertical-align: top; padding: 5px 6px; }
 .field-compare th:first-child { width: 22%; }
 .field-compare .cur-field { background: rgba(87, 204, 153, 0.16); }
+
+/* Save slots (title > Load Game) */
+.slot-screen { display: flex; align-items: center; justify-content: center; padding: 16px; }
+.slot-panel { width: min(640px, 100%); max-height: 92vh; overflow: auto; }
+.slot-list { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 14px; }
+.slot-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 3px solid var(--ink, #2a1e1a); border-radius: 14px; background: #fffdf6; }
+.slot-card.empty { opacity: 0.75; border-style: dashed; }
+.slot-num { font-family: var(--font-display, inherit); font-size: 26px; width: 34px; text-align: center; }
+.slot-info { flex: 1; min-width: 0; }
+.slot-info .muted { font-size: 13px; }
+.slot-card .btn-row { flex-wrap: nowrap; }
+@media (max-width: 520px) { .slot-card { flex-wrap: wrap; } .slot-card .btn-row { width: 100%; justify-content: flex-end; } }

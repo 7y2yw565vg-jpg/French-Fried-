@@ -28,6 +28,8 @@ export function newGame(opts) {
   return {
     v: SAVE_VERSION,
     seed,
+    slot: opts.slot ?? 0,
+    savedAt: 0,
     player: {
       name: opts.name || 'Rookie', look: opts.look, perk: opts.perk || 'none', hood: opts.hood || 'maple',
       section: seed % 2, stats: pstats, train: {}, workoutDay: 0,
@@ -173,13 +175,49 @@ export function deserialize(text) {
   return s;
 }
 
+// ------------------------------------------------------------ save slots --
+// Four save slots. Slot 0 keeps the original key so older saves show up as "Slot 1".
+export const SAVE_SLOTS = 4;
+export const slotKey = (i) => (i === 0 ? SAVE_KEY : `${SAVE_KEY}-slot${i + 1}`);
+
+/** Save to the game's own slot and stamp when it was last played. */
 export function saveToStorage(state, storage = globalThis.localStorage) {
-  try { storage.setItem(SAVE_KEY, serialize(state)); return true; } catch { return false; }
+  const slot = state.slot ?? 0;
+  try {
+    state.slot = slot;
+    state.savedAt = Date.now();
+    storage.setItem(slotKey(slot), serialize(state));
+    return true;
+  } catch { return false; }
 }
 
-export function loadFromStorage(storage = globalThis.localStorage) {
+export function loadSlot(i, storage = globalThis.localStorage) {
   try {
-    const t = storage.getItem(SAVE_KEY);
-    return t ? deserialize(t) : null;
+    const t = storage.getItem(slotKey(i));
+    if (!t) return null;
+    const s = deserialize(t);
+    s.slot = i;
+    return s;
   } catch { return null; }
+}
+
+/** All four slots: the save in each (or null). */
+export function listSlots(storage = globalThis.localStorage) {
+  return Array.from({ length: SAVE_SLOTS }, (_, i) => ({ slot: i, state: loadSlot(i, storage) }));
+}
+
+/** The most recently played save (what Continue opens). */
+export function loadFromStorage(storage = globalThis.localStorage) {
+  let best = null;
+  for (const { state } of listSlots(storage)) if (state && (!best || (state.savedAt || 0) > (best.savedAt || 0))) best = state;
+  return best;
+}
+
+export function deleteSlot(i, storage = globalThis.localStorage) {
+  try { storage.removeItem(slotKey(i)); return true; } catch { return false; }
+}
+
+/** First empty slot, or -1 when all four are taken. */
+export function freeSlot(storage = globalThis.localStorage) {
+  return listSlots(storage).findIndex((x) => !x.state);
 }

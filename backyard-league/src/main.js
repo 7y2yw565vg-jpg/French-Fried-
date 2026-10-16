@@ -46,8 +46,8 @@ function title() {
   clear($('#panel'));
   clear($('#hud'));
   $('#prompt').classList.remove('show');
-  showTitle(engine, () => showCreator(engine, (cfg) => {
-    const state = newGame({ ...cfg, seed: Math.floor(Math.random() * 2 ** 31) });
+  showTitle(engine, (slot) => showCreator(engine, (cfg) => {
+    const state = newGame({ ...cfg, slot, seed: Math.floor(Math.random() * 2 ** 31) });
     ensureSeason(state);
     saveToStorage(state);
     start(state);

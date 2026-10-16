@@ -8,7 +8,8 @@ import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, S
 import { HAIR_STYLES } from '../world3d/hair.js';
 import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT_MAX, PLAYER_BASE_STAT } from '../data/world.js';
 import { KIDS } from '../data/kids.js';
-import { loadFromStorage, deserialize } from '../game/state.js';
+import { loadFromStorage, deserialize, listSlots, deleteSlot, freeSlot, saveToStorage, playerGrade, yearOf } from '../game/state.js';
+import { dayInfo, formatTime } from '../game/time.js';
 import { sfx } from './audio.js';
 
 const BUILDS = ['average', 'skinny', 'lanky', 'stocky', 'sturdy', 'round', 'wiry'];
@@ -92,29 +93,113 @@ export function showcaseArena(engine, sport) {
   return d;
 }
 
+/**
+ * Title screen. Continue = the most recently played save; Load Game = pick any of the four
+ * slots (or import a file); New Game = start fresh in a free slot (or replace one).
+ * onNew(slot) starts the creator for that slot; onContinue(state) starts a loaded game.
+ */
 export function showTitle(engine, onNew, onContinue, current = null) {
   titleBackdrop(engine);
   const ov = $('#overlay');
   clear(ov);
   ov.classList.add('show');
-  // The save on disk, or the game you just quit (if storage is blocked).
+  // The newest save on disk, or the game you just quit (if storage is blocked).
   const saved = loadFromStorage() || current;
-  const fileInput = h('input', { type: 'file', accept: '.json,application/json', style: { display: 'none' } });
-  fileInput.addEventListener('change', async () => {
-    const f = fileInput.files[0];
-    if (!f) return;
-    try { const st = deserialize(await f.text()); stopTitleBackdrop(); onContinue(st); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); }
-  });
+  const go = (st) => { stopTitleBackdrop(); onContinue(st); };
+  const slots = listSlots();
+  const any = slots.some((x) => x.state);
+  const newGame = () => {
+    const free = freeSlot();
+    if (free >= 0) { stopTitleBackdrop(); onNew(free); return; }
+    slotPicker('All four save slots are full', 'Pick a save to replace with your new game.', 'Replace', (i) => { stopTitleBackdrop(); onNew(i); }, () => showTitle(engine, onNew, onContinue, current));
+  };
   ov.appendChild(h('div', { class: 'screen title-screen' },
     h('div', { class: 'title-wrap' },
       buildLogo(),
       h('div', { class: 'title-buttons' },
-        saved ? btn(h('span', { class: 'cont' }, 'Continue', h('small', {}, `${saved.team.name} · Day ${saved.time.day}`)), () => { stopTitleBackdrop(); onContinue(saved); }, 'big green') : null,
-        btn('New Game', () => { stopTitleBackdrop(); onNew(); }, saved ? 'big white' : 'big'),
-        btn('Load save file', () => fileInput.click(), 'white'),
-        fileInput,
+        saved ? btn(h('span', { class: 'cont' }, 'Continue', h('small', {}, `${saved.player?.name || 'Rookie'} · ${saved.team.name} · Day ${saved.time.day}`)), () => go(saved), 'big green') : null,
+        btn('New Game', newGame, saved ? 'big white' : 'big'),
+        btn('Load Game', () => loadScreen(engine, onNew, onContinue, current), any ? 'big white' : 'white'),
       ),
     )));
+}
+
+function slotSummary(st) {
+  const info = dayInfo(st.time.day);
+  const sp = SPORTS[st.team.sport];
+  const ago = st.savedAt ? timeAgo(st.savedAt) : 'a while ago';
+  return [
+    h('b', {}, `${st.player?.name || 'Rookie'} · ${sp ? sp.icon : ''} ${st.team.name}`),
+    h('div', { class: 'muted' }, `Year ${yearOf(st)} · ${info.dateLabel} ${formatTime(st.time.minute)} · Grade ${playerGrade(st)}`),
+    h('div', { class: 'muted' }, `$${(+st.money).toFixed(2)} · ${st.team.roster.length} on the team · last played ${ago}`),
+  ];
+}
+
+function timeAgo(t) {
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  const hr = Math.round(m / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  return new Date(t).toLocaleDateString();
+}
+
+/** Load Game: every slot, with Load / Delete, plus importing a save file. */
+function loadScreen(engine, onNew, onContinue, current) {
+  const ov = $('#overlay');
+  clear(ov);
+  const back = () => showTitle(engine, onNew, onContinue, current);
+  const fileInput = h('input', { type: 'file', accept: '.json,application/json', style: { display: 'none' } });
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files[0];
+    if (!f) return;
+    let st;
+    try { st = deserialize(await f.text()); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); return; }
+    slotPicker('Import save file', `Put ${st.player?.name || 'this save'}'s game (${st.team.name}) in which slot?`, 'Put it here', (i) => {
+      st.slot = i;
+      saveToStorage(st);
+      stopTitleBackdrop(); onContinue(st);
+    }, () => loadScreen(engine, onNew, onContinue, current));
+  });
+  const list = h('div', { class: 'slot-list' });
+  for (const { slot, state } of listSlots()) {
+    list.appendChild(h('div', { class: `slot-card ${state ? '' : 'empty'}` },
+      h('div', { class: 'slot-num' }, `${slot + 1}`),
+      h('div', { class: 'slot-info' }, ...(state ? slotSummary(state) : [h('b', {}, 'Empty slot'), h('div', { class: 'muted' }, 'Start a new game here.')])),
+      h('div', { class: 'btn-row' },
+        state
+          ? btn('Load', () => { stopTitleBackdrop(); onContinue(state); }, 'green')
+          : btn('New game here', () => { stopTitleBackdrop(); onNew(slot); }, 'white'),
+        state ? btn('🗑', () => modal({
+          title: `Delete slot ${slot + 1}?`,
+          body: `${state.player?.name || 'This'}'s game with the ${state.team.name} will be gone for good.`,
+          buttons: [{ label: 'Delete it', cls: 'red', onClick: () => { deleteSlot(slot); loadScreen(engine, onNew, onContinue, current); } }, { label: 'Keep it', cls: 'white' }],
+        }), 'white', { title: 'Delete this save' }) : null)));
+  }
+  ov.appendChild(h('div', { class: 'screen title-screen slot-screen' },
+    h('div', { class: 'card slot-panel' },
+      h('h2', {}, '📂 Load Game'),
+      list,
+      h('div', { class: 'btn-row' }, btn('⬆️ Import save file…', () => fileInput.click(), 'white'), btn('← Back', back, 'white'), fileInput))));
+}
+
+/** Choose a slot for something (new game when full, or an imported file). Filled slots ask first. */
+function slotPicker(title, text, verb, onPick, onBack) {
+  const ov = $('#overlay');
+  clear(ov);
+  const list = h('div', { class: 'slot-list' });
+  for (const { slot, state } of listSlots()) {
+    const pickIt = () => (state
+      ? modal({ title: `Replace slot ${slot + 1}?`, body: `${state.player?.name || 'That'}'s game with the ${state.team.name} will be overwritten.`, buttons: [{ label: 'Replace it', cls: 'red', onClick: () => onPick(slot) }, { label: 'Cancel', cls: 'white' }] })
+      : onPick(slot));
+    list.appendChild(h('div', { class: `slot-card ${state ? '' : 'empty'}` },
+      h('div', { class: 'slot-num' }, `${slot + 1}`),
+      h('div', { class: 'slot-info' }, ...(state ? slotSummary(state) : [h('b', {}, 'Empty slot')])),
+      h('div', { class: 'btn-row' }, btn(state ? verb : 'Use this slot', pickIt, state ? 'red' : 'green'))));
+  }
+  ov.appendChild(h('div', { class: 'screen title-screen slot-screen' },
+    h('div', { class: 'card slot-panel' }, h('h2', {}, title), h('p', { class: 'muted' }, text), list,
+      h('div', { class: 'btn-row' }, btn('← Back', onBack, 'white')))));
 }
 
 export function showCreator(engine, onDone) {
