@@ -292,7 +292,7 @@ function hireKid(game, id, redo) {
         s.team.staff[role] = `kid:${id}`;
         sfx('good');
         addLog(s, `Hired ${kid.first_name} as ${r.name}.`);
-        redo(`${r.name}? Me? I accept! I'll be the best ${r.name.toLowerCase()} Grubbsville has ever seen!`);
+        redo(`${r.name}? Me? I accept! I'll be the best ${r.name.toLowerCase()} Suncrest has ever seen!`);
       }, 'small green')));
   }
 }

@@ -201,7 +201,7 @@
         "sport": "Baseball"
       },
       {
-        "name": "Pinecrest Polo Penguins",
+        "name": "Hilltop Polo Penguins",
         "sport": "Baseball"
       },
       {
@@ -233,7 +233,7 @@
         "sport": "Football"
       },
       {
-        "name": "Grubbsville Gravy Train",
+        "name": "Suncrest Gravy Train",
         "sport": "Football"
       },
       {
@@ -249,7 +249,7 @@
         "sport": "Football"
       },
       {
-        "name": "Grubbsville Middle Meteors (6-8)",
+        "name": "Suncrest Middle Meteors (6-8)",
         "sport": "Baseball"
       }
     ]
@@ -340,7 +340,7 @@
         "starting_friendship": 29
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -562,7 +562,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -671,7 +671,7 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "monkey bars",
@@ -785,7 +785,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "the big oak tree",
@@ -894,14 +894,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Help them finish their science fair project at the library.",
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
         "specials_day": {
@@ -1016,7 +1016,7 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "under the slide",
@@ -1131,7 +1131,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "blacktop four square",
@@ -1246,7 +1246,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
@@ -1359,7 +1359,7 @@
         "starting_friendship": 11
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -1466,8 +1466,8 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
         "specials_day": {
@@ -1581,7 +1581,7 @@
         "starting_friendship": 13
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -1697,7 +1697,7 @@
         "starting_friendship": 0
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -1812,7 +1812,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "the big oak tree",
@@ -1927,7 +1927,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "kickball diamond",
@@ -2040,7 +2040,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -2155,7 +2155,7 @@
         "starting_friendship": 17
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "swings",
@@ -2271,7 +2271,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -2384,7 +2384,7 @@
         "starting_friendship": 26
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -2497,7 +2497,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -2819,7 +2819,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -2933,7 +2933,7 @@
         "starting_friendship": 13
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -3042,7 +3042,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -3157,7 +3157,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "the big oak tree",
@@ -3271,8 +3271,8 @@
         "starting_friendship": 26
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
         "specials_day": {
@@ -3384,7 +3384,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -3497,7 +3497,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "sandbox",
@@ -3613,7 +3613,7 @@
         "starting_friendship": 11
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -3723,13 +3723,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Gravy Train",
+        "current_team": "Suncrest Gravy Train",
         "difficulty": "Hard",
         "recruit_hook": "Help them carry groceries for a week.",
         "starting_friendship": 29
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
@@ -3843,7 +3843,7 @@
         "starting_friendship": 6
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
@@ -3956,7 +3956,7 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -4063,7 +4063,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "sandbox",
@@ -4285,7 +4285,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "kickball diamond",
@@ -4400,7 +4400,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -4513,7 +4513,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "tetherball pole",
@@ -4622,13 +4622,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Loyal)",
-        "current_team": "Pinecrest Polo Penguins",
+        "current_team": "Hilltop Polo Penguins",
         "difficulty": "Locked this season",
         "recruit_hook": "Win a team championship first.",
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -4850,7 +4850,7 @@
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -4958,7 +4958,7 @@
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -5065,14 +5065,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Return the library book they lost (find it in the museum gift shop).",
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "blacktop four square",
         "specials_day": {
@@ -5179,14 +5179,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Promise them a starting spot (breaking it costs friendship).",
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
         "specials_day": {
@@ -5300,8 +5300,8 @@
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
         "specials_day": {
@@ -5415,7 +5415,7 @@
         "starting_friendship": 25
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -5530,7 +5530,7 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "under the slide",
@@ -5860,7 +5860,7 @@
         "starting_friendship": 26
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -5969,7 +5969,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "blacktop four square",
@@ -6084,7 +6084,7 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -6192,7 +6192,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "monkey bars",
@@ -6306,8 +6306,8 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "kickball diamond",
         "specials_day": {
@@ -6420,7 +6420,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
@@ -6535,7 +6535,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -6645,7 +6645,7 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -6758,7 +6758,7 @@
         "starting_friendship": 13
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "sandbox",
@@ -6869,7 +6869,7 @@
         "starting_friendship": 14
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "swings",
@@ -6985,7 +6985,7 @@
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -7098,7 +7098,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
@@ -7212,7 +7212,7 @@
         "starting_friendship": 20
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -7327,8 +7327,8 @@
         "starting_friendship": 2
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "library (indoor recess kid)",
         "specials_day": {
@@ -7443,7 +7443,7 @@
         "starting_friendship": 3
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -7551,7 +7551,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "monkey bars",
@@ -7665,7 +7665,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -7778,7 +7778,7 @@
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "the big oak tree",
@@ -7885,14 +7885,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Beat them in a game of the claw machine at kickball diamond.",
         "starting_friendship": 14
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
         "specials_day": {
@@ -8004,7 +8004,7 @@
         "starting_friendship": 22
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
@@ -8117,7 +8117,7 @@
         "starting_friendship": 0
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "blacktop four square",
@@ -8226,14 +8226,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Win a team championship first.",
         "starting_friendship": 0
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "under the slide",
         "specials_day": {
@@ -8347,8 +8347,8 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "kickball diamond",
         "specials_day": {
@@ -8463,7 +8463,7 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "swings",
@@ -8686,7 +8686,7 @@
         "starting_friendship": 4
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "under the slide",
@@ -8911,7 +8911,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -9238,7 +9238,7 @@
         "starting_friendship": 18
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
@@ -9353,7 +9353,7 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
@@ -9469,7 +9469,7 @@
         "starting_friendship": 26
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "under the slide",
@@ -9585,7 +9585,7 @@
         "starting_friendship": 14
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -9694,7 +9694,7 @@
         "starting_friendship": 4
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -9807,8 +9807,8 @@
         "starting_friendship": 17
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "blacktop four square",
         "specials_day": {
@@ -9922,7 +9922,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
@@ -10037,7 +10037,7 @@
         "starting_friendship": 17
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "kickball diamond",
@@ -10151,7 +10151,7 @@
         "starting_friendship": 28
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -10266,7 +10266,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",
@@ -10381,8 +10381,8 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "library (indoor recess kid)",
         "specials_day": {
@@ -10495,7 +10495,7 @@
         "starting_friendship": 0
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -10608,7 +10608,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "monkey bars",
@@ -10721,7 +10721,7 @@
         "starting_friendship": 29
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",
@@ -10945,8 +10945,8 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
         "specials_day": {
@@ -11169,7 +11169,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "swings",
@@ -11278,13 +11278,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Gravy Train",
+        "current_team": "Suncrest Gravy Train",
         "difficulty": "Hard",
         "recruit_hook": "Tutor them until they pass the next Science quiz.",
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -11507,7 +11507,7 @@
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "under the slide",
@@ -11621,7 +11621,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -11737,7 +11737,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -11852,7 +11852,7 @@
         "starting_friendship": 28
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -11965,7 +11965,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
@@ -12079,7 +12079,7 @@
         "starting_friendship": 6
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -12186,7 +12186,7 @@
         "starting_friendship": 4
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -12299,7 +12299,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -12412,7 +12412,7 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -12515,13 +12515,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Gravy Train",
+        "current_team": "Suncrest Gravy Train",
         "difficulty": "Medium",
         "recruit_hook": "Bring them a wrestling item from the mall.",
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
@@ -12636,7 +12636,7 @@
         "starting_friendship": 16
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -12850,7 +12850,7 @@
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -12964,7 +12964,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -13080,7 +13080,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -13195,7 +13195,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -13411,7 +13411,7 @@
         "starting_friendship": 28
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -13526,7 +13526,7 @@
         "starting_friendship": 29
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "kickball diamond",
@@ -13639,7 +13639,7 @@
         "starting_friendship": 29
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -13746,7 +13746,7 @@
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -13859,7 +13859,7 @@
         "starting_friendship": 16
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -13967,13 +13967,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Loyal)",
-        "current_team": "Grubbsville Gravy Train",
+        "current_team": "Suncrest Gravy Train",
         "difficulty": "Locked this season",
         "recruit_hook": "Out-trivia them at the museum's dinosaur exhibit.",
         "starting_friendship": 17
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -14087,7 +14087,7 @@
         "starting_friendship": 14
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -14200,8 +14200,8 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "library (indoor recess kid)",
         "specials_day": {
@@ -14313,7 +14313,7 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -14427,7 +14427,7 @@
         "starting_friendship": 0
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -14540,7 +14540,7 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
@@ -14647,14 +14647,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Return the library book they lost (find it in the museum gift shop).",
         "starting_friendship": 22
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",
         "specials_day": {
@@ -14766,8 +14766,8 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "monkey bars",
         "specials_day": {
@@ -14987,7 +14987,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -15094,7 +15094,7 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "under the slide",
@@ -15207,7 +15207,7 @@
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -15428,7 +15428,7 @@
         "starting_friendship": 14
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -15644,7 +15644,7 @@
         "starting_friendship": 4
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
@@ -15751,14 +15751,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Pinecrest Polo Penguins",
+        "current_team": "Hilltop Polo Penguins",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Out-trivia them at the museum's dinosaur exhibit.",
         "starting_friendship": 7
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "tetherball pole",
         "specials_day": {
@@ -15870,7 +15870,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -15977,7 +15977,7 @@
         "starting_friendship": 23
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "under the slide",
@@ -16091,7 +16091,7 @@
         "starting_friendship": 2
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -16204,7 +16204,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "under the slide",
@@ -16317,7 +16317,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -16425,7 +16425,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -16538,7 +16538,7 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -16645,7 +16645,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",
@@ -16758,7 +16758,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -16980,7 +16980,7 @@
         "starting_friendship": 4
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -17088,7 +17088,7 @@
         "starting_friendship": 16
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "kickball diamond",
@@ -17201,7 +17201,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -17314,7 +17314,7 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -17428,7 +17428,7 @@
         "starting_friendship": 3
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "tetherball pole",
@@ -17649,7 +17649,7 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -17870,7 +17870,7 @@
         "starting_friendship": 0
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "monkey bars",
@@ -18090,7 +18090,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -18203,7 +18203,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "monkey bars",
@@ -18316,7 +18316,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",
@@ -18429,7 +18429,7 @@
         "starting_friendship": 6
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -18542,7 +18542,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Abara",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -18655,7 +18655,7 @@
         "starting_friendship": 26
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "blacktop four square",
@@ -18768,7 +18768,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -18881,7 +18881,7 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -18988,7 +18988,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -19089,7 +19089,7 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Pinecrest Polo Penguins",
+        "current_team": "Hilltop Polo Penguins",
         "difficulty": "Medium",
         "recruit_hook": "Win a team championship first.",
         "starting_friendship": 5
@@ -19203,7 +19203,7 @@
         "starting_friendship": 22
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -19311,7 +19311,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "tetherball pole",
@@ -19424,7 +19424,7 @@
         "starting_friendship": 17
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Bramblebee",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "monkey bars",
@@ -19537,7 +19537,7 @@
         "starting_friendship": 18
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -19651,7 +19651,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "the big oak tree",
@@ -19764,7 +19764,7 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "the big oak tree",
@@ -19985,8 +19985,8 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
         "specials_day": {
@@ -20200,13 +20200,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Gravy Train",
+        "current_team": "Suncrest Gravy Train",
         "difficulty": "Hard",
         "recruit_hook": "Win their little sibling's approval at the playground.",
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "under the slide",
@@ -20319,7 +20319,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Featherly",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
@@ -20539,7 +20539,7 @@
         "starting_friendship": 8
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "nurse's office (frequent flyer)",
@@ -20653,7 +20653,7 @@
         "starting_friendship": 19
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "library (indoor recess kid)",
@@ -20767,7 +20767,7 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -20874,7 +20874,7 @@
         "starting_friendship": 3
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "tetherball pole",
@@ -20988,7 +20988,7 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "the big oak tree",
@@ -21101,7 +21101,7 @@
         "starting_friendship": 20
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "tetherball pole",
@@ -21208,14 +21208,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Pay them $2 in 'signing candy money'.",
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
         "specials_day": {
@@ -21327,7 +21327,7 @@
         "starting_friendship": 22
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -21434,7 +21434,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Tanaka",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "the big oak tree",
@@ -21547,7 +21547,7 @@
         "starting_friendship": 28
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -21655,8 +21655,8 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "sandbox",
         "specials_day": {
@@ -21769,7 +21769,7 @@
         "starting_friendship": 16
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -21877,7 +21877,7 @@
         "starting_friendship": 2
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "blacktop four square",
@@ -21990,7 +21990,7 @@
         "starting_friendship": 18
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "tetherball pole",
@@ -22103,8 +22103,8 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "kickball diamond",
         "specials_day": {
@@ -22210,14 +22210,14 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Middle Meteors (6-8)",
+        "current_team": "Suncrest Middle Meteors (6-8)",
         "difficulty": "Ineligible for Jr League (ringer candidate)",
         "recruit_hook": "Win their little sibling's approval at the playground.",
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Ms. Ruiz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Ms. Ruiz",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "library (indoor recess kid)",
         "specials_day": {
@@ -22330,7 +22330,7 @@
         "starting_friendship": 21
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -22437,7 +22437,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "the big oak tree",
@@ -22551,7 +22551,7 @@
         "starting_friendship": 15
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "under the slide",
@@ -22665,7 +22665,7 @@
         "starting_friendship": 28
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Puddle",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "sandbox",
@@ -22778,7 +22778,7 @@
         "starting_friendship": 25
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "blacktop four square",
@@ -22885,13 +22885,13 @@
       },
       "recruitment": {
         "status": "On Rival Team (Poachable)",
-        "current_team": "Grubbsville Gravy Train",
+        "current_team": "Suncrest Gravy Train",
         "difficulty": "Hard",
         "recruit_hook": "Win a team championship first.",
         "starting_friendship": 3
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -22999,7 +22999,7 @@
         "starting_friendship": 9
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -23106,7 +23106,7 @@
         "starting_friendship": 12
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Sparks",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "monkey bars",
@@ -23219,7 +23219,7 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -23327,7 +23327,7 @@
         "starting_friendship": 10
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Okonkwo",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "under the slide",
@@ -23440,7 +23440,7 @@
         "starting_friendship": 30
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",
@@ -23553,7 +23553,7 @@
         "starting_friendship": 18
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Ms. Valdez",
         "lunch": "11:00 (A Lunch)",
         "recess_spot": "kickball diamond",
@@ -23666,7 +23666,7 @@
         "starting_friendship": 22
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Hopper",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "swings",
@@ -23779,7 +23779,7 @@
         "starting_friendship": 1
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Glitter",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "sandbox",
@@ -24000,7 +24000,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "under the slide",
@@ -24113,8 +24113,8 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Grubbsville School",
-        "homeroom": "(Grubbsville School) Mr. Krantz",
+        "school": "Suncrest Academy",
+        "homeroom": "(Suncrest Academy) Mr. Krantz",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "sandbox",
         "specials_day": {
@@ -24227,7 +24227,7 @@
         "starting_friendship": 5
       },
       "routine": {
-        "school": "Pinecrest Academy (private)",
+        "school": "Hilltop Prep (private)",
         "homeroom": null,
         "lunch": null,
         "recess_spot": null,
@@ -24334,7 +24334,7 @@
         "starting_friendship": 27
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mr. Fussbudget",
         "lunch": "12:00 (C Lunch)",
         "recess_spot": "sandbox",
@@ -24447,7 +24447,7 @@
         "starting_friendship": 24
       },
       "routine": {
-        "school": "Grubbsville School",
+        "school": "Suncrest Academy",
         "homeroom": "Mrs. Grumbleton",
         "lunch": "11:30 (B Lunch)",
         "recess_spot": "swings",

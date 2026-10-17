@@ -377,7 +377,7 @@ function socialApp(game, root, redraw) {
     }
     posts.sort((a, b) => b.f - a.f);
     root.append(...posts.slice(0, 20).map((p) => h('div', { class: 'post' }, portrait(p.k, 26), h('div', {}, h('b', {}, shortName(p.k)), h('div', {}, p.text)))),
-      ...s.news.slice(0, 10).map((n) => h('div', { class: 'post' }, h('span', { class: 'post-ico' }, '📰'), h('div', {}, h('b', {}, 'Grubbsville Gazette'), h('div', {}, n.text)))));
+      ...s.news.slice(0, 10).map((n) => h('div', { class: 'post' }, h('span', { class: 'post-ico' }, '📰'), h('div', {}, h('b', {}, 'Suncrest Gazette'), h('div', {}, n.text)))));
     if (!posts.length) root.append(h('p', { class: 'muted' }, 'None of your friends have checked in where you can see. Learn their routines (chat and hang out) to see their check-ins.'));
     return;
   }
@@ -396,7 +396,7 @@ function socialApp(game, root, redraw) {
     }
   }).sort((a, b) => s.kids[b.id].f - s.kids[a.id].f);
   root.append(h('div', { class: 'chips', style: { marginTop: '6px' } }, ...filters.map(([id, l]) => h('div', { class: `chip ${game._kidFilter === id ? 'sel' : ''}`, onclick: () => { game._kidFilter = id; redraw(); } }, l))),
-    h('p', { class: 'muted' }, `${met.length} friends (of ${KIDS.length} kids in town). Tap a profile to see where they're checked in.`));
+    h('p', { class: 'muted' }, `${met.length} friends (of ${KIDS.length} kids in Suncrest). Tap a profile to see where they're checked in.`));
   for (const k of list) {
     const ks = s.kids[k.id];
     const c = kidCheckIn(s, k);
@@ -604,7 +604,7 @@ function leagueApp(game, root, redraw, close) {
     } else box.append(h('p', {}, 'No games played yet.'));
     leagueHistory(s, box);
   } else {
-    box.append(h('h3', {}, 'Grubbsville Gazette'), ...s.news.slice(0, 20).map((n) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `📰 ${n.text}`)));
+    box.append(h('h3', {}, 'Suncrest Gazette'), ...s.news.slice(0, 20).map((n) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `📰 ${n.text}`)));
   }
 }
 
@@ -654,7 +654,7 @@ function bankApp(game, root) {
     jobs.appendChild(h('div', { style: { margin: '6px 0' } }, h('b', {}, j.name), ' ', un ? (jobReady(s, id) ? h('span', { class: 'pill good' }, 'Ready') : h('span', { class: 'pill warn' }, `Need: ${j.needs.filter((n) => !(s.inv.items[n] > 0)).map((n) => ITEMS[n].name).join(', ')}`)) : h('span', { class: 'pill bad' }, `Locked: earn $${j.unlock.earned}`), h('div', { class: 'muted' }, j.desc)));
   }
   root.append(
-    h('div', { class: 'bank-card' }, h('div', { class: 'muted' }, 'Grubbsville Kids Credit Union'), h('div', { class: 'bank-bal' }, money(s.money)), h('div', {}, `${s.player.name}'s piggy account`)),
+    h('div', { class: 'bank-card' }, h('div', { class: 'muted' }, 'Suncrest Kids Credit Union'), h('div', { class: 'bank-bal' }, money(s.money)), h('div', {}, `${s.player.name}'s piggy account`)),
     h('div', { class: 'box', style: { margin: '10px 0' } }, h('h3', {}, 'Recent activity'), activity.length ? h('div', {}, ...activity.map((l) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `Day ${l.day}: ${l.text}`))) : h('p', { class: 'muted' }, 'Nothing yet.'),
       s.team.fansLast ? h('p', {}, `Last home game: ${s.team.fansLast} fans.`) : null),
     h('div', { class: 'box', style: { marginBottom: '10px' } }, h('h3', {}, '🏆 League prize money'), h('p', {}, `${playerBand(s).name}: win ${money(pz.win)}, tie ${money(pz.tie)} (home or away). Playoffs ${money(pz.semifinal)}, runner-up ${money(pz.runnerUp)}, champions ${money(pz.champion)}.`)),

@@ -178,7 +178,7 @@ const HANDLERS = {
     const list = registrationChecklist(s);
     const reg = canRegister(s);
     const body = h('div', {},
-      h('p', {}, '"Welcome to the Grubbsville Youth Sports League. Paperwork, please." - Commissioner Gertrude'),
+      h('p', {}, '"Welcome to the Suncrest Youth Sports League. Paperwork, please." - Commissioner Gertrude'),
       ...list.map((c) => h('div', { class: `check ${c.done ? 'done' : ''}` }, h('div', { class: 'mark' }, c.done ? '✓' : ''), h('div', {}, c.label, c.detail ? h('span', { class: 'muted' }, ` (${c.detail})`) : null))),
       isRegistered(s) ? h('p', { class: 'pill good' }, 'You are registered this season!') : null,
       s.league && s.league.schedule ? h('p', { class: 'muted' }, `Standings leader: ${standings(s)[0]?.name || '-'}`) : null);

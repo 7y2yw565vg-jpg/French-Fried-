@@ -38,7 +38,7 @@ test('calendar: day 1 is a Monday school day in fall week 1', () => {
 });
 
 test('routines: public-school kids go to each subject teacher\'s room', () => {
-  const kid = KIDS.find((k) => k.routine.school === 'Grubbsville School' && k.grade_at_start === 3);
+  const kid = KIDS.find((k) => k.routine.school === 'Suncrest Academy' && k.grade_at_start === 3);
   const where = whereIsKid(kid, { day: 1, minute: 8 * 60 + 20, year: 1 });
   assert.equal(where.loc, 'school');
   assert.equal(where.zone, kidClass(kid, 3, 1).room);
@@ -47,7 +47,7 @@ test('routines: public-school kids go to each subject teacher\'s room', () => {
   // Passing period: everyone's in the hallway.
   assert.equal(whereIsKid(kid, { day: 1, minute: 9 * 60 + 12, year: 1 }).zone, 'hallway');
   assert.equal(whereIsKid(kid, { day: 1, minute: 9 * 60 + 20, year: 1 }).zone, kidClass(kid, 3, 2).room);
-  const priv = KIDS.find((k) => k.routine.school.startsWith('Pinecrest'));
+  const priv = KIDS.find((k) => k.routine.school.startsWith('Hilltop'));
   assert.equal(whereIsKid(priv, { day: 1, minute: 9 * 60, year: 1 }), null);
   assert.ok(whereIsKid(priv, { day: 1, minute: 16 * 60, year: 1 }));
   assert.equal(whereIsKid(kid, { day: 1, minute: 23 * 60, year: 1 }), null);
@@ -263,7 +263,7 @@ test('school: four subjects with their own teachers, and classrooms at least 90%
     assert.ok(filled / seats.length >= 0.9, `period ${period}: ${filled}/${seats.length}`);
     assert.ok(seats.includes('PLAYER'));
   }
-  const cohort = KIDS.filter((k) => k.grade_at_start === 3 && k.routine.school === 'Grubbsville School');
+  const cohort = KIDS.filter((k) => k.grade_at_start === 3 && k.routine.school === 'Suncrest Academy');
   for (const bit of [1, 2]) {
     const a = cohort.filter((k) => (sectionOf(k, 3) & bit) === 0).length;
     assert.ok(Math.abs(a - (cohort.length - a)) <= 1, 'both schedule halves are even');

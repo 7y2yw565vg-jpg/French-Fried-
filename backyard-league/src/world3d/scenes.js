@@ -977,7 +977,7 @@ export function buildSchool(opts) {
   b.box(30, 0.06, 40, '#55585e', -94, 0, 0, { mat: 'asphalt' });
   sidewalk(b, -80, 0, 4, 8);
   b.box(4, 0.8, 0.6, '#b5543c', -86, 0, 8, { mat: 'brick' });
-  P.addSign(sc.group, elementary ? 'GRUBBSVILLE ELEMENTARY' : 'GRUBBSVILLE MIDDLE SCHOOL', -86, 1.5, 8.35, 4.6, 0, { bg: '#1d3557', color: '#ffd166' });
+  P.addSign(sc.group, 'SUNCREST ACADEMY', -86, 1.5, 8.35, 4.6, 0, { bg: '#1d3557', color: '#ffd166' });
   b.cyl(0.07, 0.09, 9, '#d0d7df', -84, 0, -6, { mat: 'metal', collide: true });
   b.box(1.6, 1.0, 0.03, '#d62828', -83.2, 7.8, -6, { mat: 'fabric', shade: (x, y) => (Math.floor((y + 0.5) * 7) % 2 ? '#ffffff' : null) });
   b.box(0.7, 0.55, 0.035, '#1d3557', -83.55, 8.03, -6, { mat: 'fabric' });
@@ -1011,7 +1011,7 @@ export function buildMall() {
     roof: { type: 'flat', color: '#9aa0a6', skylights: [[-30, 0, 16, 6], [0, 0, 16, 6], [30, 0, 16, 6]], units: [[-40, -12], [20, 14]] },
   });
   const mb = mall.b;
-  P.addSign(sc.group, 'GRUBBSVILLE MALL', -54.4, 5.0, 1, 9, -Math.PI / 2, { bg: '#e63946', color: '#ffffff', stroke: '#7a1020' });
+  P.addSign(sc.group, 'SUNCREST MALL', -54.4, 5.0, 1, 9, -Math.PI / 2, { bg: '#e63946', color: '#ffffff', stroke: '#7a1020' });
   const stores = [
     ['sporting goods', -40, 16, 'Sporting Goods', '#2a9d8f'], ['game shop', -22, 14, 'Level Up Games', '#8338ec'],
     ['shoe store', -6, 12, 'Sole Patrol', '#e76f51'], ['dollar store', 8, 12, 'Dollar Dreams', '#ffbe0b'],
@@ -1174,7 +1174,7 @@ export function buildLibrary() {
   zone(sc, 'homework tables', 14, 6, 12, 4, { seats: Array.from({ length: 12 }, (_, i) => ({ x: 9 + (i % 6) * 2, z: i < 6 ? 5 : 7, rot: i < 6 ? 0 : Math.PI })) });
   act(sc, 'study', 14, 9, 'Study for quizzes (30 min)');
   P.counter(lb, 14, 1, 5, 0, '#264653');
-  P.addSign(lib.contents, 'Grubbsville Youth Sports League', 14, 2.4, 0.5, 4.2, 0, { bg: '#264653', color: '#ffffff' });
+  P.addSign(lib.contents, 'Suncrest Youth Sports League', 14, 2.4, 0.5, 4.2, 0, { bg: '#264653', color: '#ffffff' });
   act(sc, 'league', 14, 2.4, 'League desk (register / permits)');
   zone(sc, 'league desk', 14, -0.4, 2, 1, { boss: { x: 14, z: -0.2 } });
   P.counter(lb, -2, 10, 5, 0, '#8d5a3b');
@@ -1340,7 +1340,7 @@ export function buildGrocery() {
   });
   const gb = gro.b;
   b.box(42, 0.25, 3, '#e63946', 0, 3.6, 9.4, { mat: 'fabric', shade: (x) => (Math.floor((x + 0.5) * 30) % 2 ? '#ffffff' : null) });
-  P.addSign(sc.group, 'GRUB-N-GO', 0, 5.2, 8.25, 7, 0, { bg: '#e63946', color: '#fff', stroke: '#7a1020' });
+  P.addSign(sc.group, 'SUN-N-GO', 0, 5.2, 8.25, 7, 0, { bg: '#e63946', color: '#fff', stroke: '#7a1020' });
   const candy = (r) => ['#ff006e', '#fb5607', '#ffbe0b', '#8338ec', '#3a86ff'][Math.floor(r() * 5)];
   const cereal = (r) => ['#f4a261', '#e9c46a', '#e63946', '#2a9d8f'][Math.floor(r() * 4)];
   P.groceryShelf(gb, -12, -6, 10, rng, candy);

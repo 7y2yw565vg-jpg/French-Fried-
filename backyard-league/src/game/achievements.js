@@ -4,7 +4,7 @@ import { KIDS } from '../data/kids.js';
 export const ACHIEVEMENTS = [
   { id: 'FIRST_FRIEND', name: 'Hi, I\'m New Here', desc: 'Meet your first kid.', test: (s) => KIDS.some((k) => s.kids[k.id].met) },
   { id: 'SOCIAL_BUTTERFLY', name: 'Social Butterfly', desc: 'Meet 50 kids.', test: (s) => KIDS.filter((k) => s.kids[k.id].met).length >= 50 },
-  { id: 'KNOW_EVERYONE', name: 'Knows Everybody', desc: 'Meet all 216 kids in Grubbsville.', test: (s) => KIDS.every((k) => s.kids[k.id].met) },
+  { id: 'KNOW_EVERYONE', name: 'Knows Everybody', desc: 'Meet all 216 kids in Suncrest.', test: (s) => KIDS.every((k) => s.kids[k.id].met) },
   { id: 'BEST_FRIENDS', name: 'Best Friends Forever', desc: 'Reach Best Friends with a kid.', test: (s) => KIDS.some((k) => s.kids[k.id].f >= 85) },
   { id: 'FIRST_RECRUIT', name: 'You\'re On The Team!', desc: 'Sign your first player.', test: (s) => s.team.roster.length >= 2 },
   { id: 'FULL_ROSTER', name: 'Full House', desc: 'Have 14 kids on your roster.', test: (s) => s.team.roster.length >= 14 },

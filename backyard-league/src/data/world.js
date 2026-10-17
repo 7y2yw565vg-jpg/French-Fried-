@@ -76,11 +76,11 @@ export const HOOD_BY_NAME = Object.fromEntries(NEIGHBORHOODS.map((n) => [n.name,
 // Map coordinates are in "walking minutes" (1 unit = 1 minute on foot).
 export const LOCATIONS = {
   home: { name: 'Your House', icon: '🏠', kind: 'home' },
-  school: { name: 'Grubbsville School', icon: '🏫', kind: 'school', map: { x: 50, y: 42 } },
-  mall: { name: 'Grubbsville Mall', icon: '🛍️', kind: 'mall', map: { x: 78, y: 30 } },
+  school: { name: 'Suncrest Academy', icon: '🏫', kind: 'school', map: { x: 50, y: 42 } },
+  mall: { name: 'Suncrest Mall', icon: '🛍️', kind: 'mall', map: { x: 78, y: 30 } },
   library: { name: 'Public Library', icon: '📚', kind: 'library', map: { x: 40, y: 22 } },
   museum: { name: 'Museum of Neat Stuff', icon: '🦖', kind: 'museum', map: { x: 64, y: 12 } },
-  grocery: { name: 'Grub-N-Go Grocery', icon: '🛒', kind: 'grocery', map: { x: 28, y: 50 } },
+  grocery: { name: 'Sun-N-Go Grocery', icon: '🛒', kind: 'grocery', map: { x: 28, y: 50 } },
   maple: { name: 'Maple Hollow', icon: '🍁', kind: 'hood', map: { x: 18, y: 26 } },
   sunnyside: { name: 'Sunnyside Acres', icon: '🌻', kind: 'hood', map: { x: 30, y: 74 } },
   pickle: { name: 'Pickle Creek', icon: '🥒', kind: 'hood', map: { x: 12, y: 62 } },
@@ -263,7 +263,7 @@ export const ITEMS = {
 };
 
 export const SHOPS = {
-  grocery: { name: 'Grub-N-Go Checkout', loc: 'grocery', zone: 'checkout' },
+  grocery: { name: 'Sun-N-Go Checkout', loc: 'grocery', zone: 'checkout' },
   'sporting goods': { name: 'Sporty Spice Sporting Goods', loc: 'mall', zone: 'sporting goods' },
   'game shop': { name: 'Level Up Games', loc: 'mall', zone: 'game shop' },
   'shoe store': { name: 'Sole Patrol Shoes', loc: 'mall', zone: 'shoe store' },
@@ -414,17 +414,17 @@ export const RIVAL_COLORS = {
   'Riverside Rubber Duckies': ['#ffd60a', '#0077b6'], 'Sunnyside Sluggers': ['#d00000', '#ffba08'], 'Oakridge Acorns': ['#606c38', '#dda15e'],
   'Pickle Creek Puddle Jumpers': ['#2a9d8f', '#e9c46a'], 'Riverside Rim Rockers': ['#3d405b', '#f2cc8f'], 'Oakridge Royals': ['#3c096c', '#ffd166'],
   'Maple Hollow Monster Trucks': ['#e85d04', '#212529'], 'Pickle Creek Crunch': ['#38b000', '#000000'], 'Old Town Thunderbirds': ['#023e8a', '#ff006e'],
-  'Pinecrest Middle Polar Bears (6-8)': ['#caf0f8', '#03045e'], "St. Bart's Middle Bulldogs (6-8)": ['#9d0208', '#ffffff'], 'Riverside Middle Hurricanes (6-8)': ['#0096c7', '#ff7b00'],
-  'Grubbsville Middle Thunder Turtles (6-8)': ['#2d6a4f', '#95d5b2'], 'Grubbsville Middle Night Owls (6-8)': ['#14213d', '#fca311'],
+  'Hilltop Middle Polar Bears (6-8)': ['#caf0f8', '#03045e'], "St. Bart's Middle Bulldogs (6-8)": ['#9d0208', '#ffffff'], 'Riverside Middle Hurricanes (6-8)': ['#0096c7', '#ff7b00'],
+  'Suncrest Middle Thunder Turtles (6-8)': ['#2d6a4f', '#95d5b2'], 'Suncrest Middle Night Owls (6-8)': ['#14213d', '#fca311'],
   'Oakridge Thunder Ponies': ['#6b4bd1', '#f5d76e'], 'Riverside River Rats': ['#3a7bd5', '#9aa5b1'],
   'Mall Rats United': ['#e84a8a', '#1a1a2e'], 'Pickle Creek Kickles': ['#5aa83a', '#f1f1f1'],
-  'Pickle Creek Dillweeds': ['#3f8f2a', '#c9e265'], 'Pinecrest Polo Penguins': ['#1b2a49', '#ffffff'],
+  'Pickle Creek Dillweeds': ['#3f8f2a', '#c9e265'], 'Hilltop Polo Penguins': ['#1b2a49', '#ffffff'],
   'Maple Hollow Maple Bats': ['#c0392b', '#f39c12'], 'Old Town Clocktower Crows': ['#2c2c2c', '#c9a227'],
   'Maple Hollow Hoopsters': ['#e67e22', '#2c3e50'], 'Old Town Firecrackers': ['#e74c3c', '#f1c40f'],
   'The Library Lions': ['#8e5a2b', '#f4d03f'], 'Sunnyside Swish': ['#f7b733', '#4ecdc4'],
-  'Sunnyside Sun Bears': ['#f39c12', '#8b4513'], 'Grubbsville Gravy Train': ['#7f5539', '#ddb892'],
+  'Sunnyside Sun Bears': ['#f39c12', '#8b4513'], 'Suncrest Gravy Train': ['#7f5539', '#ddb892'],
   'Riverside Rapids': ['#00a8e8', '#003459'], 'Oakridge Golden Gophers': ['#d4af37', '#4a4a4a'],
-  'Middle School Mega Moose (6-8)': ['#6d4c41', '#ffcc80'], 'Grubbsville Middle Meteors (6-8)': ['#512da8', '#ff7043'],
+  'Middle School Mega Moose (6-8)': ['#6d4c41', '#ffcc80'], 'Suncrest Middle Meteors (6-8)': ['#512da8', '#ff7043'],
 };
 
 export const PERKS = {

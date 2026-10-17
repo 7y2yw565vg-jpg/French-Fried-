@@ -72,7 +72,7 @@ export class Game {
     this.state.flags.introDone = true;
     const sp = SPORTS[this.state.team.sport];
     modal({
-      title: `Welcome to Grubbsville, ${this.state.player.name}!`,
+      title: `Welcome to Suncrest, ${this.state.player.name}!`,
       body: `It's the first day of 3rd grade, and you have a BIG plan: start your own ${sp.name.toLowerCase()} team, the ${this.state.team.name}!\n\n`
         + `To enter the Grade 3 League (every grade has its own league) you need ${sp.minRoster} players (you count!), team shirts, a field setup, and the $${sp.entryFee} entry fee. You have $${this.state.money.toFixed(2)}.\n\n`
         + `- Ask Mom & Dad for a little money (don't ask for too much!), recycle cans, find coins, run a lemonade stand.\n`
@@ -148,12 +148,12 @@ export class Game {
     const banner = document.getElementById('banner');
     if (!curtain || !banner) return;
     curtain.classList.remove('fade'); void curtain.offsetWidth; curtain.classList.add('fade');
-    banner.replaceChildren(h('div', { class: 'banner-kicker' }, `${dayInfo(this.state.time.day).dateLabel} · ${formatTime(this.state.time.minute)}`), h('div', { class: 'banner-title' }, this.locName(loc)));
+    banner.replaceChildren(h('div', { class: 'banner-kicker' }, `${dayInfo(this.state.time.day).dateLabel} · ${formatTime(this.state.time.minute)}`), h('div', { class: 'banner-title' }, this.locName(loc)), h('div', { class: 'banner-kicker' }, LOCATIONS[loc] && LOCATIONS[loc].kind === 'hood' ? 'A Suncrest neighborhood' : 'Suncrest'));
     banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
   }
 
   locName(loc = this.state.loc) {
-    if (loc === 'school') return 'Grubbsville School';
+    if (loc === 'school') return 'Suncrest Academy';
     return LOCATIONS[loc]?.name || loc;
   }
 

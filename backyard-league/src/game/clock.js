@@ -144,7 +144,7 @@ function newSchoolYear(state) {
   const aged = state.team.roster.filter((id) => !eligibility(state, id).ok && id !== 'PLAYER');
   if (aged.length) out.push(`Heads up: ${aged.map((id) => shortName(KID_BY_ID.get(id))).join(', ')} ${aged.length > 1 ? 'are' : 'is'} no longer eligible for your league.`);
   out.push(`Your team moves up to the Grade ${g} League with your class.${g === 6 ? ' (Welcome to middle school!)' : ''}`);
-  addNews(state, `Everyone in Grubbsville moved up a grade. Look at how tall they got!`);
+  addNews(state, `Everyone in Suncrest moved up a grade. Look at how tall they got!`);
   return out;
 }
 

@@ -1,4 +1,4 @@
-// The named adults of Grubbsville, specified by hand so each reads as a person.
+// The named adults of Suncrest, specified by hand so each reads as a person.
 // Fields: skin (roster tone), hair [style, color], top, bottom, shoe, colors
 // [main, second], mood [brow, mouth, eyeMod], props (head/hand/body extras).
 import { SKIN, HAIR, CLOTH } from './palette.js';

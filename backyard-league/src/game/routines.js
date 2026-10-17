@@ -6,7 +6,7 @@ import { dayInfo, schoolBlockAt, nextClassBlock, DOW } from './time.js';
 import { kidGradeNow } from './stats.js';
 import { hashString } from './rng.js';
 
-const PUBLIC = new Set(['Grubbsville School']);
+const PUBLIC = new Set(['Suncrest Academy']);
 
 export function schoolKind(kid, grade) {
   if (!PUBLIC.has(kid.routine.school)) return kid.routine.school === 'Homeschooled' ? 'home' : 'private';

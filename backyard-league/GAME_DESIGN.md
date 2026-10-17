@@ -66,13 +66,13 @@ Basketball is the easy start, Baseball the hard one. Each sport's achievements a
 
 ## 4. World & Locations
 
-**Grubbsville**, a sunny suburban town. The **town map** has clickable destinations. Inside each one you get a fully 3D open area to walk around, with every kid interactable.
+**Suncrest**, a sunny suburban town. The **town map** has clickable destinations. Inside each one you get a fully 3D open area to walk around, with every kid interactable.
 
 | Location | 3D Zones | What it's for |
 |---|---|---|
 | **Your House** | bedroom (planning desk, computer), kitchen (parents), garage (equipment), backyard (field #1), basement (trophy room v1) | Asking for money, homework, managing the team, home games early on |
 | **Neighborhoods** (6) | Maple Hollow, Sunnyside Acres, Pickle Creek, Oakridge Heights (rich), Riverside Apartments, Old Town | Kids' homes, lawns to mow, paper route houses, cul-de-sac pickup games, meeting parents |
-| **School** | Grubbsville School (grades 3–8) → (High School) | Classes, halls, cafeteria, playground, gym, nurse, principal's office |
+| **School** | Suncrest Academy (grades 3–8) → (High School) | Classes, halls, cafeteria, playground, gym, nurse, principal's office |
 | **Mall** | arcade, food court, shoe store, sporting goods, pet store, fountain, game shop | Buying equipment & uniforms, meeting private-school kids, coin fountain (rare $) |
 | **Library** | kids' corner, computer row, reading nook, homework tables | Studying (+quiz prep), meeting bookworms, unlocking drill/playbook books |
 | **Museum** | dinosaur hall, space wing, bug zoo, gift shop | Field trips, weekend events, trivia-based recruiting, rare collectibles |

@@ -70,7 +70,7 @@ export function kidCheckIn(state, k) {
   const w = whereIsKid(k, { day: state.time.day, minute: state.time.minute, year: yearOf(state) });
   if (!w) return null;
   const loc = w.loc === schoolLocFor(playerGrade(state)) ? 'school' : w.loc;
-  return { loc, name: loc === 'school' ? 'Grubbsville School' : (LOCATIONS[loc] && LOCATIONS[loc].name) || loc, zone: w.zone || null };
+  return { loc, name: loc === 'school' ? 'Suncrest Academy' : (LOCATIONS[loc] && LOCATIONS[loc].name) || loc, zone: w.zone || null };
 }
 
 export function openMap(game) {
@@ -88,6 +88,9 @@ export function openMap(game) {
   el('rect', { x: 0, y: 0, width: 100, height: 92, fill: '#a7e08f' });
   el('path', { d: 'M -2 34 C 20 30, 30 40, 50 36 S 80 28, 102 40', stroke: '#4aa3df', 'stroke-width': 2.4, fill: 'none' });
   const places = ['school', 'mall', 'library', 'museum', 'grocery', ...NEIGHBORHOODS.map((n) => n.id)];
+  // One city: everything sits inside the Suncrest city limits, and the neighborhoods are its districts.
+  el('rect', { x: 1.2, y: 1.2, width: 97.6, height: 89.6, rx: 8, fill: 'none', stroke: '#2a1e1a', 'stroke-width': 0.5, 'stroke-dasharray': '2 1.4', opacity: 0.55 });
+  const lim = el('text', { x: 4, y: 88.5, 'font-size': 2.1, fill: '#2a1e1a', opacity: 0.6, 'font-weight': 900 }); lim.textContent = 'SUNCREST CITY LIMITS';
   for (const n of NEIGHBORHOODS) { const p = LOCATIONS[n.id].map; el('circle', { cx: p.x, cy: p.y, r: 9, fill: n.color, opacity: 0.35 }); }
   for (const a of places) for (const b of places) {
     if (a >= b) continue;
@@ -104,6 +107,7 @@ export function openMap(game) {
     const lb = el('text', { y: small ? -5.6 : 7.6, 'text-anchor': 'middle', 'font-size': 2.6, fill: '#2a1e1a' }, g); lb.textContent = s.loc === loc && small ? 'Home (here)' : label;
     const mins = s.loc === loc ? 'You are here' : c.ok ? `${travelMinutes(s, s.loc, loc)} min` : c.reason;
     if (!small) { const sub = el('text', { y: 10.4, 'text-anchor': 'middle', 'font-size': 2.1, fill: c.ok ? '#2d6a4f' : '#9d0208' }, g); sub.textContent = mins; }
+    if (LOCATIONS[loc] && LOCATIONS[loc].kind === 'hood') { const nb = el('text', { y: 12.6, 'text-anchor': 'middle', 'font-size': 1.7, fill: '#5a4636' }, g); nb.textContent = 'neighborhood'; }
     g.addEventListener('click', async () => {
       if (!c.ok) { toast(c.reason, 'bad'); return; }
       if (c.warn) {
@@ -115,10 +119,10 @@ export function openMap(game) {
     });
   };
   pin('home', 'Home', '🏠');
-  for (const loc of places) pin(loc, loc === 'school' ? game.locName('school').replace('Grubbsville ', '') : LOCATIONS[loc].name.replace('Grubbsville ', '').replace(' Apartments', ''), LOCATIONS[loc].icon);
+  for (const loc of places) pin(loc, loc === 'school' ? game.locName('school') : LOCATIONS[loc].name.replace('Suncrest ', '').replace(' Apartments', ''), LOCATIONS[loc].icon);
   ov.appendChild(h('div', { class: 'screen-bg', onclick: close }));
   ov.appendChild(h('div', { class: 'screen' }, h('div', { class: 'map-wrap' }, h('div', { class: 'card map-card' },
-    h('div', { class: 'map-head' }, h('h2', {}, 'Grubbsville'), h('span', { class: 'muted' }, `${dayInfo(s.time.day).dateLabel}, ${formatTime(s.time.minute)}. Check a friend's social profile to see where they're checked in.`), h('div', { class: 'spacer' }), btn('Close (Esc)', close, 'small white')),
+    h('div', { class: 'map-head' }, h('h2', {}, 'City of Suncrest'), h('span', { class: 'muted' }, `${dayInfo(s.time.day).dateLabel}, ${formatTime(s.time.minute)}. Check a friend's social profile to see where they're checked in.`), h('div', { class: 'spacer' }), btn('Close (Esc)', close, 'small white')),
     svg,
     h('div', { class: 'map-legend' }, h('span', {}, '🏫 School 8:00-2:00 weekdays'), h('span', {}, '🛍️ Mall 9-9'), h('span', {}, '📚 Library 9-8'), h('span', {}, '🦖 Museum 9-6'), h('span', {}, '🛒 Grocery 7-10'), h('span', {}, '🌙 Curfew 9:30 PM'))))));
 }

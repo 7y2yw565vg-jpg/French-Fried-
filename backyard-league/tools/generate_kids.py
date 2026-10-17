@@ -224,7 +224,7 @@ NEIGHBORHOODS = {
 NEIGHBORHOOD_WEIGHTS = {"Maple Hollow": 20, "Sunnyside Acres": 20, "Pickle Creek": 18,
                         "Oakridge Heights": 12, "Riverside Apartments": 18, "Old Town": 12}
 
-SCHOOLS = {"Grubbsville School": 70, "Pinecrest Academy (private)": 18, "Homeschooled": 6,
+SCHOOLS = {"Suncrest Academy": 70, "Hilltop Prep (private)": 18, "Homeschooled": 6,
            "St. Bartholomew's": 6}
 # Your school has three homerooms per grade.
 TEACHERS = {
@@ -232,7 +232,7 @@ TEACHERS = {
     3: ["Mrs. Bramblebee", "Mr. Okonkwo", "Ms. Valdez"],   # player starts here
     4: ["Mr. Fussbudget", "Mrs. Tanaka", "Ms. Featherly"],
     5: ["Mrs. Grumbleton", "Mr. Sparks", "Ms. Abara"],
-    6: ["(Grubbsville School) Mr. Krantz", "(Grubbsville School) Ms. Ruiz"],
+    6: ["(Suncrest Academy) Mr. Krantz", "(Suncrest Academy) Ms. Ruiz"],
 }
 LUNCH_PERIODS = ["11:00 (A Lunch)", "11:30 (B Lunch)", "12:00 (C Lunch)"]
 RECESS_SPOTS = ["tetherball pole", "swings", "monkey bars", "blacktop four square",
@@ -254,13 +254,13 @@ WEEKEND_SLOTS = ["Sat AM", "Sat PM", "Sun AM", "Sun PM"]
 RIVAL_TEAMS = [
     ("Oakridge Thunder Ponies", "Soccer"), ("Riverside River Rats", "Soccer"),
     ("Mall Rats United", "Soccer"), ("Pickle Creek Kickles", "Soccer"),
-    ("Pickle Creek Dillweeds", "Baseball"), ("Pinecrest Polo Penguins", "Baseball"),
+    ("Pickle Creek Dillweeds", "Baseball"), ("Hilltop Polo Penguins", "Baseball"),
     ("Maple Hollow Maple Bats", "Baseball"), ("Old Town Clocktower Crows", "Baseball"),
     ("Maple Hollow Hoopsters", "Basketball"), ("Old Town Firecrackers", "Basketball"),
     ("The Library Lions", "Basketball"), ("Sunnyside Swish", "Basketball"),
-    ("Sunnyside Sun Bears", "Football"), ("Grubbsville Gravy Train", "Football"),
+    ("Sunnyside Sun Bears", "Football"), ("Suncrest Gravy Train", "Football"),
     ("Riverside Rapids", "Football"), ("Oakridge Golden Gophers", "Football"),
-    ("Middle School Mega Moose (6-8)", "Football"), ("Grubbsville Middle Meteors (6-8)", "Baseball"),
+    ("Middle School Mega Moose (6-8)", "Football"), ("Suncrest Middle Meteors (6-8)", "Baseball"),
 ]
 JR_TEAMS = [t for t in RIVAL_TEAMS if "6-8" not in t[0]]
 
@@ -324,10 +324,10 @@ def build_kid(rng, idx, grade, first, last, home):
 
     school = weighted(rng, SCHOOLS)
     if grade >= 6:
-        school = "Grubbsville School"
+        school = "Suncrest Academy"
     neighborhood, street, house = home
 
-    if school == "Grubbsville School":
+    if school == "Suncrest Academy":
         homeroom = rng.choice(TEACHERS[min(grade, 6)])
     else:
         homeroom = None

@@ -64,7 +64,7 @@ export const LINES = {
   },
   Sweetheart: {
     greet: ['Hi {p}!! I like your face! In a nice way!', 'Hiii! Do you want half my granola bar?'],
-    chat: ['I made friendship bracelets for the whole class. Even Mr. Fussbudget.', 'My grandma says I give the best hugs in Grubbsville.'],
+    chat: ['I made friendship bracelets for the whole class. Even Mr. Fussbudget.', 'My grandma says I give the best hugs in Suncrest.'],
     yes: ['Of course! I\'ll cheer for everybody, even the other team!', 'Yay! Teams are just friends with matching shirts!'],
     no: ['Aww, I want to! I just need to know you better first!'],
   },
