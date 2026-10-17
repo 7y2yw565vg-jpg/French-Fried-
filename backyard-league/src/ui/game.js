@@ -24,7 +24,7 @@ import { handleSpot } from './places.js';
 import { openWait } from './wait.js';
 import { enterClass, exitClass, resumeClass } from './classroom.js';
 import { startMatchFlow, startCrestCup } from './match.js';
-import { crestCupToday, HILLTOP_TEAM } from '../game/rivalry.js';
+import { crestCupToday, playerInCrestCup, HILLTOP_TEAM } from '../game/rivalry.js';
 import { startTryout } from './tryout.js';
 import { sfx } from './audio.js';
 import { hashString, mulberry32 } from '../game/rng.js';
@@ -762,7 +762,7 @@ export class Game {
     const lines = [...msgs];
     if (info.isSchoolDay) lines.push('School starts at 8:00 AM. Don\'t be late!');
     if (info.dow === 5 && playerGameThisWeek(s)) lines.push('🏟️ GAME DAY! Your game starts at 10:00 AM.');
-    if (crestCupToday(s)) lines.push(`🏆 CREST CUP DAY! You play the ${HILLTOP_TEAM} at 1:00 PM.`);
+    if (crestCupToday(s) && playerInCrestCup(s)) lines.push(`🏆 CREST CUP DAY! You represent Suncrest Academy vs the ${HILLTOP_TEAM} at 1:00 PM.`);
     modal({
       title: `☀️ ${info.dateLabel}`,
       body: lines.length ? lines.join('\n\n') : 'A brand new day. What will you do?',

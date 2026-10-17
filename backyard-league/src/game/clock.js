@@ -5,10 +5,10 @@ import { KID_BY_ID, shortName } from '../data/kids.js';
 import { addLog, addNews, playerGrade, yearOf } from './state.js';
 import { dayInfo, CURFEW, DAY_START } from './time.js';
 import { weeklyGradeCheck, recordQuiz, SUBJECTS } from './school.js';
-import { ensureSeason, aiRecruit, finalizeSchedule, simOtherGames, startPlayoffs, scheduleFinal, endSeason, maybeScandalOffer, playerGameThisWeek, forfeitResult, recordResult } from './league.js';
+import { simCrestCup, ensureSeason, aiRecruit, finalizeSchedule, simOtherGames, startPlayoffs, scheduleFinal, endSeason, maybeScandalOffer, playerGameThisWeek, forfeitResult, recordResult } from './league.js';
 import { applyPractice, practiceToday, eligibility, practiceTesting, gradeAverage, isRegistered } from './team.js';
 import { seeded, clamp } from './rng.js';
-import { crestCupToday, crestCupDate, crestCupPending, recordCrestCup, CREST_CUP_TIME, CREST_CUP_WEEK, HILLTOP_TEAM } from './rivalry.js';
+import { crestCupToday, crestCupPending, crestCupDate, playerInCrestCup, recordCrestCup, CREST_CUP_TIME, HILLTOP_TEAM } from './rivalry.js';
 import { checkPassiveHooks } from './social.js';
 
 export const GAME_TIME = 10 * 60;
@@ -19,8 +19,8 @@ export function nextGameInfo(state) {
   if (!isRegistered(state) || !state.league) return null;
   const info = dayInfo(state.time.day);
   if (info.dow === 5 && state.time.minute < GAME_TIME && playerGameThisWeek(state)) return { days: 0, label: 'today at 10:00 AM' };
-  if (crestCupToday(state) && state.time.minute < CREST_CUP_TIME) return { days: 0, label: 'the Crest Cup, today at 1:00 PM', crest: true };
-  const cc = crestCupPending(state) && crestCupDate(state);
+  if (crestCupToday(state) && playerInCrestCup(state) && state.time.minute < CREST_CUP_TIME) return { days: 0, label: 'the Crest Cup, today at 1:00 PM', crest: true };
+  const cc = crestCupPending(state) && playerInCrestCup(state) && crestCupDate(state);
   // Games are on Saturdays; look ahead week by week through the schedule.
   for (let d = 1; d <= SKIP_MAX_DAYS; d++) {
     const di = dayInfo(state.time.day + d);
@@ -46,7 +46,8 @@ export function skipToNextGame(state) {
   if (!next) return { ok: false, msgs: ['Your team has no game coming up. (Register for the league first!)'] };
   const msgs = [];
   let days = 0;
-  const atGame = () => (dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state)) || crestCupToday(state);
+  const myCup = () => crestCupToday(state) && playerInCrestCup(state);
+  const atGame = () => (dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state)) || myCup();
   while (!atGame() && days < SKIP_MAX_DAYS) {
     const info = dayInfo(state.time.day);
     if (info.isSchoolDay && info.dow === 4 && state.school.lastQuizDay !== state.time.day) {
@@ -62,7 +63,7 @@ export function skipToNextGame(state) {
     days++;
   }
   if (!atGame()) return { ok: false, msgs: [...msgs, 'No game this week after all (the bracket moved on).'] };
-  const crest = crestCupToday(state) && !(dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state));
+  const crest = myCup() && !(dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state));
   const at = crest ? CREST_CUP_TIME : GAME_TIME;
   state.time.minute = Math.max(state.time.minute, at - 15);
   msgs.push(`⏭️ Skipped ${days} day${days === 1 ? '' : 's'}. You went to every class. ${crest ? 'It\'s CREST CUP day!' : 'It\'s game day!'}`);
@@ -84,7 +85,7 @@ export function advance(state, minutes) {
     if (crossed(14 * 60)) events.push({ type: 'dismissal' });
   }
   if (info.dow === 5 && crossed(GAME_TIME) && playerGameThisWeek(state)) events.push({ type: 'gameday' });
-  if (crossed(CREST_CUP_TIME) && crestCupToday(state)) events.push({ type: 'crestcup' });
+  if (crossed(CREST_CUP_TIME) && crestCupToday(state) && playerInCrestCup(state)) events.push({ type: 'crestcup' });
   if (practiceToday(state) && crossed(state.team.practice.end)) events.push({ type: 'practiceEnd' });
   if (state.team.tryout && state.team.tryout.day === state.time.day && crossed(state.team.tryout.minute)) events.push({ type: 'tryout' });
   state.time.minute = to;
@@ -111,8 +112,11 @@ export function sleep(state) {
     if (today.season.week === 15) msgs.push(...endSeason(state));
   }
   if (today.dow === 4 && today.isSchoolDay) msgs.push(...weeklyGradeCheck(state));
-  // Never showed up for the Crest Cup? Hilltop takes it by forfeit.
-  if (crestCupToday(state)) msgs.push(...recordCrestCup(state, { score: [{ soccer: 3, basketball: 20, baseball: 7, football: 14 }[state.team.sport] || 3, 0], forfeit: 'away' }));
+  // Crest Cup day: another team's game gets simmed; if it was yours and you never showed, Hilltop wins by forfeit.
+  if (crestCupToday(state)) {
+    if (playerInCrestCup(state)) msgs.push(...recordCrestCup(state, { score: [{ soccer: 3, basketball: 20, baseball: 7, football: 14 }[state.team.sport] || 3, 0], forfeit: 'away' }));
+    else msgs.push(...simCrestCup(state));
+  }
 
   // Missed tryout?
   if (state.team.tryout && state.team.tryout.day === state.time.day && !state.team.tryout.done) {
@@ -132,8 +136,7 @@ export function sleep(state) {
   if (info.season) {
     const fresh = ensureSeason(state); // no-op unless a new season just started
     msgs.push(...fresh);
-    if (info.season.week === 1 && info.dow === 0) { const cc = crestCupDate(state); if (cc) addNews(state, `The Crest Cup (Suncrest vs the ${HILLTOP_TEAM}) is set for ${cc.label}, 1:00 PM at Hilltop's campus field. Register your team to play in it.`); }
-    if (info.season.week === CREST_CUP_WEEK && info.dow === 5 && crestCupPending(state)) msgs.push(`🏆 Tomorrow at 1:00 PM: the CREST CUP vs the ${HILLTOP_TEAM} at Hilltop Prep!`);
+    if (info.season.week === 1 && info.dow === 0) { const cc = crestCupDate(state); if (cc) addNews(state, `This season's league champion will represent Suncrest Academy in the Crest Cup vs the ${HILLTOP_TEAM} on ${cc.label}, 1:00 PM at Hilltop's campus field.`); }
     if (info.season.week === 2 && info.dow === 0) {
       const offer = maybeScandalOffer(state);
       if (offer) msgs.push(`📝 A crumpled note in your backpack: "Psst. Want a ringer? Meet me. -${KID_BY_ID.get(offer.fixer).first_name}" (Check your phone.)`);
@@ -204,7 +207,7 @@ export function upcomingEvents(state) {
     add(14 * 60, 'School lets out');
   }
   if (info.dow === 5 && playerGameThisWeek(state)) add(GAME_TIME, 'Game time!');
-  if (crestCupToday(state)) add(CREST_CUP_TIME, 'The Crest Cup');
+  if (crestCupToday(state) && playerInCrestCup(state)) add(CREST_CUP_TIME, 'The Crest Cup');
   if (practiceToday(state) && state.team.roster.length > 1) add(state.team.practice.start, 'Team practice');
   if (state.team.tryout && !state.team.tryout.done && state.team.tryout.day === state.time.day) add(state.team.tryout.minute, 'Tryouts');
   add(19 * 60, 'Bedtime');

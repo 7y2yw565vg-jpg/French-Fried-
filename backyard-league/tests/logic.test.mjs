@@ -581,35 +581,44 @@ test('skip to next game: lands on game day, classes attended, Friday quiz still 
   assert.ok(s.school.scores.length > quizzes, 'Friday quiz recorded');
 });
 
-test('crest cup: Hilltop Prep team from your grade, set for week 7, forfeit if missed, trophy if won', async () => {
+test('crest cup: league champion represents Suncrest vs Hilltop after the championship', async () => {
   const R = await import('../src/game/rivalry.js');
   const { register } = await import('../src/game/team.js');
-  const { simGame } = await import('../src/game/league.js');
+  const { simGame, endSeason } = await import('../src/game/league.js');
   const s = newGame(opts('soccer'));
   s.time.day = 1;
   ensureSeason(s);
-  const hawks = R.hilltopRoster(s);
-  assert.equal(hawks.length, 12);
-  for (const id of hawks) assert.equal(kidGrade(s, id), 3);
-  assert.ok(R.hilltopNatives(s) > 0, 'some Hawks go to Hilltop Prep');
-  const cc = R.crestCupDate(s);
-  assert.equal(dayInfo(cc.day).season.week, R.CREST_CUP_WEEK);
-  assert.equal(dayInfo(cc.day).dow, R.CREST_CUP_DOW);
-  const free = KIDS.filter((k) => k.grade_at_start === 3 && !s.kids[k.id].team && !hawks.includes(k.id)).slice(0, 8).map((k) => k.id);
+  const free = KIDS.filter((k) => k.grade_at_start === 3 && !s.kids[k.id].team).slice(0, 8).map((k) => k.id);
   for (const id of free) { s.kids[id].team = s.team.name; s.team.roster.push(id); }
   s.team.shirts = 12; s.team.setup = true; s.money = 500;
   register(s);
-  // The game sims like any other, with the Hawks' roster.
-  const res = simGame(s, R.crestCupGame(s), 7);
-  assert.ok(res.score.length === 2);
+  finalizeSchedule(s);
+  assert.equal(R.crestCupTeam(s), null, 'nobody represents Suncrest until there is a champion');
+  const cc = R.crestCupDate(s);
+  assert.equal(dayInfo(cc.day).season.week, 15);
+  assert.equal(dayInfo(cc.day).dow, 6);
+  // Your team wins the championship.
+  s.league.playoffs = [{ week: 14, games: [] }, { week: 15, games: [{ home: s.team.name, away: s.league.teams[0].name, playoff: 'Championship', result: { score: [3, 1] } }] }];
+  endSeason(s);
+  assert.equal(R.crestCupTeam(s), s.team.name);
+  const hawks = R.hilltopRoster(s);
+  assert.equal(hawks.length, 12);
+  for (const id of hawks) { assert.equal(kidGrade(s, id), 3); assert.ok(!s.team.roster.includes(id)); }
+  assert.ok(R.hilltopNatives(s) > 0, 'some Hawks go to Hilltop Prep');
+  const res = simGame(s, R.crestCupGame(s), 15);
+  assert.equal(res.score.length, 2);
   s.time.day = cc.day;
-  assert.ok(R.crestCupToday(s));
-  sleep(s);
-  assert.equal(R.rivalryRecord(s).l, 1, 'missing it is a forfeit loss');
-  assert.equal(R.crestCupToday(s), false);
+  assert.ok(R.crestCupToday(s) && R.playerInCrestCup(s));
   const trophies = s.inv.trophies.length;
-  s.rivalry.games = [];
-  s.time.day = cc.day;
   R.recordCrestCup(s, { score: [1, 3] });
   assert.equal(s.inv.trophies.length, trophies + 1, 'winning gives the Crest Cup trophy');
+  assert.equal(R.crestCupToday(s), false);
+  // Next time, a rival wins the league: their Crest Cup is simmed overnight.
+  s.rivalry.games = [];
+  s.league.champion = s.league.teams[0].name;
+  assert.equal(R.playerInCrestCup(s), false);
+  sleep(s);
+  const last = R.rivalryRecord(s).games[0];
+  assert.equal(last.team, s.league.teams[0].name);
+  assert.equal(last.mine, false);
 });

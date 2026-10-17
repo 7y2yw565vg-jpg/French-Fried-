@@ -5,7 +5,7 @@ import { addLog, addNews, getKid, kidGrade, playerGrade, statsOf, yearOf } from 
 import { bestLineup, eligibility, isRegistered, leagueBand, playerBand, homeGameRevenue, giveTrophy, attraction } from './team.js';
 import { simulateMatch } from './sim.js';
 import { recordGameStats, seasonAwards } from './leagueStats.js';
-import { HILLTOP_TEAM, HILLTOP_COLORS, hilltopRoster } from './rivalry.js';
+import { HILLTOP_TEAM, HILLTOP_COLORS, hilltopRoster, crestCupGame, recordCrestCup, CREST_CUP_WEEK } from './rivalry.js';
 import { positionRating } from './stats.js';
 import { dayInfo, seasonId } from './time.js';
 import { seeded, shuffle, hashString, clamp } from './rng.js';
@@ -308,6 +308,12 @@ export function recordResult(state, game, result, week) {
   return msgs;
 }
 
+/** The Crest Cup when another team won the league: sim it and report the result. */
+export function simCrestCup(state) {
+  const g = crestCupGame(state);
+  return recordCrestCup(state, simGame(state, g, CREST_CUP_WEEK));
+}
+
 /** Simulate every game this week except the player's (which the UI plays live). */
 export function simOtherGames(state, week) {
   for (const g of weekGames(state, week)) {
@@ -364,7 +370,9 @@ export function endSeason(state) {
   const mine = lg.teams.find((t) => t.player);
   const info = dayInfo(state.time.day);
   const label = `${info.season ? info.season.name : 'Season'} ${2026 + yearOf(state) - 1}`;
-  if (champ) addNews(state, `The ${champ} are ${lg.bandName} champions! (${label})`);
+  lg.champion = champ;
+  if (champ) addNews(state, `The ${champ} are ${lg.bandName} champions! (${label}) They'll represent Suncrest Academy against the ${HILLTOP_TEAM} in tomorrow's Crest Cup.`);
+  if (champ === state.team.name) msgs.push(`🏆 As league champs, YOU represent Suncrest Academy in the CREST CUP tomorrow at 1:00 PM vs the ${HILLTOP_TEAM} at Hilltop Prep!`);
   // Season awards from the league stats.
   const awards = seasonAwards(state);
   lg.awards = awards;
