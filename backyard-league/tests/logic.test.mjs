@@ -689,3 +689,29 @@ test('stat relevance: each sport highlights the skills its positions use', async
     assert.ok(Object.keys(imp).some((c) => statRelevance(sp, c) === 'key'));
   }
 });
+
+test('knowledge: scouted stats and routines carry into new games when the toggle is on', async () => {
+  const K = await import('../src/game/knowledge.js');
+  const mem = new Map();
+  const storage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  assert.equal(K.knowledgeOn(storage), true, 'on by default');
+  const a = newGame(opts('soccer'));
+  const id = KIDS[0].id; const id2 = KIDS[1].id;
+  a.kids[id].rev = { SPD: 'exact', STR: 'range' };
+  a.kids[id2].known = ['lunch'];
+  K.recordKnowledge(a, storage);
+  assert.deepEqual(K.knowledgeSummary(storage), { kids: 2, stats: 2, exact: 1, routines: 1 });
+  const b = newGame(opts('basketball'));
+  b.kids[id].rev = { STR: 'exact' }; // already learned in this run
+  assert.equal(K.applyKnowledge(b, storage), 2);
+  assert.deepEqual(b.kids[id].rev, { SPD: 'exact', STR: 'exact' }, 'exact beats range');
+  assert.ok(b.kids[id2].known.includes('lunch'));
+  assert.equal(b.kids[id].met, false, 'kids still have to meet you');
+  // Forgetting takes the remembered facts back out but keeps this run's own learning.
+  K.forgetKnowledge(b, storage);
+  assert.deepEqual(b.kids[id].rev, { STR: 'exact' });
+  assert.equal(b.kids[id2].known.length, 0);
+  assert.equal(K.knowledgeSummary(storage).kids, 0);
+  K.setKnowledgeOn(false, storage);
+  assert.equal(K.knowledgeOn(storage), false);
+});

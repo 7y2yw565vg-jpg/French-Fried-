@@ -1,4 +1,5 @@
 // Title screen and character/team creator (with a live 3D preview).
+import { knowledgeOn, setKnowledgeOn, knowledgeSummary } from '../game/knowledge.js';
 import * as THREE from 'three';
 import { h, btn, clear, $, modal } from './dom.js';
 import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world3d/toon.js';
@@ -204,6 +205,21 @@ function slotPicker(title, text, verb, onPick, onBack) {
       h('div', { class: 'btn-row' }, btn('← Back', onBack, 'white')))));
 }
 
+/** New game: start with what you learned about kids in past runs? (A saved setting.) */
+function knowledgeRow() {
+  const sum = knowledgeSummary();
+  const note = h('div', { class: 'muted' });
+  const draw = (on) => {
+    note.textContent = !sum.kids ? 'Nothing learned yet. Kids you scout in any game are remembered for next time.'
+      : on ? `You'll start knowing ${sum.stats} stats on ${sum.kids} kids from past runs. (They won't remember you.)` : `Starting fresh. (${sum.kids} kids stay remembered for later.)`;
+  };
+  draw(knowledgeOn());
+  return h('div', { class: 'field-row' }, h('label', {}, 'Past runs'),
+    h('div', {}, h('label', { class: 'switch-row' },
+      h('input', { type: 'checkbox', checked: knowledgeOn(), onchange: (e) => { setKnowledgeOn(e.target.checked); draw(e.target.checked); sfx('click'); } }),
+      h('span', { class: 'switch' }), h('b', {}, '🧠 Remember kids I\'ve scouted')), note));
+}
+
 export function showCreator(engine, onDone) {
   const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: [], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim', shoes: 'sneakers', shoeColor: 'white' };
   let hatPick = 'none'; let sigPick = 'none';
@@ -357,6 +373,7 @@ export function showCreator(engine, onDone) {
         h('div', { class: 'field-row' }, h('label', {}, 'Team name'), h('div', { class: 'row' }, teamIn, btn('Random', () => { teamIn.value = randomTeamName(); }, 'small white'))),
         h('div', { class: 'field-row' }, h('label', {}, 'Main color'), colorRow(0)),
         h('div', { class: 'field-row' }, h('label', {}, 'Second color'), colorRow(1)),
+        knowledgeRow(),
         h('div', { class: 'btn-row', style: { marginTop: '16px' } },
           btn("Let's go!", () => {
             cfg.name = nameIn.value.trim() || 'Rookie';

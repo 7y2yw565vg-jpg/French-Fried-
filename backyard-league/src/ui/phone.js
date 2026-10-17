@@ -16,6 +16,7 @@ import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
 import { nextGameInfo } from '../game/clock.js';
 import { signupOpen } from '../game/seasons.js';
+import { knowledgeOn, setKnowledgeOn, knowledgeSummary, applyKnowledge, forgetKnowledge, recordKnowledge } from '../game/knowledge.js';
 import { openSignup } from './signup.js';
 import { HILLTOP_TEAM, hilltopRoster, rivalryRecord, crestCupDate, crestCupPending, crestCupTeam } from '../game/rivalry.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
@@ -403,7 +404,9 @@ function socialApp(game, root, redraw) {
   const views = [['friends', 'Friends'], ['feed', 'Feed']];
   root.append(h('div', { class: 'chips' }, ...views.map(([id, l]) => h('div', { class: `chip ${game._socialView === id ? 'sel' : ''}`, onclick: () => { game._socialView = id; redraw(); } }, l))));
   const met = KIDS.filter((k) => s.kids[k.id].met);
-  if (!met.length) { root.append(h('p', {}, 'No friends yet! Walk up to a kid and say hi (E). Everyone you meet adds you here.')); return; }
+  const scouted = KIDS.filter((k) => Object.keys(s.kids[k.id].rev).length || s.kids[k.id].remembered);
+  if (!met.length && !scouted.length) { root.append(h('p', {}, 'No friends yet! Walk up to a kid and say hi (E). Everyone you meet adds you here.')); return; }
+  if (!met.length && game._socialView === 'friends' && !game._kidFilter) game._kidFilter = 'scouted';
   if (game._socialView === 'feed') {
     const posts = [];
     for (const k of met) {
@@ -416,11 +419,13 @@ function socialApp(game, root, redraw) {
     if (!posts.length) root.append(h('p', { class: 'muted' }, 'None of your friends have checked in where you can see. Learn their routines (chat and hang out) to see their check-ins.'));
     return;
   }
-  const filters = [['met', 'All'], ['class', 'My classes'], ['free', 'Free agents'], ['rival', 'Rival teams'], ['mine', 'My team']];
+  const filters = [['met', 'All'], ['class', 'My classes'], ['free', 'Free agents'], ['rival', 'Rival teams'], ['mine', 'My team'], ['scouted', '🧠 Scouted']];
   game._kidFilter = game._kidFilter || 'met';
   const g = playerGrade(s);
   const classSet = new Set([1, 2, 3, 4].flatMap((p) => classmates(s, p)));
-  const list = met.filter((k) => {
+  // Scouted: every kid whose stats you know, met or not (including what you remember from past runs).
+  const scoutRank = (k) => Object.values(s.kids[k.id].rev).reduce((a, r) => a + (r === 'exact' ? 2 : 1), 0);
+  const list = game._kidFilter === 'scouted' ? scouted.slice().sort((a, b) => kidGrade(s, a.id) === g ? -1 : kidGrade(s, b.id) === g ? 1 : scoutRank(b) - scoutRank(a)) : met.filter((k) => {
     const ks = s.kids[k.id];
     switch (game._kidFilter) {
       case 'class': return kidGrade(s, k.id) === g && classSet.has(k.id);
@@ -431,12 +436,12 @@ function socialApp(game, root, redraw) {
     }
   }).sort((a, b) => s.kids[b.id].f - s.kids[a.id].f);
   root.append(h('div', { class: 'chips', style: { marginTop: '6px' } }, ...filters.map(([id, l]) => h('div', { class: `chip ${game._kidFilter === id ? 'sel' : ''}`, onclick: () => { game._kidFilter = id; redraw(); } }, l))),
-    h('p', { class: 'muted' }, `${met.length} friends (of ${KIDS.length} kids in Suncrest). Tap a profile to see where they're checked in.`));
+    h('p', { class: 'muted' }, game._kidFilter === 'scouted' ? `${scouted.length} kids scouted. 🧠 = remembered from a past run (they don't remember you). Tap a profile for their stats.` : `${met.length} friends (of ${KIDS.length} kids in Suncrest). Tap a profile to see where they're checked in.`));
   for (const k of list) {
     const ks = s.kids[k.id];
     const c = kidCheckIn(s, k);
     root.appendChild(h('div', { class: 'friend click', onclick: () => notebookEntry(game, k.id) }, portrait(k, 30),
-      h('div', { style: { flex: 1 } }, h('b', {}, shortName(k)), h('div', { class: 'muted' }, `Grade ${kidGrade(s, k.id)} · ${s.team.roster.includes(k.id) ? '★ Your team' : s.team.invites.includes(k.id) ? '✉ Invited' : ks.team || 'Free agent'}`),
+      h('div', { style: { flex: 1 } }, h('b', {}, shortName(k), ks.remembered ? h('span', { class: 'remembered', title: 'Remembered from a past run' }, ' 🧠') : null, !ks.met ? h('span', { class: 'muted' }, ' (not met)') : null), h('div', { class: 'muted' }, `Grade ${kidGrade(s, k.id)} · ${s.team.roster.includes(k.id) ? '★ Your team' : s.team.invites.includes(k.id) ? '✉ Invited' : ks.team || 'Free agent'}`),
         h('div', { class: 'checkin' }, c ? `📍 ${c.name}` : '📍 Location hidden')),
       h('div', { class: 'row' }, h('div', { class: 'bar', style: { width: '50px' } }, h('i', { style: { width: `${ks.f}%` } })))));
   }
@@ -459,9 +464,33 @@ function notebookEntry(game, id) {
     hook ? h('p', {}, `🤔 What it takes: ${hook.label}${ks.hook ? ' ✅ DONE' : ''}`) : null,
     ks.team && ks.team !== s.team.name ? h('p', {}, `🛡️ Plays for the ${ks.team}${k.recruitment.status === 'On Rival Team (Loyal)' ? ' (very loyal)' : ''}`) : null,
     h('h3', { style: { margin: '10px 0 4px' } }, 'Stats seen at tryouts'),
+    ks.remembered ? h('p', { class: 'muted' }, '🧠 Some of this is remembered from a past run. Their stats are the same; they just don\'t know you yet.') : null,
     statGrid(s, id),
     s.team.staff.scout ? h('p', {}, `🔭 ${scoutLine(s, k)}`) : null);
   modal({ title: 'Profile', body, wide: true });
+}
+
+/** Settings: remember kids and their stats across runs. */
+function knowledgeBox(game, redraw) {
+  const s = game.state;
+  recordKnowledge(s);
+  const on = knowledgeOn();
+  const sum = knowledgeSummary();
+  return h('div', { class: 'box' }, h('h3', {}, '🧠 Knowledge from past runs'),
+    h('label', { class: 'switch-row' },
+      h('input', { type: 'checkbox', checked: on, onchange: (e) => {
+        setKnowledgeOn(e.target.checked);
+        if (e.target.checked) { const n = applyKnowledge(s); toast(n ? `Remembered ${n} kid${n === 1 ? '' : 's'} from past runs.` : 'Knowledge on. New games start with what you\'ve learned.', 'good'); }
+        redraw();
+      } }),
+      h('span', { class: 'switch' }), h('b', {}, 'Remember kids I\'ve scouted')),
+    h('p', { class: 'muted' }, on
+      ? 'On: new games start with every stat and routine you\'ve learned in any save. Kids won\'t remember you, so friendships still start over.'
+      : 'Off: new games start with a blank notebook. (Everything you learn is still remembered in case you turn this back on.)'),
+    h('p', {}, sum.kids ? `Remembered: ${sum.kids} kids · ${sum.stats} stats (${sum.exact} exact) · ${sum.routines} routine spots.` : 'Nothing remembered yet. Scout kids at tryouts and learn their routines.'),
+    sum.kids ? btn('Forget everything', () => {
+      modal({ title: 'Forget all past knowledge?', body: 'This wipes what\'s remembered across runs, and takes remembered facts out of this game. Anything you learned yourself in this game stays.', buttons: [{ label: 'Forget it all', cls: 'red', onClick: () => { forgetKnowledge(s); toast('Knowledge wiped.'); redraw(); } }, { label: 'Cancel', cls: 'white' }] });
+    }, 'small white') : null);
 }
 
 // ----------------------------------------------------------- field & staff --
@@ -791,6 +820,7 @@ function settingsTab(game, root, redraw, close) {
           document.body.appendChild(a); a.click(); a.remove();
         }, 'white'),
         btn('🚪 Save & quit to title', () => { saveToStorage(s); close(); game.onQuit(); }, 'red'))),
+    knowledgeBox(game, redraw),
     h('div', { class: 'box' }, h('h3', {}, 'Controls'),
       h('b', {}, '⌨️ Keyboard & mouse'),
       h('div', {}, 'WASD / Arrows or click / tap the ground: walk (Shift = run) · Click a kid or a spot to walk over and use it · E / Space: talk & interact · M: map · Tab: phone · I: backpack · Z: wait · Esc: close'),

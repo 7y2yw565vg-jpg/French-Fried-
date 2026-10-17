@@ -267,6 +267,7 @@ export function runDrill(state, drillId, ids) {
       if (id !== 'PLAYER') {
         const ks = state.kids[id];
         if (ks.rev[code] !== 'exact') ks.rev[code] = exact ? 'exact' : 'range';
+        if (ks.memRev) ks.memRev = ks.memRev.filter((c) => c !== code); // learned for real this run
       }
     }
     // A drill "score" used for flavor (sprint time etc).
