@@ -139,7 +139,7 @@ export function buildField(sport, up, colors, cx, cz, opts = {}) {
       }
       info.goals = [-1, 1].map((sx) => ({ x: cx + sx * (gl + ez / 2), z: cz }));
     }
-    if (lineTier >= 4) b.cyl(1.6, 1.6, 0.04, colors[0], cx, 0.02, cz);
+    if (lineTier >= 4 && sport === 'football') b.cyl(1.6, 1.6, 0.04, colors[0], cx, 0.02, cz); // midfield logo disc (soccer keeps a clean center circle)
   }
 
   // corner markers (baseball has foul poles instead)

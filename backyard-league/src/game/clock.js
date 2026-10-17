@@ -4,12 +4,63 @@ import { SCHOOL_BLOCKS, SUBJECT_TEACHERS, SPORTS } from '../data/world.js';
 import { KID_BY_ID, shortName } from '../data/kids.js';
 import { addLog, addNews, playerGrade, yearOf } from './state.js';
 import { dayInfo, CURFEW, DAY_START } from './time.js';
-import { weeklyGradeCheck } from './school.js';
+import { weeklyGradeCheck, recordQuiz, SUBJECTS } from './school.js';
 import { ensureSeason, aiRecruit, finalizeSchedule, simOtherGames, startPlayoffs, scheduleFinal, endSeason, maybeScandalOffer, playerGameThisWeek, forfeitResult, recordResult } from './league.js';
-import { applyPractice, practiceToday, eligibility, practiceTesting } from './team.js';
+import { applyPractice, practiceToday, eligibility, practiceTesting, gradeAverage, isRegistered } from './team.js';
+import { seeded, clamp } from './rng.js';
 import { checkPassiveHooks } from './social.js';
 
 export const GAME_TIME = 10 * 60;
+const SKIP_MAX_DAYS = 14;
+
+/** When is your team's next game? {days, label} or null (not in the league / no games left). */
+export function nextGameInfo(state) {
+  if (!isRegistered(state) || !state.league) return null;
+  const info = dayInfo(state.time.day);
+  if (info.dow === 5 && state.time.minute < GAME_TIME && playerGameThisWeek(state)) return { days: 0, label: 'today at 10:00 AM' };
+  // Games are on Saturdays; look ahead week by week through the schedule.
+  for (let d = 1; d <= SKIP_MAX_DAYS; d++) {
+    const di = dayInfo(state.time.day + d);
+    if (di.dow !== 5 || !di.season) continue;
+    const lg = state.league;
+    const rounds = [...(lg.schedule || []), ...(lg.playoffs || [])];
+    const r = rounds.find((x) => x.week === di.season.week);
+    const mine = r && r.games.some((g) => !g.result && (g.home === state.team.name || g.away === state.team.name));
+    // Playoff rounds aren't drawn until the week before, so count any week past the regular season as "maybe".
+    if (mine || di.season.week > 13) return { days: d, label: `${di.dateLabel} at 10:00 AM`, maybe: !mine };
+  }
+  return null;
+}
+
+/**
+ * Skip ahead to the morning of your next game. School days in between count as
+ * attended; any Friday quiz still happens (scored from your grades and prep).
+ * Returns {ok, msgs} with the overnight reports.
+ */
+export function skipToNextGame(state) {
+  const next = nextGameInfo(state);
+  if (!next) return { ok: false, msgs: ['Your team has no game coming up. (Register for the league first!)'] };
+  const msgs = [];
+  let days = 0;
+  while (!(dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state)) && days < SKIP_MAX_DAYS) {
+    const info = dayInfo(state.time.day);
+    if (info.isSchoolDay && info.dow === 4 && state.school.lastQuizDay !== state.time.day) {
+      const prep = SUBJECTS.reduce((a, sub) => a + (state.school.prep[sub] || 0), 0);
+      const r = seeded(state.seed, 'skipquiz', state.time.day)();
+      const pct = Math.round(clamp(gradeAverage(state) + prep * 1.5 - 4 + (r - 0.5) * 16, 35, 100));
+      recordQuiz(state, pct, SUBJECTS);
+      msgs.push(`📝 ${info.dateLabel}: Friday quiz ${pct}%.`);
+    }
+    if (info.isSchoolDay) state.school.attended[`${state.time.day}:all`] = true;
+    state.time.minute = CURFEW;
+    msgs.push(...sleep(state));
+    days++;
+  }
+  if (!(dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state))) return { ok: false, msgs: [...msgs, 'No game this week after all (the bracket moved on).'] };
+  state.time.minute = Math.max(state.time.minute, GAME_TIME - 15);
+  msgs.push(`⏭️ Skipped ${days} day${days === 1 ? '' : 's'}. You went to every class. It's game day!`);
+  return { ok: true, msgs, days };
+}
 
 /**
  * Move the clock forward. Returns events crossed:
@@ -85,20 +136,14 @@ export function sleep(state) {
 
 function newSchoolYear(state) {
   const g = playerGrade(state);
-  state.player.section = (state.seed + g) % 2;
+  state.player.section = (state.seed + g) % 4;
   state.school.seatSwap = null;
   state.school.scores = state.school.scores.slice(-2);
   const out = [`🎒 NEW SCHOOL YEAR! You're in ${g}th grade now. ${SUBJECT_TEACHERS[Math.min(8, g)] ? `Your teachers: ${Object.entries(SUBJECT_TEACHERS[Math.min(8, g)]).map(([sub, t]) => `${t} (${sub})`).join(', ')}.` : ''}`];
-  // Kids who aged out of a rival's band become free agents.
-  for (const [id, ks] of Object.entries(state.kids)) {
-    if (ks.team && ks.team !== state.team.name && !ks.ringer) {
-      const kg = playerGrade(state) + (KID_BY_ID.get(id).grade_at_start - 3);
-      if ((ks.team.includes('6-8') && kg > 8) || (!ks.team.includes('6-8') && kg > 5)) ks.team = null;
-    }
-  }
+  // Rival clubs move up a grade with their kids; the new season sorts out anyone who doesn't belong.
   const aged = state.team.roster.filter((id) => !eligibility(state, id).ok && id !== 'PLAYER');
   if (aged.length) out.push(`Heads up: ${aged.map((id) => shortName(KID_BY_ID.get(id))).join(', ')} ${aged.length > 1 ? 'are' : 'is'} no longer eligible for your league.`);
-  if (g === 6) out.push('You\'re in middle school! Your team moves up to the Middle League (grades 6-8).');
+  out.push(`Your team moves up to the Grade ${g} League with your class.${g === 6 ? ' (Welcome to middle school!)' : ''}`);
   addNews(state, `Everyone in Grubbsville moved up a grade. Look at how tall they got!`);
   return out;
 }

@@ -82,7 +82,7 @@ export function openTalk(game, id, opts = {}) {
   const firstMeet = !ks.met;
   let line = '';
   if (opts.line) line = opts.line;
-  else if (firstMeet) { ks.met = true; addFriendship(s, id, 2); line = say(s, kid, 'greet'); } // introductions; chatting is still open
+  else if (firstMeet) { ks.met = true; addFriendship(s, id, 2); line = say(s, kid, 'greet'); toast(`💬 ${kid.first_name} added you on Social!`, 'good'); } // introductions; chatting is still open
   else line = say(s, kid, 'greet');
   render(game, id, line, opts);
 }
@@ -265,7 +265,7 @@ function ringerTalk(game, id, redo) {
   const ringer = KID_BY_ID.get(o.ringer);
   modal({
     title: 'A Shady Deal',
-    body: `"Okay, listen. ${kidName(ringer)} is a ${kidGrade(s, o.ringer)}th grader. Way too old for the Jr League. But for $${o.price}, I can 'fix' the birth certificate. Nobody will ever know. Probably."\n\nIf it works, you get a player who's way better than everyone else. If the league catches you: forfeited wins, playing a kid short all season, no playoffs for 3 YEARS, a fine, and you're grounded.`,
+    body: `"Okay, listen. ${kidName(ringer)} is a ${kidGrade(s, o.ringer)}th grader. Way too old for our grade's league. But for $${o.price}, I can 'fix' the birth certificate. Nobody will ever know. Probably."\n\nIf it works, you get a player who's way better than everyone else. If the league catches you: forfeited wins, playing a kid short all season, no playoffs for 3 YEARS, a fine, and you're grounded.`,
     dismissable: false,
     buttons: [
       { label: `Do it ($${o.price})`, cls: 'purple', onClick: () => {

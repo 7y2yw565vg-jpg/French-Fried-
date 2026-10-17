@@ -5,7 +5,7 @@ import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { LOCATIONS, NEIGHBORHOODS, HOOD_BY_NAME, TEACHERS, ADULTS, SPORTS, roomNumber } from '../data/world.js';
 import { saveToStorage, playerGrade, yearOf, heightOf, addLog, hasItem } from '../game/state.js';
 import { dayInfo, formatTime, schoolBlockAt, nextClassBlock } from '../game/time.js';
-import { advance, sleep, finishPractice } from '../game/clock.js';
+import { advance, sleep, finishPractice, nextGameInfo, skipToNextGame, GAME_TIME } from '../game/clock.js';
 import { whereIsKid, schoolLocFor, sectionOf } from '../game/routines.js';
 import { seatChart, markTardy, markAbsent, applyPunishment, playerClass, teacherInfo } from '../game/school.js';
 import { practiceToday } from '../game/team.js';
@@ -74,7 +74,7 @@ export class Game {
     modal({
       title: `Welcome to Grubbsville, ${this.state.player.name}!`,
       body: `It's the first day of 3rd grade, and you have a BIG plan: start your own ${sp.name.toLowerCase()} team, the ${this.state.team.name}!\n\n`
-        + `To enter the Jr League you need ${sp.minRoster} players (you count!), team shirts, a field setup, and the $${sp.entryFee} entry fee. You have $${this.state.money.toFixed(2)}.\n\n`
+        + `To enter the Grade 3 League (every grade has its own league) you need ${sp.minRoster} players (you count!), team shirts, a field setup, and the $${sp.entryFee} entry fee. You have $${this.state.money.toFixed(2)}.\n\n`
         + `- Ask Mom & Dad for a little money (don't ask for too much!), recycle cans, find coins, run a lemonade stand.\n`
         + `- Meet kids everywhere: school, the mall, the library, the museum, the grocery store, the neighborhoods. Talk to them to learn their routines.\n`
         + `- Invite kids to a tryout. Sprints is your only drill right now, so you'll only learn their Speed.\n`
@@ -153,7 +153,7 @@ export class Game {
   }
 
   locName(loc = this.state.loc) {
-    if (loc === 'school') return playerGrade(this.state) <= 5 ? 'Grubbsville Elementary' : 'Grubbsville Middle';
+    if (loc === 'school') return 'Grubbsville School';
     return LOCATIONS[loc]?.name || loc;
   }
 
@@ -538,10 +538,17 @@ export class Game {
       }
     } else if (block.kind === 'recess') {
       if (s.school.noRecessUntil && s.time.day <= s.school.noRecessUntil) toast('No recess for you today (you got in trouble). Sit tight.', 'bad');
-      else {
-        toast('RECESS! Go play (and recruit) on the playground!', 'good');
-        if (s.loc === 'school' && wasInClass && this.desc.zones.playground) { const pg = this.desc.zones.playground; this.engine.teleport(pg.x - 2, pg.z + pg.d / 2 - 2, Math.PI); }
-      }
+      else if (s.loc === 'school') {
+        // You pick where recess starts; you can still walk in or out on your own.
+        ask('🔔 Recess!', 'Where do you want to spend recess?', [{ label: '🌳 Outside (playground)', value: 'out', cls: 'green' }, { label: '🏀 Inside (gym)', value: 'in', cls: 'blue' }]).then((where) => {
+          if (this.state.loc !== 'school') return;
+          const z = this.desc.zones[where === 'in' ? 'gym' : 'playground'];
+          if (!z) return;
+          if (where === 'in') this.engine.teleport(z.x, z.z + z.d / 2 - 2, Math.PI);
+          else this.engine.teleport(z.x - 2, z.z + z.d / 2 - 2, Math.PI);
+          this.refreshPresence(true);
+        });
+      } else toast('RECESS! (You\'re not at school, though.)');
     } else if (block.kind === 'lunch') {
       toast('Lunch time! Head to the cafeteria.', 'good');
       if (s.loc === 'school' && wasInClass && leftRoom) { const spot = this.doorSpot(leftRoom); if (spot) this.engine.teleport(spot.x, spot.z, spot.rot ?? 0); }
@@ -564,6 +571,14 @@ export class Game {
       this.passing = null;
       if (left > 0) this.skip(left);
       return;
+    }
+    // Walked into your next classroom early (before school, at recess or lunch)? Skip ahead to the bell.
+    if (!this.period && s.loc === 'school' && this.mode === 'free' && dayInfo(s.time.day).isSchoolDay && !modalOpen()) {
+      const nb = nextClassBlock(s.time.minute);
+      if (nb && nb.start > s.time.minute && nb.start - s.time.minute <= 60) {
+        const c = playerClass(s, nb.period);
+        if (this.inZone(c.room, -1.2)) { toast(`You sit down early for ${c.subject}...`); this.skip(nb.start - s.time.minute); return; }
+      }
     }
     this.ensurePeriod();
     const p = this.period;
@@ -700,6 +715,30 @@ export class Game {
     startMatchFlow(this, g, opp);
   }
 
+  /** Jump to the morning of your next game (classes count as attended; Friday quizzes still happen). */
+  skipToGame() {
+    const s = this.state;
+    const n = nextGameInfo(s);
+    if (!n) { toast('No game coming up. Register your team for the league first!', 'bad'); return; }
+    ask('⏭️ Skip to your next game?', `Your next game is ${n.label}. You'll go to all your classes on the way (no absences), but any Friday quiz still counts toward your grade. Days you skip, you can't spend recruiting, working or hanging out.`, [{ label: 'Skip ahead!', value: true, cls: 'red' }, { label: 'Not yet', value: false, cls: 'white' }]).then((go) => {
+      if (!go) return;
+      exitClass(this);
+      if (this.mode !== 'free') this.mode = 'free';
+      this.period = null; this.passing = null; this.hallPassUntil = 0;
+      const r = skipToNextGame(s);
+      s.loc = 'home';
+      saveToStorage(s);
+      this.enter('home', 'bed');
+      modal({
+        title: r.ok ? '🏟️ Game day!' : 'Hmm',
+        body: r.msgs.join('\n\n'),
+        wide: r.msgs.join('').length > 400,
+        buttons: [{ label: r.ok ? 'Let\'s play!' : 'Okay', cls: 'green', onClick: () => { if (r.ok) setTimeout(() => this.advance(Math.max(1, GAME_TIME - s.time.minute), { quiet: false }), 50); } }],
+      });
+      this.hud.render();
+    });
+  }
+
   // ------------------------------------------------------------ sleep ---
   goToBed(forced = false) {
     const s = this.state;
@@ -745,6 +784,7 @@ export class Game {
     if (e.code === 'KeyM' && this.mode === 'free') openMap(this);
     if (e.code === 'KeyZ' && this.mode === 'free' && !modalOpen()) openWait(this);
     if (e.code === 'Tab' && (this.mode === 'free' || this.mode === 'class')) { e.preventDefault(); openPhone(this); }
+    if (e.code === 'KeyI' && (this.mode === 'free' || this.mode === 'class')) openPhone(this, 'backpack');
   }
 
   interact(f) {

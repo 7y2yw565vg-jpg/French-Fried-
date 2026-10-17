@@ -6,7 +6,7 @@ import { dayInfo, schoolBlockAt, nextClassBlock, DOW } from './time.js';
 import { kidGradeNow } from './stats.js';
 import { hashString } from './rng.js';
 
-const PUBLIC = new Set(['Grubbsville Elementary', 'Grubbsville Middle']);
+const PUBLIC = new Set(['Grubbsville School']);
 
 export function schoolKind(kid, grade) {
   if (!PUBLIC.has(kid.routine.school)) return kid.routine.school === 'Homeschooled' ? 'home' : 'private';
@@ -22,17 +22,19 @@ export function schoolLocFor(grade) {
 
 const sectionCache = new Map();
 /**
- * Class section (0 or 1) for a public-school kid. Each grade's kids are split
- * evenly, so both sections fill their classrooms.
+ * Class section (0-3) for a public-school kid: two independent, evenly split
+ * bits (see sectionSubjects), so classrooms stay full but classmates change
+ * from one class to the next.
  */
 export function sectionOf(kid, grade) {
   if (!PUBLIC.has(kid.routine.school)) return null;
   const key = `${kid.grade_at_start}:${grade}`;
   let map = sectionCache.get(key);
   if (!map) {
-    const cohort = KIDS.filter((k) => k.grade_at_start === kid.grade_at_start && PUBLIC.has(k.routine.school))
-      .sort((a, b) => hashString(a.id + grade) - hashString(b.id + grade) || a.id.localeCompare(b.id));
-    map = new Map(cohort.map((k, i) => [k.id, i % 2]));
+    const cohort = KIDS.filter((k) => k.grade_at_start === kid.grade_at_start && PUBLIC.has(k.routine.school));
+    const split = (salt) => new Map(cohort.slice().sort((a, b) => hashString(a.id + grade + salt) - hashString(b.id + grade + salt) || a.id.localeCompare(b.id)).map((k, i) => [k.id, i % 2]));
+    const xs = split(''); const ys = split('|y');
+    map = new Map(cohort.map((k) => [k.id, xs.get(k.id) + 2 * ys.get(k.id)]));
     sectionCache.set(key, map);
   }
   return map.get(kid.id) ?? 0;

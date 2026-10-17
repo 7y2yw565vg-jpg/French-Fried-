@@ -224,7 +224,7 @@ NEIGHBORHOODS = {
 NEIGHBORHOOD_WEIGHTS = {"Maple Hollow": 20, "Sunnyside Acres": 20, "Pickle Creek": 18,
                         "Oakridge Heights": 12, "Riverside Apartments": 18, "Old Town": 12}
 
-SCHOOLS = {"Grubbsville Elementary": 70, "Pinecrest Academy (private)": 18, "Homeschooled": 6,
+SCHOOLS = {"Grubbsville School": 70, "Pinecrest Academy (private)": 18, "Homeschooled": 6,
            "St. Bartholomew's": 6}
 # Your school has three homerooms per grade.
 TEACHERS = {
@@ -232,7 +232,7 @@ TEACHERS = {
     3: ["Mrs. Bramblebee", "Mr. Okonkwo", "Ms. Valdez"],   # player starts here
     4: ["Mr. Fussbudget", "Mrs. Tanaka", "Ms. Featherly"],
     5: ["Mrs. Grumbleton", "Mr. Sparks", "Ms. Abara"],
-    6: ["(Grubbsville Middle) Mr. Krantz", "(Grubbsville Middle) Ms. Ruiz"],
+    6: ["(Grubbsville School) Mr. Krantz", "(Grubbsville School) Ms. Ruiz"],
 }
 LUNCH_PERIODS = ["11:00 (A Lunch)", "11:30 (B Lunch)", "12:00 (C Lunch)"]
 RECESS_SPOTS = ["tetherball pole", "swings", "monkey bars", "blacktop four square",
@@ -324,13 +324,11 @@ def build_kid(rng, idx, grade, first, last, home):
 
     school = weighted(rng, SCHOOLS)
     if grade >= 6:
-        school = "Grubbsville Middle"
+        school = "Grubbsville School"
     neighborhood, street, house = home
 
-    if school == "Grubbsville Elementary":
-        homeroom = rng.choice(TEACHERS[grade])
-    elif school == "Grubbsville Middle":
-        homeroom = rng.choice(TEACHERS[6])
+    if school == "Grubbsville School":
+        homeroom = rng.choice(TEACHERS[min(grade, 6)])
     else:
         homeroom = None
 

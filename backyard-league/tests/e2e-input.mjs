@@ -108,8 +108,9 @@ const watch = (page) => { page.on('pageerror', (e) => errors.push(`pageerror: ${
   await page.screenshot({ path: path.join(out, 'p02-map-pad.png') });
   await press(1); await page.waitForTimeout(400);
   if (await page.evaluate(() => document.querySelector('#overlay').classList.contains('show'))) fail('B should close the map');
-  // Start opens the phone; RB switches tabs.
+  // Start opens the phone's home screen; RB opens the first app, then switches apps.
   await press(9); await page.waitForTimeout(500);
+  await press(5); await page.waitForTimeout(300);
   const tab1 = await page.evaluate(() => document.querySelector('.tab.sel')?.textContent);
   await press(5); await page.waitForTimeout(300);
   const tab2 = await page.evaluate(() => document.querySelector('.tab.sel')?.textContent);

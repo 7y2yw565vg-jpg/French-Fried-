@@ -19,7 +19,7 @@ export const SPORTS = {
   football: {
     id: 'football', name: 'Flag Football', icon: '🏈', minRoster: 7, recRoster: 10, setupCost: 12, entryFee: 40, shirtCost: 4,
     lineup: ['QB', 'RB', 'WR', 'WR', 'DB', 'DB', 'LB'],
-    blurb: '7v7 flag football in the Jr League. Cones for end zones, dish towels for flags.',
+    blurb: '7v7 flag football in the grade leagues. Cones for end zones, dish towels for flags.',
   },
 };
 export const SPORT_IDS = Object.keys(SPORTS);
@@ -76,7 +76,7 @@ export const HOOD_BY_NAME = Object.fromEntries(NEIGHBORHOODS.map((n) => [n.name,
 // Map coordinates are in "walking minutes" (1 unit = 1 minute on foot).
 export const LOCATIONS = {
   home: { name: 'Your House', icon: '🏠', kind: 'home' },
-  school: { name: 'Grubbsville Elementary', icon: '🏫', kind: 'school', map: { x: 50, y: 42 } },
+  school: { name: 'Grubbsville School', icon: '🏫', kind: 'school', map: { x: 50, y: 42 } },
   mall: { name: 'Grubbsville Mall', icon: '🛍️', kind: 'mall', map: { x: 78, y: 30 } },
   library: { name: 'Public Library', icon: '📚', kind: 'library', map: { x: 40, y: 22 } },
   museum: { name: 'Museum of Neat Stuff', icon: '🦖', kind: 'museum', map: { x: 64, y: 12 } },
@@ -111,10 +111,15 @@ const t = (h, m) => h * 60 + m;
 // A grade is split into two sections that rotate through the rooms; between
 // classes you get a short passing period in the hallway.
 export const CORE_SUBJECTS = ['Math', 'Language Arts', 'Science', 'History'];
-export const SECTION_ROTATION = [
-  ['Math', 'Language Arts', 'Science', 'History'],
-  ['Language Arts', 'Math', 'History', 'Science'],
-];
+// Class schedules. A section is two bits: x picks the Math / Language Arts order
+// (periods 1 and 3) and y the Science / History order (periods 2 and 4). Kids get
+// x and y independently, so each class has a different mix of classmates.
+const PAIR_A = ['Math', 'Language Arts'];
+const PAIR_B = ['Science', 'History'];
+export function sectionSubjects(section) {
+  const x = section & 1; const y = (section >> 1) & 1;
+  return [PAIR_A[x], PAIR_B[y], PAIR_A[1 - x], PAIR_B[1 - y]];
+}
 export const SCHOOL_BLOCKS = [
   { start: t(7, 45), end: t(8, 0), kind: 'arrival', label: 'Before school' },
   { start: t(8, 0), end: t(9, 10), kind: 'class', period: 1 },
@@ -175,7 +180,7 @@ export const TEACHERS = {
 
 /** Teacher, subject and classroom zone for a section's period. */
 export function classFor(grade, section, period) {
-  const subject = SECTION_ROTATION[section % 2][period - 1];
+  const subject = sectionSubjects(section)[period - 1];
   const g = Math.max(2, Math.min(8, grade));
   const teacher = SUBJECT_TEACHERS[g][subject];
   return { subject, teacher, room: `room:${teacher}`, grade: g };

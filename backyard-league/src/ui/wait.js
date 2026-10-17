@@ -1,6 +1,6 @@
 // Passing time: wait a set amount or until something later today (TV couch, the HUD button, Z key).
 import { h, modal, toast } from './dom.js';
-import { upcomingEvents } from '../game/clock.js';
+import { upcomingEvents, nextGameInfo } from '../game/clock.js';
 import { formatTime, CURFEW, dayInfo } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
 
@@ -54,6 +54,7 @@ export function openWait(game, { tv = false } = {}) {
     buttons: [
       ...[15, 30, 60, 120].map((m) => ({ label: m < 60 ? `${m} min` : `${m / 60} hr`, cls: 'blue', disabled: now + m > CURFEW, onClick: () => waitFor(game, m, what) })),
       ...ups.map((e) => ({ label: `Until ${e.label} (${formatTime(e.minute)})`, cls: 'green', onClick: () => waitFor(game, e.minute - s.time.minute, what) })),
+      ...(() => { const n = nextGameInfo(s); return n && n.days > 0 ? [{ label: `⏭️ Skip to next game (${n.label})`, cls: 'red', onClick: () => game.skipToGame() }] : []; })(),
       { label: 'Never mind', cls: 'white' },
     ],
   });

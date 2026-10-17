@@ -168,7 +168,7 @@ export function playMatch(game, g, opp, week) {
 
   // overlay
   const sbNames = [g.home, g.away];
-  if (game.desc.setScore) game.desc.setScore(0, 0, g.playoff || 'Jr League', sbNames);
+  if (game.desc.setScore) game.desc.setScore(0, 0, g.playoff || (game.state.league && game.state.league.bandName) || 'League', sbNames);
   const scoreEl = h('div', { class: 'score' }, h('span', { class: 'team' }, g.home), h('span', {}, '0 - 0'), h('span', { class: 'team' }, g.away));
   const speedBtns = h('div', { class: 'btn-row' });
   let skipping = false;

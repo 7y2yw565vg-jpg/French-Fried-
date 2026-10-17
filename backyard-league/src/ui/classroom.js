@@ -20,7 +20,7 @@ export function enterClass(game, period) {
   const rng = seeded(s.seed, 'class', s.time.day, period.block.start);
   // Quizzes: weekly on Friday period 1, pop quizzes sometimes.
   if (info.dow === 4 && period.block.period === 1 && s.school.lastQuizDay !== s.time.day) runQuiz(game, SUBJECTS, 8, 'Friday Weekly Quiz');
-  else if (rng() < 0.12 && s.school.popQuizDay !== s.time.day) { s.school.popQuizDay = s.time.day; runQuiz(game, [period.subject], 4, `POP QUIZ: ${period.subject}!`); }
+  else if (rng() < 0.12 && s.school.popQuizDay !== s.time.day) { s.school.popQuizDay = s.time.day; runQuiz(game, [period.subject], 6, `POP QUIZ: ${period.subject}!`); }
   // Troublemakers offer dares.
   const seats = seatChart(s);
   const trouble = seats.filter((id) => id && id !== 'PLAYER' && ['Class Clown', 'Troublemaker', 'Prankster'].includes(KID_BY_ID.get(id).personality));
@@ -54,9 +54,12 @@ export function exitClass(game) {
   if (!game.talking) clear($('#panel'));
 }
 
+// Every graded quiz has at least 6 questions, so one miss doesn't sink a grade.
+const QUIZ_MIN = 6;
+
 function runQuiz(game, subjects, n, title) {
   const s = game.state;
-  const qs = makeQuiz(s, subjects, n, title);
+  const qs = makeQuiz(s, subjects, Math.max(QUIZ_MIN, n), title);
   const hints = quizHints(s, subjects);
   const seconds = quizSeconds(s, subjects);
   quiz(title, qs, { hints, seconds, note: `Prep gives you ${hints} hint${hints === 1 ? '' : 's'} and ${seconds}s per question.` }).then((pct) => {

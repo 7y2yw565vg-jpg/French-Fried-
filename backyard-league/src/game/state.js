@@ -81,7 +81,7 @@ export function playerKid(state) {
     looks: { ...p.look, height_in: 50, accessories: p.look.accessories || [] },
     residence: { neighborhood: p.hood, address: 'Your house' },
     hidden: { potential: 70, growth_curve: 'Steady Climber', coachability: 70, sneakiness: p.sneak },
-    stats: p.stats, routine: { school: 'Grubbsville Elementary', homeroom: null },
+    stats: p.stats, routine: { school: 'Grubbsville School', homeroom: null },
     isPlayer: true,
   };
 }

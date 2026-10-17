@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { KIDS } from '../src/data/kids.js';
 import { SPORT_IDS } from '../src/data/world.js';
-import { newGame, serialize, deserialize, statsOf } from '../src/game/state.js';
+import { newGame, serialize, deserialize, statsOf, kidGrade } from '../src/game/state.js';
 import { letter, LETTERS, kidStats } from '../src/game/stats.js';
 import { dayInfo, formatTime } from '../src/game/time.js';
 import { whereIsKid, kidClass, sectionOf } from '../src/game/routines.js';
@@ -38,7 +38,7 @@ test('calendar: day 1 is a Monday school day in fall week 1', () => {
 });
 
 test('routines: public-school kids go to each subject teacher\'s room', () => {
-  const kid = KIDS.find((k) => k.routine.school === 'Grubbsville Elementary' && k.grade_at_start === 3);
+  const kid = KIDS.find((k) => k.routine.school === 'Grubbsville School' && k.grade_at_start === 3);
   const where = whereIsKid(kid, { day: 1, minute: 8 * 60 + 20, year: 1 });
   assert.equal(where.loc, 'school');
   assert.equal(where.zone, kidClass(kid, 3, 1).room);
@@ -195,12 +195,12 @@ test('tryout drill reveals stats as a range without laser gates', () => {
 test('sim: all sports produce sane, deterministic scores', () => {
   for (const sport of SPORT_IDS) {
     const s = newGame(opts(sport));
-    const pool = KIDS.filter((k) => k.grade_at_start >= 3 && k.grade_at_start <= 5);
+    const pool = KIDS.filter((k) => k.grade_at_start === 3); // leagues are per grade
     s.team.roster = ['PLAYER', ...pool.slice(0, 11).map((k) => k.id)];
     const totals = [];
     for (let i = 0; i < 40; i++) {
       const home = matchSide(s, s.team.name, { home: true });
-      const awayIds = pool.slice(20 + i, 32 + i).map((k) => k.id);
+      const awayIds = pool.slice(11 + i, 23 + i).map((k) => k.id);
       const away = { name: 'Rivals', lineup: bestLineup(s, awayIds).lineup.map((x) => ({ ...x, name: 'R', stats: statsOf(s, x.id), isPlayer: false })), bonus: 0 };
       const a = simulateMatch({ sport, home, away, seed: i });
       const b = simulateMatch({ sport, home, away, seed: i });
@@ -232,7 +232,7 @@ test('full season: register, play through, get standings and a history entry', (
   ensureSeason(s);
   assert.ok(s.league && s.league.teams.length === 7); // 7 rivals + you = 8
   s.money = 500;
-  const free = KIDS.filter((k) => k.grade_at_start >= 3 && k.grade_at_start <= 5 && !s.kids[k.id].team).slice(0, 7);
+  const free = KIDS.filter((k) => k.grade_at_start === 3 && !s.kids[k.id].team).slice(0, 7);
   for (const k of free) signKid(s, k.id);
   s.team.shirts = 10;
   assert.equal(buySetup(s).ok, false); // basketball needs no setup
@@ -263,9 +263,15 @@ test('school: four subjects with their own teachers, and classrooms at least 90%
     assert.ok(filled / seats.length >= 0.9, `period ${period}: ${filled}/${seats.length}`);
     assert.ok(seats.includes('PLAYER'));
   }
-  const cohort = KIDS.filter((k) => k.grade_at_start === 3 && k.routine.school === 'Grubbsville Elementary');
-  const a = cohort.filter((k) => sectionOf(k, 3) === 0).length;
-  assert.ok(Math.abs(a - (cohort.length - a)) <= 1);
+  const cohort = KIDS.filter((k) => k.grade_at_start === 3 && k.routine.school === 'Grubbsville School');
+  for (const bit of [1, 2]) {
+    const a = cohort.filter((k) => (sectionOf(k, 3) & bit) === 0).length;
+    assert.ok(Math.abs(a - (cohort.length - a)) <= 1, 'both schedule halves are even');
+  }
+  // Classmates change from class to class: some shared, some new.
+  const c1 = new Set(classmates(s, 1)); const c2 = classmates(s, 2);
+  const shared = c2.filter((id) => c1.has(id)).length;
+  assert.ok(shared > 0 && shared < c2.length, `period 2 shares ${shared} of ${c2.length} with period 1`);
   assert.equal(playerClass(s, 1).subject !== playerClass(s, 2).subject, true);
   assert.ok(classmates(s).length >= 20);
 });
@@ -459,7 +465,7 @@ test('lineup: optimal team total, pins respected, you start unless benching is a
   }
   assert.deepEqual(assignMax([[5], [9], [1]]).filter((x) => x != null).length, 1); // more spots than kids
   const s = newGame(opts());
-  const free = KIDS.filter((k) => !s.kids[k.id].team && k.grade_at_start >= 3 && k.grade_at_start <= 5).slice(0, 10).map((k) => k.id);
+  const free = KIDS.filter((k) => !s.kids[k.id].team && k.grade_at_start === 3).slice(0, 10).map((k) => k.id);
   s.team.roster.push(...free);
   const { lineup } = bestLineup(s);
   assert.ok(lineup.some((x) => x.id === 'PLAYER'), 'you start by default');
@@ -517,4 +523,60 @@ test('the player\'s created look renders in the character bible style for every 
     assert.ok(svg.startsWith('<svg') && svg.length > 4000, `look ${i} rendered`);
     assert.ok(!/undefined|NaN/.test(svg), `look ${i} has no broken values: ${JSON.stringify(look)}`);
   }
+});
+
+test('leagues: one league per grade, rosters are grade-based', async () => {
+  const { ensureSeason, rosterOf } = await import('../src/game/league.js');
+  const { playerBand, eligibility } = await import('../src/game/team.js');
+  const s = newGame(opts());
+  s.time.day = 1;
+  ensureSeason(s);
+  assert.equal(playerBand(s).name, 'Grade 3 League');
+  assert.ok(s.league.teams.length >= 3 && s.league.teams.length <= 7);
+  for (const t of s.league.teams) for (const id of rosterOf(s, t.name)) assert.equal(kidGrade(s, id), 3, `${t.name} has a grade-${kidGrade(s, id)} kid`);
+  const older = KIDS.find((k) => k.grade_at_start === 4);
+  assert.equal(eligibility(s, older.id).ok, false);
+});
+
+test('league stats: goals/assists/saves recorded, team OVR, MVP awarded at season end', async () => {
+  const { ensureSeason, simOtherGames, teamOverall, endSeason, LAST_REGULAR_WEEK } = await import('../src/game/league.js');
+  const { leagueLeaders, teamStats, seasonAwards } = await import('../src/game/leagueStats.js');
+  const s = newGame(opts('soccer'));
+  s.time.day = 1;
+  ensureSeason(s);
+  for (let w = 1; w <= LAST_REGULAR_WEEK; w++) simOtherGames(s, w);
+  const goals = leagueLeaders(s, 'G', 3);
+  assert.ok(goals.length && goals[0].n > 0, 'someone scored');
+  assert.ok(leagueLeaders(s, 'A', 1).length, 'assists counted');
+  assert.ok(leagueLeaders(s, 'SV', 1).length, 'saves counted');
+  const t = s.league.teams[0];
+  const ts = teamStats(s, t.name);
+  assert.equal(ts.totals.G, t.pf, 'team goals match points for');
+  const ovr = teamOverall(s, t.name);
+  assert.ok(ovr > 0 && ovr < 100);
+  const aw = seasonAwards(s);
+  assert.ok(aw.mvp.id && aw.leaders.some((a) => a.key === 'G'));
+  endSeason(s);
+  assert.equal(s.league.awards.mvp.id, aw.mvp.id);
+});
+
+test('skip to next game: lands on game day, classes attended, Friday quiz still graded', async () => {
+  const { skipToNextGame, nextGameInfo } = await import('../src/game/clock.js');
+  const { register } = await import('../src/game/team.js');
+  const s = newGame(opts('soccer'));
+  assert.equal(nextGameInfo(s), null, 'no game before you register');
+  s.time.day = 1;
+  ensureSeason(s);
+  const free = KIDS.filter((k) => k.grade_at_start === 3 && !s.kids[k.id].team).slice(0, 8).map((k) => k.id);
+  for (const id of free) { s.kids[id].team = s.team.name; s.team.roster.push(id); }
+  s.team.shirts = 12; s.team.setup = true; s.money = 500;
+  register(s);
+  finalizeSchedule(s);
+  const quizzes = s.school.scores.length;
+  const n = nextGameInfo(s);
+  assert.ok(n && n.days > 0);
+  const r = skipToNextGame(s);
+  assert.ok(r.ok, r.msgs.join(' | '));
+  assert.equal(dayInfo(s.time.day).dow, 5);
+  assert.ok(s.school.scores.length > quizzes, 'Friday quiz recorded');
 });

@@ -35,18 +35,24 @@ export function teacherInfo(state, period) {
   return TEACHERS[playerClass(state, period).teacher] || { alert: 0.5, tardyGrace: 2 };
 }
 
-/** Kids in your section: the same classmates move with you from room to room. */
-export function classmates(state) {
+/** Kids in one of your classes (a period); each class has its own mix of classmates. */
+export function classmates(state, period = currentPeriod(state)) {
   const g = playerGrade(state);
   const y = yearOf(state);
-  const sec = playerSection(state);
-  return KIDS.filter((k) => kidGradeNow(k, y) === g && ['elem', 'middle'].includes(schoolKind(k, g)) && sectionOf(k, g) === sec).map((k) => k.id);
+  const subject = playerClass(state, period).subject;
+  return KIDS.filter((k) => kidGradeNow(k, y) === g && ['elem', 'middle'].includes(schoolKind(k, g)) && sectionOf(k, g) != null
+    && classFor(g, sectionOf(k, g), period).subject === subject).map((k) => k.id);
+}
+
+/** How many of your 4 classes a kid shares with you. */
+export function sharedClasses(state, id) {
+  return [1, 2, 3, 4].filter((p) => classmates(state, p).includes(id)).length;
 }
 
 /** Seat chart for a period (row-major, ROWS x COLS, row 0 = front). Holds 'PLAYER', kid ids, or null. */
 export function seatChart(state, period = currentPeriod(state)) {
   const { subject } = playerClass(state, period);
-  const ids = classmates(state).slice(0, ROWS * COLS - 1);
+  const ids = classmates(state, period).slice(0, ROWS * COLS - 1);
   const order = shuffle(seeded(state.seed, 'seats', yearOf(state), subject), ids);
   const seats = new Array(ROWS * COLS).fill(null);
   let playerSeat = COLS + Math.floor(seeded(state.seed, 'myseat', subject)() * (ROWS - 1) * COLS);

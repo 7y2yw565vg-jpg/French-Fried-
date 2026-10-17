@@ -159,7 +159,10 @@ function soccer(ctx) {
       const who = { off: side, def: defender.id, gk: gk.id };
       if (goal) {
         ctx.score[si] += 1;
-        push(ctx, { t: minute, side, type: 'goal', actor: attacker.id, points: 1, x, ...who, text: line(rng, 'goal', ctx.tier, vars) });
+        // Most goals come from a teammate's pass (the assist).
+        const mates = byPos(att, 'FWD', 'MID', 'DEF').filter((p) => p.id !== attacker.id);
+        const assist = mates.length && rng() < 0.68 ? pickWeighted(rng, mates, (p) => ({ MID: 3, FWD: 2, DEF: 0.8 }[p.pos] || 1) * p.rating).id : null;
+        push(ctx, { t: minute, side, type: 'goal', actor: attacker.id, assist, points: 1, x, ...who, text: line(rng, 'goal', ctx.tier, vars) });
       } else {
         push(ctx, { t: minute, side, type: onTarget ? 'save' : 'miss', actor: attacker.id, x, ...who, text: line(rng, onTarget ? 'save' : 'miss', ctx.tier, { ...vars, d: nm(gk) }) });
       }
@@ -205,7 +208,7 @@ function basketball(ctx) {
       if (made) {
         const pts = three ? 3 : 2;
         ctx.score[si] += pts;
-        push(ctx, { t, side, type: three ? 'three' : 'bucket', actor: shooter.id, points: pts, x, ...who, text: line(rng, three ? 'three' : 'bucket', ctx.tier, vars) });
+        push(ctx, { t, side, type: three ? 'three' : 'bucket', actor: shooter.id, assist: shooter.id !== pg.id ? pg.id : null, points: pts, x, ...who, text: line(rng, three ? 'three' : 'bucket', ctx.tier, vars) });
         break;
       }
       const loud = rng() < 0.45 || shooter.isPlayer;

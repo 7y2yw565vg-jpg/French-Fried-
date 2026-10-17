@@ -6,10 +6,9 @@ import { bestPosition, heightScore, letter, letterRange, positionRating } from '
 import { dayInfo, seasonId } from './time.js';
 import { hashString, clamp } from './rng.js';
 
+/** Every grade has its own league (Grade 3 League for third graders, and so on). `prize` picks the prize-money table. */
 export function leagueBand(grade) {
-  if (grade <= 5) return { id: 'jr', name: 'Jr League', lo: 3, hi: 5 };
-  if (grade <= 8) return { id: 'middle', name: 'Middle League', lo: 6, hi: 8 };
-  return { id: 'hs', name: 'High School League', lo: 9, hi: 12 };
+  return { id: `g${grade}`, name: `Grade ${grade} League`, lo: grade, hi: grade, prize: grade <= 5 ? 'jr' : grade <= 8 ? 'middle' : 'hs' };
 }
 
 export function playerBand(state) {

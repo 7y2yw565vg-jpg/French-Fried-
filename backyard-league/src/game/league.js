@@ -4,26 +4,32 @@ import { RIVAL_COLORS, SPORTS, FIELDS, PRIZES } from '../data/world.js';
 import { addLog, addNews, getKid, kidGrade, playerGrade, statsOf, yearOf } from './state.js';
 import { bestLineup, eligibility, isRegistered, leagueBand, playerBand, homeGameRevenue, giveTrophy, attraction } from './team.js';
 import { simulateMatch } from './sim.js';
+import { recordGameStats, seasonAwards } from './leagueStats.js';
 import { positionRating } from './stats.js';
 import { dayInfo, seasonId } from './time.js';
 import { seeded, shuffle, hashString, clamp } from './rng.js';
 
 // Teams that start the game with no kids; the AI fills their rosters each preseason.
-// With the 4 roster teams from the data, every league has 7 rivals (8 teams with yours).
+// With the 4 roster teams from the data, a league has up to 7 rivals (8 teams with yours).
+// Each grade has its own league, and the same rival clubs grow up with you.
 export const EXTRA_JR_TEAMS = {
   Soccer: ['Sunnyside Sprinkler Squad', 'Old Town Owls FC', 'Maple Hollow Mudskippers'],
   Baseball: ['Riverside Rubber Duckies', 'Sunnyside Sluggers', 'Oakridge Acorns'],
   Basketball: ['Pickle Creek Puddle Jumpers', 'Riverside Rim Rockers', 'Oakridge Royals'],
   Football: ['Maple Hollow Monster Trucks', 'Pickle Creek Crunch', 'Old Town Thunderbirds'],
 };
-const MIDDLE_EXTRA = ['Grubbsville Middle Thunder Turtles (6-8)', 'Grubbsville Middle Night Owls (6-8)', 'Pinecrest Middle Polar Bears (6-8)', 'St. Bart\'s Middle Bulldogs (6-8)', 'Riverside Middle Hurricanes (6-8)'];
 
 export const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-export function rivalsFor(sport, bandId) {
+export function rivalsFor(sport) {
   const sportName = SPORTS[sport].name.replace('Flag ', '');
-  if (bandId === 'jr') return [...KIDS_META.rival_teams.filter((t) => t.sport === sportName && !t.name.includes('6-8')).map((t) => t.name), ...EXTRA_JR_TEAMS[sportName]];
-  return [...KIDS_META.rival_teams.filter((t) => t.name.includes('6-8')).map((t) => t.name), ...MIDDLE_EXTRA];
+  return [...KIDS_META.rival_teams.filter((t) => t.sport === sportName && !t.name.includes('6-8')).map((t) => t.name), ...EXTRA_JR_TEAMS[sportName]];
+}
+
+/** How many rival teams a grade can fill: enough sporty kids for each to field a full side (3 to 7). */
+export function rivalCount(state, grade, sport) {
+  const pool = KIDS.filter((k) => kidGrade(state, k.id) === grade && k.recruitment.status !== 'Not Into Sports (Yet)').length;
+  return clamp(Math.floor(pool / (SPORTS[sport].minRoster + 1)) - 1, 3, 7);
 }
 
 /** Uniform bottoms: 'pants' or 'shorts' (your team can choose; rivals follow the sport). */
@@ -49,9 +55,16 @@ export function ensureSeason(state) {
   if (!sid) return [];
   if (state.league && state.league.sid === sid) return [];
   const band = playerBand(state);
-  const rivals = rivalsFor(state.team.sport, band.id);
+  const rivals = rivalsFor(state.team.sport).slice(0, rivalCount(state, band.lo, state.team.sport));
+  // Rosters are grade-based: kids from other grades (or on clubs outside this league) become free agents.
+  const names = new Set(rivals);
+  for (const k of KIDS) {
+    const ks = state.kids[k.id];
+    if (!ks.team || ks.team === state.team.name) continue;
+    if (!names.has(ks.team) || kidGrade(state, k.id) !== band.lo) ks.team = null;
+  }
   state.league = {
-    sid, band: band.id, bandName: band.name, sport: state.team.sport,
+    sid, band: band.id, prize: band.prize, bandName: band.name, sport: state.team.sport,
     teams: rivals.map((name) => ({ name, w: 0, l: 0, t: 0, pf: 0, pa: 0 })),
     schedule: null, playoffs: null, done: false, ringerGames: [],
   };
@@ -209,10 +222,23 @@ export function simGame(state, game, week, clutch = null) {
   const away = matchSide(state, game.away);
   const involvesPlayer = game.home === state.team.name || game.away === state.team.name;
   const venue = game.home === state.team.name ? FIELDS[state.team.field].name : `${game.home} home field`;
-  return simulateMatch({
+  const res = simulateMatch({
     sport: state.team.sport, home, away, seed: gameSeed(state, game, week), clutch,
     tier: involvesPlayer ? announcerTier(state) : 2, venue,
   });
+  res.lineups = { home: home.lineup.filter((p) => p.id).map((p) => p.id), away: away.lineup.filter((p) => p.id).map((p) => p.id) };
+  return res;
+}
+
+/**
+ * Team overall (OVR): how good a team's best lineup is, on the same 0-99 scale
+ * as a kid's overall. Empty spots count as very weak.
+ */
+export function teamOverall(state, name) {
+  const { lineup } = bestLineup(state, rosterOf(state, name));
+  if (!lineup.length) return 0;
+  const sum = lineup.reduce((a, p) => a + (p.id ? p.rating : 15), 0);
+  return Math.round(sum / lineup.length);
 }
 
 export function forfeitResult(state, game, loser) {
@@ -235,6 +261,7 @@ export function playerForfeitReason(state) {
 export function recordResult(state, game, result, week) {
   game.result = { score: result.score, forfeit: result.forfeit || null, mvp: result.mvp || null };
   const lg = state.league;
+  recordGameStats(state, game, result);
   const H = lg.teams.find((t) => t.name === game.home);
   const A = lg.teams.find((t) => t.name === game.away);
   const [h, a] = result.score;
@@ -265,7 +292,7 @@ export function recordResult(state, game, result, week) {
       msgs.push(`Home game: ${rev.fans} fans. ${parts.join(' + ')}${rev.parents ? ` - Mom & Dad's cut $${rev.parents.toFixed(2)}` : ''}${rev.rent ? ` - rent $${rev.rent}` : ''}${rev.staffPay ? ` - staff $${rev.staffPay}` : ''} = $${rev.net.toFixed(2)}`);
     }
     // League prize money for results, home or away.
-    const pz = PRIZES[lg.band] || PRIZES.jr;
+    const pz = PRIZES[lg.prize] || PRIZES.jr;
     const prize = result.forfeit ? 0 : won ? pz.win : tie ? pz.tie : 0;
     if (prize) { state.money = +(state.money + prize).toFixed(2); msgs.push(`League ${won ? 'win' : 'tie'} bonus: +$${prize}`); }
     state.player.rep += won ? 2 : 0.5;
@@ -335,11 +362,25 @@ export function endSeason(state) {
   const info = dayInfo(state.time.day);
   const label = `${info.season ? info.season.name : 'Season'} ${2026 + yearOf(state) - 1}`;
   if (champ) addNews(state, `The ${champ} are ${lg.bandName} champions! (${label})`);
+  // Season awards from the league stats.
+  const awards = seasonAwards(state);
+  lg.awards = awards;
+  if (awards) {
+    const who = (a) => (a.id === 'PLAYER' ? 'YOU' : a.name);
+    addNews(state, `${lg.bandName} MVP: ${who(awards.mvp)} (${awards.mvp.team})! ${awards.leaders.map((a) => `${a.title}: ${who(a)}`).join('. ')}.`);
+    if (awards.mvp.id === 'PLAYER') {
+      giveTrophy(state, `${lg.bandName} MVP - ${label}`, lg.sid);
+      msgs.push(`🏅 YOU are the ${lg.bandName} MVP! An MVP trophy is in your backpack.`);
+    } else if (awards.mvp.team === state.team.name) msgs.push(`🏅 Your teammate ${awards.mvp.name} is the ${lg.bandName} MVP!`);
+    for (const a of awards.leaders) {
+      if (a.id === 'PLAYER') { giveTrophy(state, `${a.title.replace(/ \(.*\)/, '')} - ${label}`, lg.sid); msgs.push(`🏅 You won the ${a.title} award with ${a.n}!`); }
+    }
+  }
   if (mine) {
     const place = standings(state).findIndex((t) => t.player) + 1;
     const playoffs = !!(lg.playoffs && lg.playoffs.some((r) => r.games.some((g) => g.home === state.team.name || g.away === state.team.name)));
-    state.team.history.push({ sid: lg.sid, label, w: mine.w, l: mine.l, t: mine.t, place, playoffs, champion: champ === state.team.name });
-    const pz = PRIZES[lg.band] || PRIZES.jr;
+    state.team.history.push({ sid: lg.sid, label, w: mine.w, l: mine.l, t: mine.t, place, playoffs, champion: champ === state.team.name, mvp: awards ? awards.mvp.name : null });
+    const pz = PRIZES[lg.prize] || PRIZES.jr;
     const purse = champ === state.team.name ? pz.champion : runner === state.team.name ? pz.runnerUp : playoffs ? pz.semifinal : 0;
     if (purse) { state.money = +(state.money + purse).toFixed(2); msgs.push(`League prize money: +$${purse}!`); }
     if (champ === state.team.name) {
@@ -366,7 +407,7 @@ function ordinal(n) {
 // ------------------------------------------------------------- scandal --
 export function ringerCandidate(state) {
   const band = playerBand(state);
-  if (band.id !== 'jr') return null;
+  if (band.lo >= 8) return null;
   const cands = KIDS.filter((k) => kidGrade(state, k.id) === band.hi + 1 && !state.team.roster.includes(k.id));
   if (!cands.length) return null;
   cands.sort((a, b) => sumStats(state, b.id) - sumStats(state, a.id));

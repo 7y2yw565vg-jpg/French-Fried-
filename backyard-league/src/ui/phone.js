@@ -4,12 +4,16 @@ import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR, PLAYER_TRAIN_CAP } from '../data/world.js';
 import { getKid, kidGrade, statsOf, playerGrade, serialize, saveToStorage, addLog, heightOf } from '../game/state.js';
 import { orderDrillGear, practiceStats, untestedDrills, soloWorkout, workoutCheck, WORKOUT_MINUTES, DELIVERY_FEE, prices, setPrice, PRICE_MAX, ticketFair, sellsConcessions, sellsMerch, homeGameRevenue, registrationChecklist, isRegistered, buySetup, bestLineup, kidOverall, eligibility, releaseKid, revealLabel, availableDrills, attraction, upgradeCap, upgradeName, buyUpgrade, setField, fieldPreview, setLineupSlot, lineupLocks, lineupTotal, gradeAverage, kidSchoolAverage, facilityScore, seatingCapacity, playerBand, gearName, gearBoostText, buyGear } from '../game/team.js';
-import { standings, weekGames, kitBottoms } from '../game/league.js';
+import { standings, weekGames, kitBottoms, teamOverall } from '../game/league.js';
+import { STAT_COLS, leagueLeaders, teamStats, seasonAwards } from '../game/leagueStats.js';
+import { openMap, kidCheckIn } from './mapview.js';
+import { jerseyPreview } from './jersey.js';
 import { letter, positionRating, heightScore } from '../game/stats.js';
-import { letterFor, playerClass, classmates } from '../game/school.js';
+import { letterFor, playerClass, classmates, sharedClasses } from '../game/school.js';
 import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game/social.js';
 import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
+import { nextGameInfo } from '../game/clock.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
 import { portrait, openTalk } from './talk.js';
@@ -17,9 +21,19 @@ import { touchPref, setTouchPref } from './input.js';
 import { setVolume, getVolume, sfx } from './audio.js';
 import { lookSpec, renderCharacter } from '../../art/charstyle/figure.js';
 
-const TABS = [['team', '🏟️ Team'], ['training', '🏋️ Training'], ['contacts', '📞 Contacts'], ['kids', '📒 Kids'], ['field', '🔧 Field & Staff'], ['league', '🏆 League'], ['school', '🏫 School'], ['money', '💰 Money & Stuff'], ['settings', '⚙️ Settings']];
+// Apps on the phone's home screen: [id, icon, label, color].
+const APPS = [
+  ['team', '🏟️', 'Team', '#e63946'], ['training', '🏋️', 'Training', '#f4a261'], ['league', '🏆', 'League', '#ffd23f'], ['field', '🔧', 'Field & Staff', '#8d99ae'],
+  ['social', '💬', 'Social', '#8e6ce6'], ['contacts', '👥', 'Contacts', '#2a9d8f'], ['calls', '📞', 'Calls', '#57cc99'], ['maps', '🗺️', 'Maps', '#3a86ff'],
+  ['school', '🏫', 'School', '#f28482'], ['bank', '🏦', 'Bank', '#2d6a4f'], ['backpack', '🎒', 'Backpack', '#b5651d'], ['diary', '📜', 'Diary', '#c8b48a'],
+  ['settings', '⚙️', 'Settings', '#6c757d'],
+];
+const APP_BY_ID = Object.fromEntries(APPS.map((a) => [a[0], a]));
+// Old tab names still open the right app.
+const ALIASES = { kids: 'social', money: 'bank' };
 
-export function openPhone(game, tab = 'team') {
+/** Open the phone on its home screen, or straight into an app (I opens the backpack). */
+export function openPhone(game, app = 'home') {
   const ov = $('#overlay');
   clear(ov);
   ov.classList.add('show');
@@ -27,21 +41,45 @@ export function openPhone(game, tab = 'team') {
   game.mode = game.mode === 'class' ? 'class' : 'menu';
   const close = () => { clear(ov); ov.classList.remove('show'); game.mode = prevMode === 'class' ? 'class' : 'free'; game.overlayClose = null; game.hud.render(); game.refreshPresence(true); };
   game.overlayClose = close;
-  const body = h('div', { class: 'phone-body' });
-  const tabs = h('div', { class: 'tabs' });
+  const s = game.state;
+  const clock = h('span', { class: 'ps-time' });
+  const status = h('div', { class: 'phone-status' }, clock, h('span', { class: 'ps-notch' }), h('span', { class: 'ps-icons' }, '📶 ', h('span', { class: 'ps-batt' }, h('i', {}))));
+  const screen = h('div', { class: 'phone-screen' });
+  const dock = h('div', { class: 'phone-dock' });
+  const homeBar = h('button', { class: 'phone-homebar', type: 'button', title: 'Home', 'aria-label': 'Home', onclick: () => { sfx('click'); show('home'); } });
   const show = (id) => {
-    tab = id;
-    tabs.querySelectorAll('.tab').forEach((t) => t.classList.toggle('sel', t.dataset.id === id));
-    clear(body);
-    const redraw = () => show(tab);
-    ({ team: teamTab, training: trainingTab, contacts: contactsTab, kids: kidsTab, field: fieldTab, league: leagueTab, school: schoolTab, money: moneyTab, settings: settingsTab })[id](game, body, redraw, close);
+    id = ALIASES[id] || id;
+    if (id === 'maps') { close(); openMap(game); return; }
+    app = id;
+    clock.textContent = `${formatTime(s.time.minute).replace(' ', '')}`;
+    clear(screen); clear(dock);
+    screen.classList.toggle('home', id === 'home');
+    const redraw = () => show(app);
+    if (id === 'home') { homeScreen(game, screen, show); return; }
+    const [, icon, label, color] = APP_BY_ID[id];
+    const body = h('div', { class: 'phone-body' });
+    screen.append(h('div', { class: 'app-bar', style: { background: color } }, h('button', { type: 'button', class: 'app-back', onclick: () => { sfx('click'); show('home'); } }, '‹ Home'), h('b', {}, `${icon} ${label}`)), body);
+    APP_FNS[id](game, body, redraw, close);
+    // App switcher: swipe (LB/RB on a controller) or tap to jump between apps.
+    for (const [aid, aicon, alabel] of APPS) dock.appendChild(h('div', { class: `tab dock-app ${aid === id ? 'sel' : ''}`, 'data-id': aid, title: alabel, onclick: () => { sfx('click'); show(aid); } }, aicon));
   };
-  for (const [id, label] of TABS) tabs.appendChild(h('div', { class: 'tab', 'data-id': id, onclick: () => { sfx('click'); show(id); } }, label));
   ov.appendChild(h('div', { class: 'screen-bg', onclick: close }));
-  ov.appendChild(h('div', { class: 'screen' }, h('div', { class: 'card phone' },
-    h('div', { class: 'phone-head' }, h('h2', {}, `${game.state.player.name}'s Phone`), btn('Close (Esc)', close, 'small white')),
-    tabs, body)));
-  show(tab);
+  ov.appendChild(h('div', { class: 'screen' }, h('div', { class: 'phone-device' },
+    h('button', { type: 'button', class: 'phone-close', onclick: close, title: 'Put the phone away (Esc)' }, '✕'),
+    status, screen, dock, homeBar)));
+  show(app);
+}
+
+function homeScreen(game, root, show) {
+  const s = game.state;
+  const info = dayInfo(s.time.day);
+  const met = KIDS.filter((k) => s.kids[k.id].met).length;
+  const badge = { social: met ? null : 'new', contacts: null, team: s.team.invites.length ? s.team.invites.length : null, backpack: s.inv.trophies.filter((t) => t.slot == null).length || null };
+  root.append(
+    h('div', { class: 'home-clock' }, h('div', { class: 'hc-time' }, formatTime(s.time.minute)), h('div', { class: 'hc-date' }, info.dateLabel), h('div', { class: 'hc-money' }, `🏦 ${money(s.money)}`)),
+    h('div', { class: 'app-grid' }, ...APPS.map(([id, icon, label, color]) => h('button', { type: 'button', class: 'app-icon tab', 'data-id': id, onclick: () => { sfx('click'); show(id); } },
+      h('span', { class: 'ai-tile', style: { background: color } }, icon, badge[id] ? h('span', { class: 'ai-badge' }, badge[id]) : null),
+      h('span', { class: 'ai-label' }, label)))));
 }
 
 // ------------------------------------------------------------------ team --
@@ -51,7 +89,9 @@ function teamTab(game, root, redraw) {
   const band = playerBand(s);
   const att = attraction(s);
   const head = h('div', { class: 'box' },
-    h('div', { class: 'row' }, h('h3', { style: { flex: 1 } }, `${sp.icon} ${s.team.name}`), h('span', { class: 'pill info' }, band.name), h('span', { class: 'pill' }, `Record ${s.team.wins}-${s.team.losses}`), h('span', { class: 'pill' }, `🏆 ${s.team.championships}`)),
+    h('div', { class: 'row' }, h('h3', { style: { flex: 1 } }, `${sp.icon} ${s.team.name}`), h('span', { class: 'pill info' }, band.name), h('span', { class: 'pill ovr-pill', title: 'Team overall: how good your best lineup is (0-99)' }, `OVR ${teamOverall(s, s.team.name)}`), h('span', { class: 'pill' }, `Record ${s.team.wins}-${s.team.losses}`), h('span', { class: 'pill' }, `🏆 ${s.team.championships}`)),
+    h('div', { class: 'jersey-box', html: jerseyPreview(s.team.colors, s.team.upgrades.uniforms, { name: s.player.name, team: s.team.name, number: s.team.number || 7 }) }),
+    h('div', { class: 'muted', style: { textAlign: 'center', fontSize: '12px' } }, `Uniforms: ${upgradeName(s, 'uniforms', s.team.upgrades.uniforms)} (upgrade in Field & Staff)`),
     h('div', { class: 'row' }, 'Uniform bottoms:', h('div', { class: 'chips' }, ...['shorts', 'pants'].map((v) => h('div', { class: `chip ${kitBottoms(s, s.team.name) === v ? 'sel' : ''}`, onclick: () => { s.team.kitBottoms = v; redraw(); } }, v === 'pants' ? '👖 Pants' : '🩳 Shorts')))),
     h('div', { class: 'row' }, 'Team attraction:', h('div', { class: 'bar', style: { width: '160px' } }, h('i', { style: { width: `${att}%` } })), h('b', {}, att), h('span', { class: 'muted' }, '(roster, results, history, trophies on display, facilities, how much kids like you)')));
   root.appendChild(head);
@@ -307,6 +347,7 @@ function contactsTab(game, root, redraw, close) {
       const c = callCheck(s, k.id);
       if (!c.ok) { sfx('bad'); toast(c.text, 'bad'); return; }
       sfx('click');
+      logCall(s, k.id);
       close();
       openTalk(game, k.id, { phone: true, line: `Hello? Oh hi ${s.player.name}!` });
     }, 'small green');
@@ -319,15 +360,31 @@ function contactsTab(game, root, redraw, close) {
   root.append(h('p', { class: 'muted' }, 'Call a friend to chat, hang out, or invite them to a tryout. No calls during school or after 9 PM.'), table);
 }
 
-// ------------------------------------------------------------------ kids --
-function kidsTab(game, root, redraw) {
+// ---------------------------------------------------------------- social --
+/** Social: every kid you meet adds you. Profiles show where friends are checked in right now. */
+function socialApp(game, root, redraw) {
   const s = game.state;
-  const filters = [['met', 'Everyone I\'ve met'], ['class', 'My class'], ['free', 'Free agents'], ['rival', 'On rival teams'], ['mine', 'My team']];
-  game._kidFilter = game._kidFilter || 'met';
-  const chips = h('div', { class: 'chips' }, ...filters.map(([id, l]) => h('div', { class: `chip ${game._kidFilter === id ? 'sel' : ''}`, onclick: () => { game._kidFilter = id; redraw(); } }, l)));
+  game._socialView = game._socialView || 'friends';
+  const views = [['friends', 'Friends'], ['feed', 'Feed']];
+  root.append(h('div', { class: 'chips' }, ...views.map(([id, l]) => h('div', { class: `chip ${game._socialView === id ? 'sel' : ''}`, onclick: () => { game._socialView = id; redraw(); } }, l))));
   const met = KIDS.filter((k) => s.kids[k.id].met);
+  if (!met.length) { root.append(h('p', {}, 'No friends yet! Walk up to a kid and say hi (E). Everyone you meet adds you here.')); return; }
+  if (game._socialView === 'feed') {
+    const posts = [];
+    for (const k of met) {
+      const c = kidCheckIn(s, k);
+      if (c) posts.push({ k, f: s.kids[k.id].f, text: `📍 checked in at ${c.name}${c.zone && c.loc === 'school' ? '' : c.zone ? ` (${c.zone})` : ''}` });
+    }
+    posts.sort((a, b) => b.f - a.f);
+    root.append(...posts.slice(0, 20).map((p) => h('div', { class: 'post' }, portrait(p.k, 26), h('div', {}, h('b', {}, shortName(p.k)), h('div', {}, p.text)))),
+      ...s.news.slice(0, 10).map((n) => h('div', { class: 'post' }, h('span', { class: 'post-ico' }, '📰'), h('div', {}, h('b', {}, 'Grubbsville Gazette'), h('div', {}, n.text)))));
+    if (!posts.length) root.append(h('p', { class: 'muted' }, 'None of your friends have checked in where you can see. Learn their routines (chat and hang out) to see their check-ins.'));
+    return;
+  }
+  const filters = [['met', 'All'], ['class', 'My classes'], ['free', 'Free agents'], ['rival', 'Rival teams'], ['mine', 'My team']];
+  game._kidFilter = game._kidFilter || 'met';
   const g = playerGrade(s);
-  const classSet = new Set(classmates(s));
+  const classSet = new Set([1, 2, 3, 4].flatMap((p) => classmates(s, p)));
   const list = met.filter((k) => {
     const ks = s.kids[k.id];
     switch (game._kidFilter) {
@@ -338,18 +395,17 @@ function kidsTab(game, root, redraw) {
       default: return true;
     }
   }).sort((a, b) => s.kids[b.id].f - s.kids[a.id].f);
-  const table = h('table', { class: 'list' }, h('tr', {}, h('th', {}, 'Kid'), h('th', {}, 'Gr'), h('th', {}, 'School'), h('th', {}, 'Friendship'), h('th', {}, 'Team'), h('th', {}, 'Known'), h('th', {}, 'Speed')));
+  root.append(h('div', { class: 'chips', style: { marginTop: '6px' } }, ...filters.map(([id, l]) => h('div', { class: `chip ${game._kidFilter === id ? 'sel' : ''}`, onclick: () => { game._kidFilter = id; redraw(); } }, l))),
+    h('p', { class: 'muted' }, `${met.length} friends (of ${KIDS.length} kids in town). Tap a profile to see where they're checked in.`));
   for (const k of list) {
     const ks = s.kids[k.id];
-    table.appendChild(h('tr', { class: 'click', onclick: () => notebookEntry(game, k.id) },
-      h('td', {}, shortName(k)), h('td', {}, kidGrade(s, k.id)), h('td', { class: 'muted' }, k.routine.school.replace('Grubbsville ', '').replace(' (private)', '')),
-      h('td', {}, h('div', { class: 'row' }, h('div', { class: 'bar' }, h('i', { style: { width: `${ks.f}%` } })), ks.f)),
-      h('td', {}, s.team.roster.includes(k.id) ? '★ Yours' : s.team.invites.includes(k.id) ? '✉ Invited' : ks.team || 'Free'),
-      h('td', {}, `${ks.known.length}/${routineSlots(k).length}`),
-      h('td', {}, gradeChip(revealLabel(s, k.id, 'SPD'), 1))));
+    const c = kidCheckIn(s, k);
+    root.appendChild(h('div', { class: 'friend click', onclick: () => notebookEntry(game, k.id) }, portrait(k, 30),
+      h('div', { style: { flex: 1 } }, h('b', {}, shortName(k)), h('div', { class: 'muted' }, `Grade ${kidGrade(s, k.id)} · ${s.team.roster.includes(k.id) ? '★ Your team' : s.team.invites.includes(k.id) ? '✉ Invited' : ks.team || 'Free agent'}`),
+        h('div', { class: 'checkin' }, c ? `📍 ${c.name}` : '📍 Location hidden')),
+      h('div', { class: 'row' }, h('div', { class: 'bar', style: { width: '50px' } }, h('i', { style: { width: `${ks.f}%` } })))));
   }
-  root.append(h('div', { class: 'row', style: { marginBottom: '8px' } }, chips, h('div', { class: 'spacer' }), h('span', { class: 'muted' }, `You've met ${met.length} of ${KIDS.length} kids.`)),
-    list.length ? table : h('p', {}, 'Nobody here yet. Go meet some kids! (Walk up to a kid and press E.)'));
+  if (!list.length) root.append(h('p', {}, 'Nobody here yet.'));
 }
 
 function notebookEntry(game, id) {
@@ -359,8 +415,9 @@ function notebookEntry(game, id) {
   const routine = ks.known.length ? ks.known.map((slot) => describeSlot(k, slot, kidGrade(s, id))).filter(Boolean).map((txt) => h('div', {}, `📍 ${txt}`)) : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (good chats reveal it) or hang out to learn it.')];
   const hook = ks.hookAsked ? parseHook(k) : null;
   const body = h('div', {},
-    h('div', { class: 'row' }, portrait(k, 80), h('div', {}, h('b', { style: { fontSize: '20px' } }, kidName(k)), h('div', { class: 'muted' }, `${k.personality}. Lives in ${k.residence.neighborhood} (${k.residence.address}). ${k.routine.school}${sectionOf(k, kidGrade(s, id)) != null && kidGrade(s, id) === playerGrade(s) ? (sectionOf(k, kidGrade(s, id)) === s.player.section ? ', in your class section' : ', in the other class section') : ''}.`),
+    h('div', { class: 'row' }, portrait(k, 80), h('div', {}, h('b', { style: { fontSize: '20px' } }, kidName(k)), h('div', { class: 'muted' }, `${k.personality}. Lives in ${k.residence.neighborhood} (${k.residence.address}). ${k.routine.school}${sectionOf(k, kidGrade(s, id)) != null && kidGrade(s, id) === playerGrade(s) ? (() => { const n = sharedClasses(s, id); return n ? `, in ${n} of your classes` : ', in none of your classes'; })() : ''}.`),
       h('div', {}, `Friendship: ${friendshipLabel(ks.f)} (${ks.f})`))),
+    h('p', { class: 'checkin big' }, (() => { const c = kidCheckIn(s, k); return c ? `📍 Checked in at ${c.name}${c.zone && c.loc !== 'school' ? ` (${c.zone})` : ''}` : '📍 Location hidden (learn their routine for this time of day to see it)'; })()),
     h('h3', { style: { margin: '10px 0 4px' } }, 'Routine'), ...routine,
     ks.f >= 30 ? h('p', {}, `❤️ Likes: ${k.likes.join(', ')}`) : h('p', { class: 'muted' }, 'Get friendlier to learn what they like.'),
     ks.f >= 45 ? h('p', {}, `🧩 Traits: ${k.traits.slice(0, ks.f >= 65 ? 2 : 1).join(', ')}`) : null,
@@ -369,7 +426,7 @@ function notebookEntry(game, id) {
     h('h3', { style: { margin: '10px 0 4px' } }, 'Stats seen at tryouts'),
     h('div', { class: 'stat-grid' }, ...STAT_CODES.map((c) => h('div', {}, h('span', {}, STAT_NAMES[c]), gradeChip(revealLabel(s, id, c), 1)))),
     s.team.staff.scout ? h('p', {}, `🔭 ${scoutLine(s, k)}`) : null);
-  modal({ title: 'Notebook', body, wide: true });
+  modal({ title: 'Profile', body, wide: true });
 }
 
 // ----------------------------------------------------------- field & staff --
@@ -403,7 +460,7 @@ function pricesBox(s) {
   if (sellsMerch(s)) slider('merch', `🧢 ${upgradeName(s, 'merch')}`, UPGRADES.merch.fair[s.team.upgrades.merch]);
   else box.appendChild(h('p', { class: 'muted' }, '🧢 Merch: unlock it in Upgrades (Team Merch) to sell to fans.'));
   box.appendChild(est);
-  const pz = PRIZES[playerBand(s).id] || PRIZES.jr;
+  const pz = PRIZES[playerBand(s).prize] || PRIZES.jr;
   box.appendChild(h('p', { class: 'muted' }, `${playerBand(s).name} prize money: win ${money(pz.win)}, tie ${money(pz.tie)} (home or away). Make the playoffs ${money(pz.semifinal)}, runner-up ${money(pz.runnerUp)}, champions ${money(pz.champion)}.`));
   showEst();
   return box;
@@ -448,7 +505,10 @@ function fieldTab(game, root, redraw) {
     const max = u.costs.length - 1;
     ups.appendChild(h('div', { class: 'row', style: { margin: '6px 0', borderBottom: '1px dashed #d9c7a8', paddingBottom: '6px' } },
       h('div', { style: { flex: 1 } }, h('b', {}, u.label), h('div', {}, `${'★'.repeat(tier)}${'☆'.repeat(max - tier)} ${upgradeName(s, cat, tier)}`),
-        next <= max ? h('div', { class: 'muted' }, `Next: ${upgradeName(s, cat, next)}${next > cap ? ' (needs a bigger field)' : ''}`) : h('div', { class: 'muted' }, 'Maxed out!')),
+        next <= max ? h('div', { class: 'muted' }, `Next: ${upgradeName(s, cat, next)}${next > cap ? ' (needs a bigger field)' : ''}`) : h('div', { class: 'muted' }, 'Maxed out!'),
+        cat === 'uniforms' ? h('div', { class: 'jersey-pair' },
+          h('div', {}, h('div', { class: 'muted' }, 'Now'), h('div', { class: 'jersey-box small', html: jerseyPreview(s.team.colors, tier, { name: s.player.name, team: s.team.name }) })),
+          next <= max ? h('div', {}, h('div', { class: 'muted' }, 'Next'), h('div', { class: 'jersey-box small', html: jerseyPreview(s.team.colors, next, { name: s.player.name, team: s.team.name }) })) : null) : null),
       next <= max ? btn(money(u.costs[next]), () => {
         const r = buyUpgrade(s, cat);
         sfx(r.ok ? 'good' : 'bad');
@@ -484,52 +544,96 @@ function fieldTab(game, root, redraw) {
 }
 
 // ---------------------------------------------------------------- league --
-function leagueTab(game, root) {
+function leagueApp(game, root, redraw, close) {
   const s = game.state;
   const lg = s.league;
-  if (!lg) { root.appendChild(h('p', {}, 'No season right now (summer break).')); return; }
-  const st = standings(s);
-  const table = h('table', { class: 'list' }, h('tr', {}, h('th', {}, '#'), h('th', {}, 'Team'), h('th', {}, 'W'), h('th', {}, 'L'), h('th', {}, 'T'), h('th', {}, 'PF'), h('th', {}, 'PA')),
-    ...st.map((t, i) => h('tr', { style: t.player ? { background: '#fff3b0' } : {} }, h('td', {}, i + 1), h('td', {}, t.name), h('td', {}, t.w), h('td', {}, t.l), h('td', {}, t.t), h('td', {}, t.pf), h('td', {}, t.pa))));
-  const sched = h('div', {});
-  const rounds = [...(lg.schedule || []), ...(lg.playoffs || [])];
-  for (const r of rounds) {
-    for (const g of r.games) {
-      const mine = g.home === s.team.name || g.away === s.team.name;
-      sched.appendChild(h('div', { class: 'row', style: { fontSize: '13px', fontWeight: mine ? 900 : 600, background: mine ? '#fff3b0' : 'transparent', padding: '2px 4px', borderRadius: '6px' } },
-        h('span', { style: { width: '62px' } }, g.playoff || `Week ${r.week}`), h('span', { style: { flex: 1 } }, `${g.away} @ ${g.home}`),
-        g.result ? h('b', {}, `${g.result.score[1]}-${g.result.score[0]}${g.result.forfeit ? ' (forfeit)' : ''}`) : h('span', { class: 'muted' }, 'upcoming')));
+  if (!lg) { root.appendChild(h('p', {}, 'No season right now (summer break).')); leagueHistory(s, root); return; }
+  game._lgView = game._lgView || 'standings';
+  const views = [['standings', 'Standings'], ['leaders', 'Leaders'], ['team', 'Team stats'], ['schedule', 'Schedule'], ['awards', 'Awards'], ['news', 'News']];
+  root.append(h('div', { class: 'chips' }, ...views.map(([id, l]) => h('div', { class: `chip ${game._lgView === id ? 'sel' : ''}`, onclick: () => { game._lgView = id; redraw(); } }, l))));
+  const box = h('div', { class: 'box', style: { marginTop: '8px' } });
+  const next = nextGameInfo(s);
+  if (next) root.append(h('div', { class: 'row', style: { marginTop: '8px' } }, h('span', { style: { flex: 1 } }, `🏟️ Next game: ${next.label}`), next.days > 0 ? btn('⏭️ Skip to it', () => { close(); game.skipToGame(); }, 'small red') : null));
+  root.append(box);
+  const cols = STAT_COLS[lg.sport || s.team.sport];
+  if (game._lgView === 'standings') {
+    const st = standings(s);
+    box.append(h('h3', {}, `${lg.bandName} standings`), h('p', { class: 'muted' }, 'OVR = how good each team\'s best lineup is (0-99).'),
+      h('div', { class: 'hscroll' }, h('table', { class: 'list' }, h('tr', {}, h('th', {}, '#'), h('th', {}, 'Team'), h('th', {}, 'OVR'), h('th', {}, 'W'), h('th', {}, 'L'), h('th', {}, 'T'), h('th', {}, 'PF'), h('th', {}, 'PA')),
+        ...st.map((t, i) => h('tr', { style: t.player ? { background: '#fff3b0' } : {} }, h('td', {}, i + 1), h('td', {}, t.name), h('td', {}, h('span', { class: 'ovr' }, teamOverall(s, t.name))), h('td', {}, t.w), h('td', {}, t.l), h('td', {}, t.t), h('td', {}, t.pf), h('td', {}, t.pa))))));
+  } else if (game._lgView === 'leaders') {
+    box.append(h('h3', {}, 'League leaders'));
+    for (const [key, label] of cols) {
+      const top = leagueLeaders(s, key, 5);
+      box.append(h('h4', { style: { margin: '8px 0 2px' } }, label), top.length
+        ? h('table', { class: 'list' }, ...top.map((p, i) => h('tr', { style: p.id === 'PLAYER' || p.team === s.team.name ? { background: '#fff3b0' } : {} }, h('td', { style: { width: '22px' } }, i + 1), h('td', {}, h('b', {}, p.name), h('div', { class: 'muted' }, p.team)), h('td', { style: { textAlign: 'right' } }, h('b', {}, p.n)))))
+        : h('p', { class: 'muted' }, 'No games played yet.'));
     }
+  } else if (game._lgView === 'team') {
+    const names = lg.teams.map((t) => t.name);
+    game._lgTeam = names.includes(game._lgTeam) ? game._lgTeam : (names.includes(s.team.name) ? s.team.name : names[0]);
+    const pick = h('select', { onchange: (e) => { game._lgTeam = e.target.value; redraw(); } }, ...names.map((n) => h('option', { value: n, selected: n === game._lgTeam ? 'selected' : null }, n)));
+    const ts = teamStats(s, game._lgTeam);
+    const t = lg.teams.find((x) => x.name === game._lgTeam);
+    box.append(h('h3', {}, 'Team stats'), pick,
+      h('div', { class: 'row', style: { margin: '6px 0' } }, h('span', { class: 'pill info' }, `OVR ${teamOverall(s, game._lgTeam)}`), t ? h('span', { class: 'pill' }, `${t.w}-${t.l}${t.t ? `-${t.t}` : ''}`) : null, ...cols.map(([k, l]) => h('span', { class: 'pill' }, `${l}: ${ts.totals[k] || 0}`))),
+      ts.players.length ? h('div', { class: 'hscroll' }, h('table', { class: 'list' }, h('tr', {}, h('th', {}, 'Player'), h('th', {}, 'GP'), ...cols.map(([k]) => h('th', {}, k))),
+        ...ts.players.map((p) => h('tr', { style: p.id === 'PLAYER' ? { background: '#fff3b0' } : {} }, h('td', {}, p.name), h('td', {}, p.gp), ...cols.map(([k]) => h('td', {}, p[k] || 0))))))
+        : h('p', { class: 'muted' }, 'No games played yet.'));
+  } else if (game._lgView === 'schedule') {
+    const rounds = [...(lg.schedule || []), ...(lg.playoffs || [])];
+    box.append(h('h3', {}, 'Schedule & scores'));
+    for (const r of rounds) {
+      for (const g of r.games) {
+        const mine = g.home === s.team.name || g.away === s.team.name;
+        box.appendChild(h('div', { class: 'row', style: { fontSize: '13px', fontWeight: mine ? 900 : 600, background: mine ? '#fff3b0' : 'transparent', padding: '2px 4px', borderRadius: '6px' } },
+          h('span', { style: { width: '62px' } }, g.playoff || `Week ${r.week}`), h('span', { style: { flex: 1 } }, `${g.away} @ ${g.home}`),
+          g.result ? h('b', {}, `${g.result.score[1]}-${g.result.score[0]}${g.result.forfeit ? ' (forfeit)' : ''}`) : h('span', { class: 'muted' }, 'upcoming')));
+      }
+    }
+    if (!rounds.length) box.append(h('p', { class: 'muted' }, 'Not posted yet.'));
+  } else if (game._lgView === 'awards') {
+    box.append(h('h3', {}, 'Season awards'));
+    const aw = lg.awards;
+    const race = !aw;
+    const show = aw || seasonAwards(s);
+    box.append(h('p', { class: 'muted' }, race ? 'The MVP and stat awards are handed out when the season ends. Here\'s the race so far:' : 'This season\'s winners:'));
+    if (show) {
+      box.append(h('div', { class: 'award' }, h('span', { class: 'aw-ico' }, '🏅'), h('div', {}, h('b', {}, `${lg.bandName} MVP${race ? ' (leading)' : ''}`), h('div', {}, `${show.mvp.id === 'PLAYER' ? 'You' : show.mvp.name}, ${show.mvp.team}`))),
+        ...show.leaders.map((a) => h('div', { class: 'award' }, h('span', { class: 'aw-ico' }, '🥇'), h('div', {}, h('b', {}, a.title), h('div', {}, `${a.id === 'PLAYER' ? 'You' : a.name} (${a.team}): ${a.n}`)))));
+    } else box.append(h('p', {}, 'No games played yet.'));
+    leagueHistory(s, box);
+  } else {
+    box.append(h('h3', {}, 'Grubbsville Gazette'), ...s.news.slice(0, 20).map((n) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `📰 ${n.text}`)));
   }
-  const news = h('div', {}, ...s.news.slice(0, 14).map((n) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `📰 ${n.text}`)));
-  const hist = h('div', {}, ...(s.team.history.length ? s.team.history.map((x) => h('div', {}, `${x.label}: ${x.w}-${x.l}${x.t ? `-${x.t}` : ''}, ${x.place}${['th', 'st', 'nd', 'rd'][x.place] || 'th'} place${x.champion ? ' 🏆 CHAMPIONS' : ''}`)) : [h('div', { class: 'muted' }, 'No seasons played yet.')]));
-  root.append(h('div', { class: 'grid2' },
-    h('div', {}, h('div', { class: 'box' }, h('h3', {}, `${lg.bandName} standings`), lg.schedule ? table : h('p', {}, 'The schedule is set in week 4. Register before then!')),
-      h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, 'Your history'), hist)),
-    h('div', {}, h('div', { class: 'box' }, h('h3', {}, 'Schedule & scores'), rounds.length ? sched : h('p', { class: 'muted' }, 'Not posted yet.')),
-      h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, 'Grubbsville Gazette'), news))));
+}
+
+function leagueHistory(s, root) {
+  root.append(h('h3', { style: { marginTop: '10px' } }, 'Your history'), ...(s.team.history.length ? s.team.history.map((x) => h('div', {}, `${x.label}: ${x.w}-${x.l}${x.t ? `-${x.t}` : ''}, ${x.place}${['th', 'st', 'nd', 'rd'][x.place] || 'th'} place${x.champion ? ' 🏆 CHAMPIONS' : ''}${x.mvp ? ` · MVP: ${x.mvp}` : ''}`)) : [h('div', { class: 'muted' }, 'No seasons played yet.')]));
 }
 
 // ---------------------------------------------------------------- school --
-function schoolTab(game, root) {
+const ampm = (m) => formatTime(m).replace(' AM', 'am').replace(' PM', 'pm');
+
+function schoolApp(game, root) {
   const s = game.state;
   const info = dayInfo(s.time.day);
   const avg = gradeAverage(s);
-  const rows = SCHOOL_BLOCKS.map((b) => {
-    let what = b.label || '';
-    let where = b.kind === 'lunch' ? 'Cafeteria' : b.kind === 'recess' ? 'Playground' : b.kind === 'pass' ? 'Hallway (5 min)' : '';
+  // Just the periods: time range, then the class (or lunch/recess) and where.
+  const rows = SCHOOL_BLOCKS.filter((b) => ['class', 'lunch', 'recess'].includes(b.kind)).map((b) => {
+    let what = b.label; let where = b.kind === 'lunch' ? 'Cafeteria' : 'Playground or gym';
     if (b.kind === 'class') {
       const c = playerClass(s, b.period);
-      what = `P${b.period} ${c.subject}`;
+      what = c.subject;
       where = `${c.teacher}, Room ${roomNumber(c.grade, c.subject)}`;
     }
     const now = s.time.minute >= b.start && s.time.minute < b.end && info.isSchoolDay;
-    return h('tr', { style: now ? { background: '#fff3b0' } : {} }, h('td', {}, formatTime(b.start)), h('td', {}, what), h('td', { class: 'muted' }, where));
+    return h('div', { class: `sched-row ${now ? 'now' : ''}` }, h('div', { class: 'sched-time' }, `${ampm(b.start)} - ${ampm(b.end)}`), h('div', {}, h('b', {}, what), h('div', { class: 'muted' }, where)));
   });
   const prep = h('div', {}, ...CORE_SUBJECTS.map((sub) => h('div', { class: 'row' }, h('span', { style: { width: '120px' } }, sub), h('div', { class: 'bar', style: { width: '120px' } }, h('i', { style: { width: `${((s.school.prep[sub] || 0) / 8) * 100}%`, background: '#8a5cd6' } })))));
   root.append(h('div', { class: 'grid2' },
-    h('div', { class: 'box' }, h('h3', {}, info.isSchoolDay ? `Today's schedule (${info.dowLong})` : 'No school today!'), h('table', { class: 'list' }, ...rows),
-      h('p', { class: 'muted' }, `You're in section ${'AB'[s.player.section ?? 0]}: the same ${classmates(s).length} classmates move with you from room to room. When the bell rings you have 5 minutes in the hallway to reach your next class. Weekly quiz every Friday in period 1.`)),
+    h('div', { class: 'box' }, h('h3', {}, info.isSchoolDay ? `Class schedule (${info.dowLong})` : 'Class schedule (no school today)'), ...rows,
+      h('p', { class: 'muted' }, 'Get to your next room during the 5-minute passing period. Walking into the room skips ahead to the bell. Weekly quiz every Friday in period 1.')),
     h('div', { class: 'box' }, h('h3', {}, 'Report card'),
       h('div', { class: 'row' }, 'Average:', h('b', { style: { fontSize: '24px' } }, `${letterFor(avg)} (${avg}%)`)),
       h('div', { class: 'muted' }, `Recent scores: ${s.school.scores.slice(-6).join(', ')}`),
@@ -540,20 +644,71 @@ function schoolTab(game, root) {
 }
 
 // ----------------------------------------------------------------- money --
-function moneyTab(game, root) {
+function bankApp(game, root) {
   const s = game.state;
+  const activity = s.log.filter((l) => /\$\d/.test(l.text)).slice(0, 15);
+  const pz = PRIZES[playerBand(s).prize] || PRIZES.jr;
   const jobs = h('div', { class: 'box' }, h('h3', {}, '💼 Jobs'), h('p', {}, `Total earned from work: ${money(s.jobs.earned)}`));
   for (const [id, j] of Object.entries(JOBS)) {
     const un = jobUnlocked(s, id);
     jobs.appendChild(h('div', { style: { margin: '6px 0' } }, h('b', {}, j.name), ' ', un ? (jobReady(s, id) ? h('span', { class: 'pill good' }, 'Ready') : h('span', { class: 'pill warn' }, `Need: ${j.needs.filter((n) => !(s.inv.items[n] > 0)).map((n) => ITEMS[n].name).join(', ')}`)) : h('span', { class: 'pill bad' }, `Locked: earn $${j.unlock.earned}`), h('div', { class: 'muted' }, j.desc)));
   }
-  jobs.appendChild(h('p', { class: 'muted' }, 'Other ways to make money: ask Mom & Dad, do chores (3 a day), pick up cans (5¢ each at the grocery store bottle return), find coins on the ground and do favors for kids. Once your team is official it earns from home games (tickets, concessions, merch), league win bonuses and playoff prize money.'));
-  const inv = h('div', { class: 'box' }, h('h3', {}, '🎒 Backpack'));
+  root.append(
+    h('div', { class: 'bank-card' }, h('div', { class: 'muted' }, 'Grubbsville Kids Credit Union'), h('div', { class: 'bank-bal' }, money(s.money)), h('div', {}, `${s.player.name}'s piggy account`)),
+    h('div', { class: 'box', style: { margin: '10px 0' } }, h('h3', {}, 'Recent activity'), activity.length ? h('div', {}, ...activity.map((l) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `Day ${l.day}: ${l.text}`))) : h('p', { class: 'muted' }, 'Nothing yet.'),
+      s.team.fansLast ? h('p', {}, `Last home game: ${s.team.fansLast} fans.`) : null),
+    h('div', { class: 'box', style: { marginBottom: '10px' } }, h('h3', {}, '🏆 League prize money'), h('p', {}, `${playerBand(s).name}: win ${money(pz.win)}, tie ${money(pz.tie)} (home or away). Playoffs ${money(pz.semifinal)}, runner-up ${money(pz.runnerUp)}, champions ${money(pz.champion)}.`)),
+    jobs,
+    h('p', { class: 'muted' }, 'Other ways to make money: ask Mom & Dad, do chores (3 a day), pick up cans (5¢ each at the grocery store bottle return), find coins on the ground and do favors for kids. Once your team is official it earns from home games (tickets, concessions, merch), league win bonuses and playoff prize money.'));
+}
+
+function backpackApp(game, root) {
+  const s = game.state;
   const items = Object.entries(s.inv.items).filter(([id, n]) => n > 0 && id !== 'trophy');
-  inv.appendChild(items.length ? h('div', {}, ...items.map(([id, n]) => h('div', {}, `${ITEMS[id] ? ITEMS[id].icon : id === 'cans' ? '🥫' : id === 'lemonade' ? '🍋' : '📦'} ${ITEMS[id] ? ITEMS[id].name : id === 'cans' ? 'Cans & bottles' : id === 'lemonade' ? 'Cups of lemonade mix' : id} x${n}`))) : h('p', { class: 'muted' }, 'Empty! (Except for a mystery granola bar from last year.)'));
-  inv.appendChild(h('p', {}, `🏆 Trophies: ${s.inv.trophies.length} (${s.inv.trophies.filter((t) => t.slot != null).length} on the shelf)`));
-  const log = h('div', { class: 'box' }, h('h3', {}, '📜 Diary'), ...s.log.slice(0, 25).map((l) => h('div', { style: { fontSize: '13px' } }, `Day ${l.day}: ${l.text}`)));
-  root.append(h('div', { class: 'grid2' }, h('div', {}, jobs, h('div', { style: { height: '10px' } }), inv), log));
+  const name = (id) => (ITEMS[id] ? ITEMS[id].name : id === 'cans' ? 'Cans & bottles' : id === 'lemonade' ? 'Cups of lemonade mix' : id);
+  const icon = (id) => (ITEMS[id] ? ITEMS[id].icon : id === 'cans' ? '🥫' : id === 'lemonade' ? '🍋' : '📦');
+  root.append(h('p', { class: 'muted' }, 'Press I any time to open your backpack.'),
+    items.length ? h('div', { class: 'bag-grid' }, ...items.map(([id, n]) => h('div', { class: 'bag-item' }, h('span', { class: 'bi-ico' }, icon(id)), h('b', {}, name(id)), h('span', { class: 'bi-n' }, `x${n}`))))
+      : h('p', {}, 'Empty! (Except for a mystery granola bar from last year.)'),
+    h('h3', { style: { margin: '12px 0 4px' } }, `🏆 Trophies (${s.inv.trophies.length})`),
+    s.inv.trophies.length ? h('div', {}, ...s.inv.trophies.map((t) => h('div', { class: 'row' }, '🏆', h('span', { style: { flex: 1 } }, t.name), t.slot != null ? h('span', { class: 'pill good' }, 'On the shelf') : h('span', { class: 'pill warn' }, 'In your bag')))) : h('p', { class: 'muted' }, 'No trophies yet. Win some games!'),
+    s.inv.trophies.some((t) => t.slot == null) ? h('p', { class: 'muted' }, 'Put trophies on the shelf in your trophy room at home.') : null);
+}
+
+function diaryApp(game, root) {
+  const s = game.state;
+  root.append(...s.log.slice(0, 40).map((l) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `Day ${l.day}: ${l.text}`)));
+  if (!s.log.length) root.append(h('p', { class: 'muted' }, 'Dear diary... nothing happened yet.'));
+}
+
+function callsApp(game, root, redraw, close) {
+  const s = game.state;
+  const recent = (s.calls || []).slice(-12).reverse();
+  const callKid = (id) => {
+    const c = callCheck(s, id);
+    if (!c.ok) { sfx('bad'); toast(c.text, 'bad'); return; }
+    sfx('click');
+    logCall(s, id);
+    close();
+    openTalk(game, id, { phone: true, line: `Hello? Oh hi ${s.player.name}!` });
+  };
+  const family = [['Mom', 'Honey, I\'m in a meeting! Talk at dinner, okay? Love you!'], ['Dad', 'Hey champ! Can\'t talk, the lawn mower is making a noise. Love you!']];
+  root.append(h('h3', {}, 'Favorites'),
+    h('div', { class: 'row', style: { flexWrap: 'wrap', marginBottom: '8px' } }, ...family.map(([who, line]) => btn(`📞 ${who}`, () => { sfx('click'); modal({ title: `Calling ${who}...`, body: `"${line}"` }); }, 'small white'))),
+    h('h3', {}, 'Recent calls'));
+  if (!recent.length) root.append(h('p', { class: 'muted' }, 'No calls yet. Swap numbers with friends, then call them from Contacts or here.'));
+  for (const c of recent) {
+    const k = KID_BY_ID.get(c.id);
+    if (!k) continue;
+    root.appendChild(h('div', { class: 'friend' }, portrait(k, 24), h('div', { style: { flex: 1 } }, h('b', {}, shortName(k)), h('div', { class: 'muted' }, `Day ${c.day}, ${formatTime(c.minute)}`)), btn('📞', () => callKid(c.id), 'small green')));
+  }
+}
+
+/** Remember a call for the Calls app. */
+function logCall(s, id) {
+  s.calls = s.calls || [];
+  s.calls.push({ id, day: s.time.day, minute: s.time.minute });
+  if (s.calls.length > 30) s.calls.shift();
 }
 
 // -------------------------------------------------------------- settings --
@@ -584,7 +739,7 @@ function settingsTab(game, root, redraw, close) {
         btn('🚪 Save & quit to title', () => { saveToStorage(s); close(); game.onQuit(); }, 'red'))),
     h('div', { class: 'box' }, h('h3', {}, 'Controls'),
       h('b', {}, '⌨️ Keyboard & mouse'),
-      h('div', {}, 'WASD / Arrows: walk (Shift = run) · E / Space: talk & interact · M: map · Tab: phone · Esc: close'),
+      h('div', {}, 'WASD / Arrows: walk (Shift = run) · E / Space: talk & interact · M: map · Tab: phone · I: backpack · Z: wait · Esc: close'),
       h('div', {}, 'Drag: look around · Wheel: zoom · Q/R: rotate camera'),
       h('b', { style: { display: 'block', marginTop: '8px' } }, '🎮 Controller'),
       h('div', {}, 'Left stick: walk (RT to run) · Right stick: camera · A: talk / select · B: back · X: clutch · Y: map · Start: phone · LB/RB: turn camera, switch tabs, throw papers'),
@@ -596,3 +751,5 @@ function settingsTab(game, root, redraw, close) {
 }
 
 export { kidName };
+
+const APP_FNS = { team: teamTab, training: trainingTab, contacts: contactsTab, social: socialApp, calls: callsApp, field: fieldTab, league: leagueApp, school: schoolApp, bank: bankApp, backpack: backpackApp, diary: diaryApp, settings: settingsTab };

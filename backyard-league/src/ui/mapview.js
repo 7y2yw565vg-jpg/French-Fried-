@@ -1,7 +1,6 @@
 // The town map: click a place to travel there.
 import { $, h, clear, btn, ask, toast } from './dom.js';
 import { LOCATIONS, NEIGHBORHOODS } from '../data/world.js';
-import { KIDS } from '../data/kids.js';
 import { dayInfo, formatTime } from '../game/time.js';
 import { whereIsKid, schoolLocFor } from '../game/routines.js';
 import { playerGrade, yearOf } from '../game/state.js';
@@ -59,22 +58,19 @@ function slotNow(state) {
   return 'home';
 }
 
-function knownKidsAt(state) {
-  const out = {};
+/**
+ * Where a met kid is "checked in" right now (their social profile shows it), or
+ * null when you don't know their routine for this time of day.
+ */
+export function kidCheckIn(state, k) {
+  const ks = state.kids[k.id];
+  if (!ks || !ks.met) return null;
   const slot = slotNow(state);
-  const mySchool = schoolLocFor(playerGrade(state));
-  const ctx = { day: state.time.day, minute: state.time.minute, year: yearOf(state) };
-  for (const k of KIDS) {
-    const ks = state.kids[k.id];
-    if (!ks.met) continue;
-    if (slot !== 'home' && !ks.known.includes(slot) && !(slot === 'homeroom' && ks.known.includes('lunch'))) continue;
-    const w = whereIsKid(k, ctx);
-    if (!w) continue;
-    let loc = w.loc === mySchool ? 'school' : w.loc;
-    if (loc === state.player.hood && w.zone === 'front yard' && false) loc = 'home';
-    (out[loc] = out[loc] || []).push(k.first_name);
-  }
-  return out;
+  if (slot !== 'home' && !ks.known.includes(slot) && !(slot === 'homeroom' && ks.known.includes('lunch'))) return null;
+  const w = whereIsKid(k, { day: state.time.day, minute: state.time.minute, year: yearOf(state) });
+  if (!w) return null;
+  const loc = w.loc === schoolLocFor(playerGrade(state)) ? 'school' : w.loc;
+  return { loc, name: loc === 'school' ? 'Grubbsville School' : (LOCATIONS[loc] && LOCATIONS[loc].name) || loc, zone: w.zone || null };
 }
 
 export function openMap(game) {
@@ -98,7 +94,6 @@ export function openMap(game) {
     const pa = LOCATIONS[a].map; const pb = LOCATIONS[b].map;
     if (Math.hypot(pa.x - pb.x, pa.y - pb.y) < 34) el('line', { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y, stroke: '#ffffff', 'stroke-width': 1.4, 'stroke-linecap': 'round', opacity: 0.85 });
   }
-  const here = knownKidsAt(s);
   const pin = (loc, label, icon) => {
     const p = mapPos(s, loc);
     const c = canGo(game, loc);
@@ -109,8 +104,6 @@ export function openMap(game) {
     const lb = el('text', { y: small ? -5.6 : 7.6, 'text-anchor': 'middle', 'font-size': 2.6, fill: '#2a1e1a' }, g); lb.textContent = s.loc === loc && small ? 'Home (here)' : label;
     const mins = s.loc === loc ? 'You are here' : c.ok ? `${travelMinutes(s, s.loc, loc)} min` : c.reason;
     if (!small) { const sub = el('text', { y: 10.4, 'text-anchor': 'middle', 'font-size': 2.1, fill: c.ok ? '#2d6a4f' : '#9d0208' }, g); sub.textContent = mins; }
-    const who = here[loc] || [];
-    if (who.length) { const w = el('text', { y: -5.6, 'text-anchor': 'middle', 'font-size': 2.1, fill: '#3a0ca3' }, g); w.textContent = `${who.slice(0, 3).join(', ')}${who.length > 3 ? ` +${who.length - 3}` : ''}`; }
     g.addEventListener('click', async () => {
       if (!c.ok) { toast(c.reason, 'bad'); return; }
       if (c.warn) {
@@ -125,7 +118,7 @@ export function openMap(game) {
   for (const loc of places) pin(loc, loc === 'school' ? game.locName('school').replace('Grubbsville ', '') : LOCATIONS[loc].name.replace('Grubbsville ', '').replace(' Apartments', ''), LOCATIONS[loc].icon);
   ov.appendChild(h('div', { class: 'screen-bg', onclick: close }));
   ov.appendChild(h('div', { class: 'screen' }, h('div', { class: 'map-wrap' }, h('div', { class: 'card map-card' },
-    h('div', { class: 'map-head' }, h('h2', {}, 'Grubbsville'), h('span', { class: 'muted' }, `${dayInfo(s.time.day).dateLabel}, ${formatTime(s.time.minute)}. Purple names = kids you know who should be there right now.`), h('div', { class: 'spacer' }), btn('Close (Esc)', close, 'small white')),
+    h('div', { class: 'map-head' }, h('h2', {}, 'Grubbsville'), h('span', { class: 'muted' }, `${dayInfo(s.time.day).dateLabel}, ${formatTime(s.time.minute)}. Check a friend's social profile to see where they're checked in.`), h('div', { class: 'spacer' }), btn('Close (Esc)', close, 'small white')),
     svg,
     h('div', { class: 'map-legend' }, h('span', {}, '🏫 School 8:00-2:00 weekdays'), h('span', {}, '🛍️ Mall 9-9'), h('span', {}, '📚 Library 9-8'), h('span', {}, '🦖 Museum 9-6'), h('span', {}, '🛒 Grocery 7-10'), h('span', {}, '🌙 Curfew 9:30 PM'))))));
 }

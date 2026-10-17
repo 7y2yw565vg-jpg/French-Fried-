@@ -100,13 +100,17 @@ await page.click('text=Bye').catch(() => {});
 // Phone. (A late quiz result can pop up on slow machines; clear it first.)
 await g(() => window.__bl.closeAllModals());
 await page.keyboard.press('Tab');
+await shot('13a-phone-home', 800);
+await page.click('.app-icon[data-id="team"]');
 await shot('13-phone-team', 800);
 await g(() => document.querySelectorAll('#modal .screen-bg').forEach((b) => b.click()));
-await page.click('text=📒 Kids');
-await shot('14-phone-kids', 600);
+await page.click('.dock-app[data-id="social"]');
+await shot('14-phone-social', 600);
 await g(() => document.querySelectorAll('#modal .screen-bg').forEach((b) => b.click()));
-await page.click('text=🔧 Field & Staff');
+await page.click('.dock-app[data-id="field"]');
 await shot('15-phone-field', 600);
+await page.click('.dock-app[data-id="league"]');
+await shot('15b-phone-league', 600);
 await page.keyboard.press('Escape');
 
 // Fast-forward a team into the league and play a game.

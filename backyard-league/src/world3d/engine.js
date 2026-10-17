@@ -28,6 +28,24 @@ const GradeShader = {
       gl_FragColor = c; }`,
 };
 
+/** Fade a wall or roof: its meshes get their own materials the first time so shared ones aren't touched. */
+function setOpacity(state, obj, op) {
+  if (!state.mats) {
+    if (op > 0.995) return;
+    state.mats = [];
+    obj.traverse((o) => {
+      if (!o.isMesh) return;
+      const one = (m) => { const c = m.clone(); c.userData = { ...m.userData, shared: false }; state.mats.push(c); return c; };
+      o.material = Array.isArray(o.material) ? o.material.map(one) : one(o.material);
+    });
+  }
+  const solid = op > 0.995;
+  for (const m of state.mats) {
+    if (m.transparent === solid) { m.transparent = !solid; m.depthWrite = solid; m.needsUpdate = true; }
+    m.opacity = solid ? 1 : op;
+  }
+}
+
 export class Engine {
   constructor(container) {
     this.container = container;
@@ -428,7 +446,7 @@ export class Engine {
     return x > r.minX - pad && x < r.maxX + pad && z > r.minZ - pad && z < r.maxZ + pad;
   }
 
-  /** Roofs, lids, cutaway walls and focus rooms. */
+  /** Roofs, lids, see-through walls and focus rooms. */
   _updateAreas(dt, snap = false) {
     const w = this.world;
     if (!w || !w.areas.length) return;
@@ -437,7 +455,6 @@ export class Engine {
     for (const a of w.areas) if (this._areaContains(a, p.x, p.z)) inside.add(a.id);
     let focus = null;
     for (const a of w.areas) if (a.focus && inside.has(a.id)) focus = a;
-    const camDir = new THREE.Vector3().subVectors(this.camera.position, new THREE.Vector3(p.x, 0, p.z)).setY(0).normalize();
     const byId = new Map(w.areas.map((a) => [a.id, a]));
     // An area's insides are hidden only when a ceiling lid covers them (rooms seen from the hallway).
     const covered = (a) => {
@@ -447,30 +464,47 @@ export class Engine {
       return false;
     };
     const k = snap ? 1 : Math.min(1, dt * 8);
+    // What stands between the camera and the player (chest height)?
+    const targets = [];
+    for (const a of w.areas) {
+      for (const wl of a.walls || []) targets.push(wl.obj);
+      if (a.roof && !inside.has(a.id)) targets.push(a.roof);
+    }
+    const occluders = new Set();
+    if (targets.length) {
+      const eye = this.camera.position;
+      const chest = this._occTmp || (this._occTmp = new THREE.Vector3());
+      chest.set(p.x, 0.7, p.z);
+      const dir = chest.clone().sub(eye); const dist = dir.length(); dir.normalize();
+      const rc = this._occRay || (this._occRay = new THREE.Raycaster());
+      rc.set(eye, dir); rc.far = dist - 0.25;
+      if (this._occWorld !== w) { // mesh -> the wall/roof object it belongs to
+        this._occWorld = w; this._occTop = new Map();
+        for (const a of w.areas) for (const t of [...(a.walls || []).map((wl) => wl.obj), a.roof].filter(Boolean)) t.traverse((o) => { if (o.isMesh) this._occTop.set(o, t); });
+      }
+      const top = this._occTop;
+      for (const hit of rc.intersectObjects(targets, true)) { const t = top.get(hit.object); if (t) occluders.add(t); }
+    }
     for (const a of w.areas) {
       const ins = inside.has(a.id);
       const parentIn = a.parent && inside.has(a.parent);
       if (a.roof) a.roof.visible = !ins;
       if (a.lid) a.lid.visible = !ins && !!parentIn;
-      let lidY = 0;
+      // Walls always stand at full height; any wall (or roof) between the camera
+      // and you turns see-through so you're never hidden behind it.
       for (const wl of a.walls || []) {
-        let target = 1;
-        if (ins && wl.inner) {
-          // Inner walls drop only while they stand between the camera and you.
-          const c = this.camera.position; const iw = wl.inner;
-          const pa = iw.axis === 'z' ? p.z : p.x; const ca = iw.axis === 'z' ? c.z : c.x;
-          const pb = iw.axis === 'z' ? p.x : p.z;
-          const between = (ca - iw.at) * (pa - iw.at) < 0 && Math.abs(pa - iw.at) < 7 && pb > iw.min - 2.5 && pb < iw.max + 2.5;
-          target = between ? 0.1 : 1;
-        } else if (ins) {
-          const faces = (wl.nx * camDir.x + wl.nz * camDir.z) > 0.25;
-          target = a.mode === 'down' ? 0.14 : (faces ? 0.1 : 1);
-        } else if (parentIn) target = a.lid ? 0.8 : 1;
-        wl.cur = wl.cur == null ? target : wl.cur + (target - wl.cur) * k;
-        wl.obj.scale.y = Math.max(0.02, wl.cur);
-        lidY = Math.max(lidY, wl.cur);
+        const target = occluders.has(wl.obj) ? 0.22 : 1;
+        wl.op = wl.op == null ? target : wl.op + (target - wl.op) * k;
+        setOpacity(wl, wl.obj, wl.op);
+        if (wl.obj.scale.y !== 1) wl.obj.scale.y = 1;
       }
-      if (a.lid) a.lid.position.y = (a.wallH || 3) * (a.walls && a.walls.length ? lidY : 1) - (a.wallH || 3);
+      if (a.roof && a.roof.visible) {
+        a.roofFade = a.roofFade || {};
+        const target = occluders.has(a.roof) ? 0.22 : 1;
+        a.roofFade.op = a.roofFade.op == null ? target : a.roofFade.op + (target - a.roofFade.op) * k;
+        setOpacity(a.roofFade, a.roof, a.roofFade.op);
+      }
+      if (a.lid) a.lid.position.y = 0;
       if (a.contents) a.contents.visible = !covered(a) || ins;
       if (a.contents && !ins && covered(a)) a.contents.visible = false;
     }
