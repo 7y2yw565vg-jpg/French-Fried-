@@ -80,7 +80,7 @@ export const LOCATIONS = {
   mall: { name: 'Suncrest Mall', icon: '🛍️', kind: 'mall', map: { x: 78, y: 30 } },
   library: { name: 'Public Library', icon: '📚', kind: 'library', map: { x: 40, y: 22 } },
   museum: { name: 'Museum of Neat Stuff', icon: '🦖', kind: 'museum', map: { x: 64, y: 12 } },
-  grocery: { name: 'Sun-N-Go Grocery', icon: '🛒', kind: 'grocery', map: { x: 28, y: 50 } },
+  grocery: { name: 'Grub-N-Go Grocery', icon: '🛒', kind: 'grocery', map: { x: 28, y: 50 } },
   maple: { name: 'Maple Hollow', icon: '🍁', kind: 'hood', map: { x: 18, y: 26 } },
   sunnyside: { name: 'Sunnyside Acres', icon: '🌻', kind: 'hood', map: { x: 30, y: 74 } },
   pickle: { name: 'Pickle Creek', icon: '🥒', kind: 'hood', map: { x: 12, y: 62 } },
@@ -263,7 +263,7 @@ export const ITEMS = {
 };
 
 export const SHOPS = {
-  grocery: { name: 'Sun-N-Go Checkout', loc: 'grocery', zone: 'checkout' },
+  grocery: { name: 'Grub-N-Go Checkout', loc: 'grocery', zone: 'checkout' },
   'sporting goods': { name: 'Sporty Spice Sporting Goods', loc: 'mall', zone: 'sporting goods' },
   'game shop': { name: 'Level Up Games', loc: 'mall', zone: 'game shop' },
   'shoe store': { name: 'Sole Patrol Shoes', loc: 'mall', zone: 'shoe store' },

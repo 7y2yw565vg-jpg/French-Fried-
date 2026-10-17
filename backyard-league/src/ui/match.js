@@ -14,6 +14,7 @@ import { playerLook } from './game.js';
 import { sfx } from './audio.js';
 import { makeDirector, stagePlay } from './matchPlays.js';
 import { mulberry32, hashString } from '../game/rng.js';
+import { crestCupGame, recordCrestCup, hilltopNatives, rivalryRecord, HILLTOP_TEAM, HILLTOP_COLORS } from '../game/rivalry.js';
 
 export function startMatchFlow(game, g, opp) {
   const s = game.state;
@@ -44,8 +45,41 @@ export function startMatchFlow(game, g, opp) {
   });
 }
 
+/** The Crest Cup: once a season vs the Hilltop Prep Hawks at their campus field. */
+export function startCrestCup(game) {
+  const s = game.state;
+  const g = crestCupGame(s);
+  const week = dayInfo(s.time.day).season.week;
+  const reason = playerForfeitReason(s);
+  const forfeitPts = { soccer: 3, basketball: 20, baseball: 7, football: 14 }[s.team.sport] || 3;
+  if (reason) {
+    const msgs = recordCrestCup(s, { score: [forfeitPts, 0], forfeit: 'away' });
+    modal({ title: 'Crest Cup forfeit 😢', body: `You couldn't field a team for the Crest Cup: ${reason}.\n\n${msgs.join('\n')}` });
+    return;
+  }
+  const rec = rivalryRecord(s);
+  const natives = hilltopNatives(s);
+  game.mode = 'menu';
+  modal({
+    title: '🏆 THE CREST CUP!',
+    body: `Once a season, Suncrest's best take on the ${HILLTOP_TEAM} at Hilltop Prep's campus field. It doesn't count in the standings, but the winner takes the Crest Cup (and the bragging rights).\n\nThe Hawks: ${natives} Hilltop Prep kids${natives < 12 ? ` plus ${12 - natives} "scholarship" kids from your grade` : ''}. All-time record vs Hilltop: ${rec.w}-${rec.l}${rec.t ? `-${rec.t}` : ''}.`,
+    dismissable: false,
+    buttons: [
+      { label: "Let's take that cup! 🏆", cls: 'green big', onClick: () => playMatch(game, g, HILLTOP_TEAM, week) },
+      { label: 'Forfeit', cls: 'red', onClick: () => { game.mode = 'free'; toast(recordCrestCup(s, { score: [forfeitPts, 0], forfeit: 'away' }).join(' '), 'bad'); } },
+    ],
+  });
+}
+
 function venueSetup(game, g) {
   const s = game.state;
+  if (g.crestCup) {
+    // Hilltop's campus field: everything money can buy.
+    game.venueUpgrades = { goals: 4, lines: 4, flags: 4, benches: 4, seating: 3, scoreboard: 3, announcer: 3, concessions: 3, uniforms: 4, training: 3 };
+    game.venueColors = HILLTOP_COLORS;
+    game.venueLabel = 'Hilltop Prep Campus Field';
+    return 'venue';
+  }
   const home = g.home === s.team.name;
   if (home && s.team.field === 'backyard') return 'home';
   const ups = { ...s.team.upgrades };
@@ -168,7 +202,7 @@ export function playMatch(game, g, opp, week) {
 
   // overlay
   const sbNames = [g.home, g.away];
-  if (game.desc.setScore) game.desc.setScore(0, 0, g.playoff || (game.state.league && game.state.league.bandName) || 'League', sbNames);
+  if (game.desc.setScore) game.desc.setScore(0, 0, g.crestCup ? 'CREST CUP' : g.playoff || (game.state.league && game.state.league.bandName) || 'League', sbNames);
   const scoreEl = h('div', { class: 'score' }, h('span', { class: 'team' }, g.home), h('span', {}, '0 - 0'), h('span', { class: 'team' }, g.away));
   const speedBtns = h('div', { class: 'btn-row' });
   let skipping = false;
@@ -232,8 +266,8 @@ export function playMatch(game, g, opp, week) {
     $('#hud').style.display = '';
     const [hs, as] = res.score;
     if (game.desc.setScore) game.desc.setScore(hs, as, 'FINAL', sbNames);
-    const msgs = recordResult(s, g, res, week);
-    simOtherGames(s, week);
+    const msgs = g.crestCup ? recordCrestCup(s, res) : recordResult(s, g, res, week);
+    if (!g.crestCup) simOtherGames(s, week);
     const won = (playerSide === 'home' && hs > as) || (playerSide === 'away' && as > hs);
     const tie = hs === as;
     const mvp = res.mvp ? (res.mvp === 'PLAYER' ? s.player.name : getKid(s, res.mvp)?.first_name) : null;

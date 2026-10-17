@@ -23,7 +23,8 @@ import { openPhone } from './phone.js';
 import { handleSpot } from './places.js';
 import { openWait } from './wait.js';
 import { enterClass, exitClass, resumeClass } from './classroom.js';
-import { startMatchFlow } from './match.js';
+import { startMatchFlow, startCrestCup } from './match.js';
+import { crestCupToday, HILLTOP_TEAM } from '../game/rivalry.js';
 import { startTryout } from './tryout.js';
 import { sfx } from './audio.js';
 import { hashString, mulberry32 } from '../game/rng.js';
@@ -467,6 +468,7 @@ export class Game {
     if (ev.type === 'bell') this.onBell(ev.block);
     if (ev.type === 'dismissal') this.onDismissal();
     if (ev.type === 'gameday' && !opts.quiet) this.onGameDay();
+    if (ev.type === 'crestcup' && !opts.quiet) startCrestCup(this);
     if (ev.type === 'practiceEnd') {
       const attended = s.loc === 'home' && this.inZone('backyard', 4);
       toast(finishPractice(s, attended), attended ? 'good' : 'bad');
@@ -733,7 +735,7 @@ export class Game {
         title: r.ok ? '🏟️ Game day!' : 'Hmm',
         body: r.msgs.join('\n\n'),
         wide: r.msgs.join('').length > 400,
-        buttons: [{ label: r.ok ? 'Let\'s play!' : 'Okay', cls: 'green', onClick: () => { if (r.ok) setTimeout(() => this.advance(Math.max(1, GAME_TIME - s.time.minute), { quiet: false }), 50); } }],
+        buttons: [{ label: r.ok ? 'Let\'s play!' : 'Okay', cls: 'green', onClick: () => { if (r.ok) setTimeout(() => this.advance(Math.max(1, (r.at || GAME_TIME) - s.time.minute), { quiet: false }), 50); } }],
       });
       this.hud.render();
     });
@@ -760,6 +762,7 @@ export class Game {
     const lines = [...msgs];
     if (info.isSchoolDay) lines.push('School starts at 8:00 AM. Don\'t be late!');
     if (info.dow === 5 && playerGameThisWeek(s)) lines.push('🏟️ GAME DAY! Your game starts at 10:00 AM.');
+    if (crestCupToday(s)) lines.push(`🏆 CREST CUP DAY! You play the ${HILLTOP_TEAM} at 1:00 PM.`);
     modal({
       title: `☀️ ${info.dateLabel}`,
       body: lines.length ? lines.join('\n\n') : 'A brand new day. What will you do?',

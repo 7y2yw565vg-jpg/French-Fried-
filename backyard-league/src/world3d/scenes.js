@@ -1340,7 +1340,7 @@ export function buildGrocery() {
   });
   const gb = gro.b;
   b.box(42, 0.25, 3, '#e63946', 0, 3.6, 9.4, { mat: 'fabric', shade: (x) => (Math.floor((x + 0.5) * 30) % 2 ? '#ffffff' : null) });
-  P.addSign(sc.group, 'SUN-N-GO', 0, 5.2, 8.25, 7, 0, { bg: '#e63946', color: '#fff', stroke: '#7a1020' });
+  P.addSign(sc.group, 'GRUB-N-GO', 0, 5.2, 8.25, 7, 0, { bg: '#e63946', color: '#fff', stroke: '#7a1020' });
   const candy = (r) => ['#ff006e', '#fb5607', '#ffbe0b', '#8338ec', '#3a86ff'][Math.floor(r() * 5)];
   const cereal = (r) => ['#f4a261', '#e9c46a', '#e63946', '#2a9d8f'][Math.floor(r() * 4)];
   P.groceryShelf(gb, -12, -6, 10, rng, candy);

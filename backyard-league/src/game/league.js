@@ -5,6 +5,7 @@ import { addLog, addNews, getKid, kidGrade, playerGrade, statsOf, yearOf } from 
 import { bestLineup, eligibility, isRegistered, leagueBand, playerBand, homeGameRevenue, giveTrophy, attraction } from './team.js';
 import { simulateMatch } from './sim.js';
 import { recordGameStats, seasonAwards } from './leagueStats.js';
+import { HILLTOP_TEAM, HILLTOP_COLORS, hilltopRoster } from './rivalry.js';
 import { positionRating } from './stats.js';
 import { dayInfo, seasonId } from './time.js';
 import { seeded, shuffle, hashString, clamp } from './rng.js';
@@ -41,11 +42,13 @@ export function kitBottoms(state, name) {
 
 export function teamColors(state, name) {
   if (name === state.team.name) return state.team.colors;
+  if (name === HILLTOP_TEAM) return HILLTOP_COLORS;
   return RIVAL_COLORS[name] || ['#888888', '#ffffff'];
 }
 
 export function rosterOf(state, name) {
   if (name === state.team.name) return state.team.roster.slice();
+  if (name === HILLTOP_TEAM) return hilltopRoster(state);
   return Object.keys(state.kids).filter((id) => state.kids[id].team === name);
 }
 

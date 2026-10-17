@@ -14,6 +14,7 @@ import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game
 import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
 import { nextGameInfo } from '../game/clock.js';
+import { HILLTOP_TEAM, hilltopRoster, rivalryRecord, crestCupDate, crestCupPending } from '../game/rivalry.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
 import { portrait, openTalk } from './talk.js';
@@ -549,7 +550,7 @@ function leagueApp(game, root, redraw, close) {
   const lg = s.league;
   if (!lg) { root.appendChild(h('p', {}, 'No season right now (summer break).')); leagueHistory(s, root); return; }
   game._lgView = game._lgView || 'standings';
-  const views = [['standings', 'Standings'], ['leaders', 'Leaders'], ['team', 'Team stats'], ['schedule', 'Schedule'], ['awards', 'Awards'], ['news', 'News']];
+  const views = [['standings', 'Standings'], ['leaders', 'Leaders'], ['team', 'Team stats'], ['schedule', 'Schedule'], ['awards', 'Awards'], ['crest', '🏆 Crest Cup'], ['news', 'News']];
   root.append(h('div', { class: 'chips' }, ...views.map(([id, l]) => h('div', { class: `chip ${game._lgView === id ? 'sel' : ''}`, onclick: () => { game._lgView = id; redraw(); } }, l))));
   const box = h('div', { class: 'box', style: { marginTop: '8px' } });
   const next = nextGameInfo(s);
@@ -603,6 +604,19 @@ function leagueApp(game, root, redraw, close) {
         ...show.leaders.map((a) => h('div', { class: 'award' }, h('span', { class: 'aw-ico' }, '🥇'), h('div', {}, h('b', {}, a.title), h('div', {}, `${a.id === 'PLAYER' ? 'You' : a.name} (${a.team}): ${a.n}`)))));
     } else box.append(h('p', {}, 'No games played yet.'));
     leagueHistory(s, box);
+  } else if (game._lgView === 'crest') {
+    const rec = rivalryRecord(s);
+    const cc = crestCupDate(s);
+    const pending = crestCupPending(s);
+    const hawks = hilltopRoster(s);
+    box.append(h('h3', {}, `🏆 The Crest Cup vs the ${HILLTOP_TEAM}`),
+      h('p', {}, `Once a season (Sunday of week 7, 1:00 PM) your team plays Hilltop Prep's team at their campus field. It doesn't count in the standings, but the winner takes the Crest Cup.`),
+      h('div', { class: 'row' }, h('span', { class: 'pill info' }, `All-time: ${rec.w}-${rec.l}${rec.t ? `-${rec.t}` : ''}`), h('span', { class: 'pill ovr-pill' }, `Hawks OVR ${teamOverall(s, HILLTOP_TEAM)}`), h('span', { class: 'pill ovr-pill' }, `Yours ${teamOverall(s, s.team.name)}`)),
+      h('p', {}, cc && pending ? (isRegistered(s) ? `This season: ${cc.label}, 1:00 PM.` : `This season: ${cc.label}. Register for the league to play in it!`) : 'This season\'s Crest Cup is done.'),
+      h('h4', { style: { margin: '8px 0 2px' } }, 'The Hawks (scouting report)'),
+      h('div', {}, ...hawks.slice(0, 12).map((id) => { const k = KID_BY_ID.get(id); return h('div', { class: 'row', style: { fontSize: '13px' } }, h('span', { style: { flex: 1 } }, shortName(k), k.routine.school.startsWith('Hilltop') ? '' : h('span', { class: 'muted' }, ' (scholarship)')), h('span', { class: 'ovr' }, kidOverall(s, id))); })),
+      h('h4', { style: { margin: '8px 0 2px' } }, 'Past Crest Cups'),
+      rec.games.length ? h('div', {}, ...rec.games.map((g) => h('div', {}, `${g.label} (grade ${g.grade}): ${g.forfeit ? 'Forfeit loss' : g.won ? `WON ${g.score[1]}-${g.score[0]} 🏆` : g.tie ? `Tie ${g.score[1]}-${g.score[0]}` : `Lost ${g.score[1]}-${g.score[0]}`}`))) : h('p', { class: 'muted' }, 'Never played. Hilltop has held the cup forever.'));
   } else {
     box.append(h('h3', {}, 'Suncrest Gazette'), ...s.news.slice(0, 20).map((n) => h('div', { style: { fontSize: '13px', margin: '3px 0' } }, `📰 ${n.text}`)));
   }
