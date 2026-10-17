@@ -69,3 +69,162 @@ export function sfx(name) {
     }
   } catch { /* audio is optional */ }
 }
+
+// ------------------------------------------------------------------ music --
+// Relaxing background music, generated live: a slow, soft chord progression
+// (warm electric-piano pads), a gentle bass, and a sparse pentatonic melody,
+// through a soft low-pass and an echo. Ducks out during games.
+let musicVol = 0.35;
+let musicOn = true;
+try { const v = localStorage.getItem('bl-music'); if (v != null) musicVol = +v; } catch { /* storage optional */ }
+let music = null; // { gain, timer, next, step, prog }
+const NOTE = (n) => 440 * 2 ** ((n - 69) / 12);
+// Progressions as MIDI chords (4 beats each).
+const PROGS = [
+  [[48, 55, 64, 71], [45, 52, 60, 67], [41, 53, 57, 64], [43, 50, 59, 64]], // Cmaj7 Am7 Fmaj7 G6
+  [[41, 53, 57, 64], [43, 55, 59, 62], [40, 52, 55, 62], [45, 52, 57, 60]], // Fmaj7 G Em7 Am
+  [[50, 57, 60, 65], [43, 55, 59, 65], [48, 55, 59, 64], [45, 55, 60, 64]], // Dm7 G7 Cmaj7 Am7
+];
+const SCALE = [72, 74, 76, 79, 81, 84]; // C pentatonic, up high
+const BEAT = 60 / 68;
+
+export function setMusicVolume(v) {
+  musicVol = v;
+  try { localStorage.setItem('bl-music', String(v)); } catch { /* storage optional */ }
+  if (music) music.gain.gain.setTargetAtTime(musicVol * 0.5 * (music.duck ? 0.15 : 1), ac().currentTime, 0.3);
+}
+export function getMusicVolume() { return musicVol; }
+
+function padNote(a, out, freq, t, dur, vol) {
+  for (const [type, det, v] of [['triangle', 0, 1], ['sine', 7, 0.6]]) {
+    const o = a.createOscillator(); const g = a.createGain();
+    o.type = type; o.frequency.value = freq; o.detune.value = det;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol * v, t + 0.6);
+    g.gain.setTargetAtTime(0.0001, t + dur - 0.4, 0.5);
+    o.connect(g).connect(out); o.start(t); o.stop(t + dur + 2);
+  }
+}
+
+function pluck(a, out, freq, t, vol) {
+  const o = a.createOscillator(); const g = a.createGain();
+  o.type = 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+  o.connect(g).connect(out); o.start(t); o.stop(t + 1.7);
+}
+
+function scheduleMusic() {
+  const a = ac();
+  if (!a || !music) return;
+  while (music.next < a.currentTime + 1.5) {
+    const t = music.next;
+    const bar = Math.floor(music.step / 4); const beat = music.step % 4;
+    if (bar % 16 === 0 && beat === 0) music.prog = PROGS[Math.floor(Math.random() * PROGS.length)];
+    const chord = music.prog[bar % 4];
+    if (beat === 0) {
+      for (const n of chord.slice(1)) padNote(a, music.bus, NOTE(n), t, BEAT * 4, 0.05);
+      padNote(a, music.bus, NOTE(chord[0] - 12), t, BEAT * 4, 0.07); // bass
+    }
+    // A sparse melody that leans on chord tones.
+    if (Math.random() < (beat % 2 ? 0.25 : 0.45)) {
+      const pool = Math.random() < 0.6 ? chord.slice(1).map((n) => n + 12) : SCALE;
+      pluck(a, music.bus, NOTE(pool[Math.floor(Math.random() * pool.length)]), t + (Math.random() < 0.3 ? BEAT / 2 : 0), 0.045);
+    }
+    music.step++;
+    music.next += BEAT;
+  }
+}
+
+/** Start the background music (call after a user gesture; safe to call repeatedly). */
+export function startMusic() {
+  const a = ac();
+  if (!a || music || !musicOn) return;
+  const gain = a.createGain(); gain.gain.value = 0.0001;
+  const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400;
+  const delay = a.createDelay(1.5); delay.delayTime.value = BEAT * 0.75;
+  const fb = a.createGain(); fb.gain.value = 0.32;
+  const wet = a.createGain(); wet.gain.value = 0.35;
+  const bus = a.createGain();
+  bus.connect(lp); lp.connect(gain); lp.connect(delay); delay.connect(fb).connect(delay); delay.connect(wet).connect(gain);
+  gain.connect(a.destination);
+  gain.gain.setTargetAtTime(musicVol * 0.5, a.currentTime, 1.5);
+  music = { gain, bus, next: a.currentTime + 0.2, step: 0, prog: PROGS[0], duck: false };
+  music.timer = setInterval(scheduleMusic, 300);
+  scheduleMusic();
+}
+
+/** Quiet the music (games, cutscenes) or bring it back. */
+export function duckMusic(on) {
+  if (!music) return;
+  music.duck = on;
+  music.gain.gain.setTargetAtTime(musicVol * 0.5 * (on ? 0.15 : 1), ac().currentTime, 0.6);
+}
+
+// ------------------------------------------------------------------ crowd --
+// Game-day crowd: a murmuring noise bed and cheers that grow with attendance.
+// A handful of parents = scattered claps; a packed stadium = a roar.
+let crowd = null; // { src, gain, fans }
+const crowdLevel = (fans) => Math.min(1, Math.log10(1 + Math.max(0, fans)) / Math.log10(501)); // 0..1, 500 fans = 1
+
+export function startCrowd(fans) {
+  const a = ac();
+  if (!a || volume <= 0) return;
+  stopCrowd();
+  const len = a.sampleRate * 3;
+  const buf = a.createBuffer(1, len, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = a.createBufferSource(); src.buffer = buf; src.loop = true;
+  const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 0.6;
+  const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+  const gain = a.createGain();
+  const lvl = crowdLevel(fans);
+  const base = 0.01 + lvl * lvl * 0.16;
+  gain.gain.value = base * volume;
+  // Murmur: a slow wobble in loudness.
+  const lfo = a.createOscillator(); const lg = a.createGain();
+  lfo.frequency.value = 0.18; lg.gain.value = base * volume * 0.35;
+  lfo.connect(lg).connect(gain.gain);
+  src.connect(bp).connect(lp).connect(gain).connect(a.destination);
+  src.start(); lfo.start();
+  crowd = { src, lfo, gain, fans, base };
+}
+
+export function stopCrowd() {
+  if (!crowd) return;
+  try { crowd.src.stop(); crowd.lfo.stop(); } catch { /* already stopped */ }
+  crowd = null;
+}
+
+/** A crowd reaction. good = your team scored; size comes from the attendance. */
+export function crowdCheer(good = true) {
+  const a = ac();
+  if (!a || volume <= 0) return;
+  const fans = crowd ? crowd.fans : 10;
+  const lvl = crowdLevel(fans);
+  if (fans < 25) {
+    // Scattered claps and a "woo!" or two.
+    const n = Math.max(2, Math.round(fans * (good ? 0.8 : 0.3)));
+    for (let i = 0; i < n; i++) noise(0.05, 0.22, Math.random() * 1.2, 2200);
+    if (good) tone(600 + Math.random() * 200, 0.35, 'triangle', 0.05, 250, 0.2);
+    return;
+  }
+  // A roar that swells and fades; louder and longer with a bigger crowd.
+  const t = a.currentTime;
+  const dur = 1.2 + lvl * 2.2;
+  const buf = a.createBuffer(1, Math.floor(a.sampleRate * dur), a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = a.createBufferSource(); src.buffer = buf;
+  const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = good ? 900 : 500; bp.Q.value = 0.5;
+  const g = a.createGain();
+  const peak = (good ? 0.15 + lvl * 0.45 : 0.05 + lvl * 0.12) * volume;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(peak, t + 0.25);
+  g.gain.setTargetAtTime(0.0001, t + dur * 0.45, dur * 0.25);
+  src.connect(bp).connect(g).connect(a.destination);
+  src.start(t);
+  if (good && lvl > 0.6) for (let i = 0; i < 3; i++) tone(180, 0.18, 'square', 0.03 * lvl, 0, 0.4 + i * 0.25); // stomps
+}

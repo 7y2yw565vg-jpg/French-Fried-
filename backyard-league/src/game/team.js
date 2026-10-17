@@ -382,8 +382,20 @@ export function buyUpgrade(state, cat) {
 export function facilityScore(state) {
   let s = 0;
   for (const [cat, tier] of Object.entries(state.team.upgrades)) s += UPGRADES[cat].facility[tier] || 0;
-  s += { backyard: 0, schoolfield: 8, park: 15 }[state.team.field] || 0;
+  s += FIELD_BONUS[state.team.field] || 0;
   return clamp(s, 0, 100);
+}
+
+// How much a home field itself adds to the facility score (and draws fans).
+const FIELD_BONUS = { backyard: 0, schoolfield: 8, park: 15, stadium: 25 };
+
+/** Can you use this field yet? */
+export function fieldUnlocked(state, fieldId) {
+  const f = FIELDS[fieldId];
+  if (f.needs === 'principal') return !!state.team.principalOK;
+  if (f.needs === 'permit') return !!state.team.permit;
+  if (f.needs === 'champion') return state.team.championships > 0;
+  return true;
 }
 
 export function seatingCapacity(state) {
@@ -396,13 +408,13 @@ export function fieldPreview(state, fieldId) {
   const team = { ...state.team, field: fieldId, prices: { ...(state.team.prices || {}), ticket: f.maxAdmission } };
   const st = { ...state, team };
   const cap = (cat) => upgradeCap(st, cat);
-  const unlocked = f.needs === 'principal' ? !!state.team.principalOK : f.needs === 'permit' ? !!state.team.permit : true;
+  const unlocked = fieldUnlocked(state, fieldId);
   return {
     rent: f.rent, parentCut: f.parentCut, fairTicket: f.maxAdmission,
     seats: seatingCapacity(st), maxSeats: UPGRADES.seating.capacity[cap('seating')],
     seatingMax: UPGRADES.seating.names[cap('seating')], concessionsMax: UPGRADES.concessions.names[cap('concessions')],
     trainingMax: UPGRADES.training.names[cap('training')], maxTier: f.maxTier,
-    facilityBonus: { backyard: 0, schoolfield: 8, park: 15 }[fieldId] || 0,
+    facilityBonus: FIELD_BONUS[fieldId] || 0,
     est: homeGameRevenue(st), unlocked,
   };
 }
@@ -411,6 +423,7 @@ export function setField(state, fieldId) {
   const f = FIELDS[fieldId];
   if (f.needs === 'principal' && !state.team.principalOK) return { ok: false, reason: 'Ask the principal first (needs a B average and no recent trouble).' };
   if (f.needs === 'permit' && !state.team.permit) return { ok: false, reason: 'Buy a city permit at the Library league desk ($15).' };
+  if (f.needs === 'champion' && !fieldUnlocked(state, fieldId)) return { ok: false, reason: 'The city only rents the stadium to league champions. Win a league title first!' };
   // Upgrades travel with you; the field's caps decide how much of them counts.
   state.team.field = fieldId;
   return { ok: true };
@@ -466,6 +479,8 @@ export function setPrice(state, kind, value) {
 /** Share of people who buy at a price, relative to the fair price (r = price / fair). */
 const demand = (r, slope, max) => clamp(1 + slope * 0.5 - slope * r, 0.03, max);
 
+const FIELD_DRAW = { backyard: 0, schoolfield: 10, park: 25, stadium: 110 };
+
 export function homeGameRevenue(state, weatherFactor = 1) {
   const t = state.team;
   const field = FIELDS[t.field];
@@ -474,7 +489,10 @@ export function homeGameRevenue(state, weatherFactor = 1) {
   const pr = prices(state);
   const families = t.roster.length * 1.5;
   const announcer = t.staff.announcer ? 4 : 0;
-  const interest = (4 + att * 0.35 + families + announcer + t.upgrades.announcer * 2) * weatherFactor;
+  // Who shows up: your team's pull, families, the announcer, how nice the field and
+  // facilities are (a real stadium draws people on its own), and winning.
+  const winning = (t.recent || []).filter((r) => r === 'W').length * 1.5 + (t.championships || 0) * 12;
+  const interest = (4 + att * 0.35 + families + announcer + t.upgrades.announcer * 2 + facilityScore(state) * 0.6 + FIELD_DRAW[t.field] + winning) * weatherFactor;
   // Ticket price changes how many people show up.
   const fans = Math.max(1, Math.min(cap, Math.round(interest * demand(pr.ticket / ticketFair(state), 0.45, 1.3))));
   const payRate = t.staff.gate ? 1 : 0.85; // without a gate crew some kids sneak in

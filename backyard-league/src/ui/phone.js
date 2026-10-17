@@ -19,7 +19,7 @@ import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
 import { portrait, openTalk } from './talk.js';
 import { touchPref, setTouchPref } from './input.js';
-import { setVolume, getVolume, sfx } from './audio.js';
+import { setVolume, getVolume, sfx, setMusicVolume, getMusicVolume } from './audio.js';
 import { lookSpec, renderCharacter } from '../../art/charstyle/figure.js';
 
 // Apps on the phone's home screen: [id, icon, label, color].
@@ -480,6 +480,7 @@ function fieldTab(game, root, redraw) {
     if (s.team.field === id) return h('span', { class: 'pill good' }, 'Current');
     const use = btn('Move here', () => { const r = setField(s, id); toast(r.ok ? `Home games are now at ${fd.name}.` : r.reason, r.ok ? 'good' : 'bad'); redraw(); }, 'small green');
     if (pv[id].unlocked) return use;
+    if (fd.needs === 'champion') return h('div', { class: 'muted', style: { fontSize: '12px' } }, '🔒 Win a league championship. The city only rents its stadium to champions.');
     return h('div', { class: 'muted', style: { fontSize: '12px' } }, fd.needs === 'principal'
       ? '🔒 Ask Principal Plunkett at school (needs a B average and no recent trouble).'
       : '🔒 Buy a $15 city permit at the Library league desk.');
@@ -739,10 +740,13 @@ function settingsTab(game, root, redraw, close) {
   } }, l)));
   const vol = h('input', { type: 'range', min: 0, max: 1, step: 0.05, value: getVolume() });
   vol.addEventListener('input', () => { setVolume(+vol.value); sfx('pop'); });
+  const mus = h('input', { type: 'range', min: 0, max: 1, step: 0.05, value: getMusicVolume() });
+  mus.addEventListener('input', () => setMusicVolume(+mus.value));
   root.append(h('div', { class: 'grid2' },
     h('div', { class: 'box' }, h('h3', {}, 'Game'),
       h('div', { class: 'field-row' }, h('label', {}, 'Clock speed'), speed),
-      h('div', { class: 'field-row' }, h('label', {}, 'Volume'), vol),
+      h('div', { class: 'field-row' }, h('label', {}, 'Sound effects'), vol),
+      h('div', { class: 'field-row' }, h('label', {}, 'Music'), mus),
       h('div', { class: 'field-row' }, h('label', {}, 'Graphics'), gfx,
         h('div', { class: 'muted', style: { marginTop: '6px' } }, 'Ultra adds ambient occlusion, bloom and 4K shadows. The game picks a level for your PC automatically until you choose one.')),
       h('div', { class: 'btn-row' },

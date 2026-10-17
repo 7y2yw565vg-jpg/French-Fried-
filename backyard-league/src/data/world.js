@@ -81,6 +81,7 @@ export const LOCATIONS = {
   library: { name: 'Public Library', icon: '📚', kind: 'library', map: { x: 40, y: 22 } },
   museum: { name: 'Museum of Neat Stuff', icon: '🦖', kind: 'museum', map: { x: 64, y: 12 } },
   grocery: { name: 'Grub-N-Go Grocery', icon: '🛒', kind: 'grocery', map: { x: 28, y: 50 } },
+  hilltop: { name: 'Hilltop Prep', icon: '🎓', kind: 'campus', map: { x: 88, y: 44 } },
   maple: { name: 'Maple Hollow', icon: '🍁', kind: 'hood', map: { x: 18, y: 26 } },
   sunnyside: { name: 'Sunnyside Acres', icon: '🌻', kind: 'hood', map: { x: 30, y: 74 } },
   pickle: { name: 'Pickle Creek', icon: '🥒', kind: 'hood', map: { x: 12, y: 62 } },
@@ -307,7 +308,7 @@ export const UPGRADES = {
   lines: { label: 'Field Lines', names: ['Crooked spray paint', 'Straight chalk', 'Line-marking machine', 'Pro paint job', 'Logo at midfield'], costs: [0, 10, 30, 80, 200], facility: [0, 2, 4, 7, 10] },
   flags: { label: 'Corner Flags & Markers', names: ['Backpacks', 'Pool noodles', 'Real flags', 'Team-color flags', 'Light-up flags'], costs: [0, 6, 15, 40, 100], facility: [0, 1, 3, 5, 8] },
   benches: { label: 'Team Benches', names: ['Lawn chairs', 'Picnic bench', 'Aluminum benches', 'Covered benches', 'Heated benches'], costs: [0, 20, 50, 120, 300], facility: [0, 2, 4, 7, 10] },
-  seating: { label: 'Fan Seating', names: ['The grass', 'Lawn chairs', '3-row bleachers', 'Grandstand', 'Stadium bowl'], costs: [0, 15, 80, 400, 2000], capacity: [12, 25, 60, 200, 1000], facility: [0, 3, 7, 14, 25] },
+  seating: { label: 'Fan Seating', names: ['Standing on the grass', 'Lawn chairs', '3-row bleachers', 'Grandstand', 'Stadium bowl'], costs: [0, 15, 80, 400, 2000], capacity: [15, 30, 75, 250, 500], facility: [0, 3, 7, 14, 25] },
   scoreboard: { label: 'Scoreboard', names: ['Kid holding a whiteboard', 'Flip-number board', 'Electronic scoreboard', 'Video board', 'Jumbotron'], costs: [0, 8, 60, 300, 1500], facility: [0, 2, 5, 10, 18] },
   announcer: { label: 'Announcer Gear', names: ['You, yelling', 'Toy megaphone', 'PA system', 'Play-by-play booth', 'Broadcast duo'], costs: [0, 5, 40, 150, 500], facility: [0, 1, 4, 8, 14] },
   concessions: { label: 'Concessions', names: ['Nothing yet', 'Lemonade stand', 'Snack shack', 'Grill & nachos', 'Food court'], costs: [0, 10, 40, 150, 600], fair: [0, 1, 1.5, 2.5, 4], buyRate: [0, 0.45, 0.55, 0.65, 0.75], facility: [0, 2, 5, 9, 15] },
@@ -387,6 +388,10 @@ export const FIELDS = {
   park: {
     name: 'Old Town Park', rent: 25, parentCut: 0, maxAdmission: 3, caps: { seating: 3, concessions: 3 }, maxTier: 4,
     needs: 'permit', blurb: '$25 per home game plus a $15 city permit. The tai chi seniors will not move.',
+  },
+  stadium: {
+    name: 'Suncrest Community Stadium', rent: 60, parentCut: 0, maxAdmission: 5, caps: {}, maxTier: 4,
+    needs: 'champion', blurb: '$60 per home game. The city only rents its stadium to league champions. Room for a full stadium bowl.',
   },
 };
 

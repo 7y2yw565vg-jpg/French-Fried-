@@ -7,11 +7,11 @@ import { FIELDS, SPORTS, POSITIONS, RIVAL_COLORS } from '../data/world.js';
 import { simGame, recordResult, forfeitResult, playerForfeitReason, simOtherGames, teamColors, matchSide, kitBottoms } from '../game/league.js';
 import { getKid, kidGrade, heightOf, playerGrade } from '../game/state.js';
 import { dayInfo } from '../game/time.js';
-import { upgradeCap } from '../game/team.js';
+import { upgradeCap, homeGameRevenue } from '../game/team.js';
 import { lookFromKid, adultLook, ball as ballMesh } from '../world3d/kidModel.js';
 import { clutch } from './minigames.js';
 import { playerLook } from './game.js';
-import { sfx } from './audio.js';
+import { sfx, startCrowd, stopCrowd, crowdCheer, duckMusic } from './audio.js';
 import { makeDirector, stagePlay } from './matchPlays.js';
 import { mulberry32, hashString } from '../game/rng.js';
 import { crestCupGame, recordCrestCup, hilltopNatives, rivalryRecord, HILLTOP_TEAM, HILLTOP_COLORS } from '../game/rivalry.js';
@@ -73,13 +73,7 @@ export function startCrestCup(game) {
 
 function venueSetup(game, g) {
   const s = game.state;
-  if (g.crestCup) {
-    // Hilltop's campus field: everything money can buy.
-    game.venueUpgrades = { goals: 4, lines: 4, flags: 4, benches: 4, seating: 3, scoreboard: 3, announcer: 3, concessions: 3, uniforms: 4, training: 3 };
-    game.venueColors = HILLTOP_COLORS;
-    game.venueLabel = 'Hilltop Prep Campus Field';
-    return 'venue';
-  }
+  if (g.crestCup) return 'hilltop'; // played on Hilltop Prep's own campus field
   const home = g.home === s.team.name;
   if (home && s.team.field === 'backyard') return 'home';
   const ups = { ...s.team.upgrades };
@@ -218,6 +212,11 @@ export function playMatch(game, g, opp, week) {
   $('#hud').style.display = 'none';
   clear($('#panel'));
 
+  // The crowd: as loud as the attendance.
+  const fans = attendanceFor(s, g);
+  duckMusic(true);
+  startCrowd(fans);
+  lineEl.replaceChildren(h('span', { class: 'clock' }, '🎟️'), `Attendance: ${fans} fan${fans === 1 ? '' : 's'}`);
   let res = simGame(s, g, week);
   const playerSide = g.home === s.team.name ? 'home' : 'away';
   const lineups = { home: sides.home.lineup.filter((p) => p.id), away: sides.away.lineup.filter((p) => p.id) };
@@ -228,7 +227,7 @@ export function playMatch(game, g, opp, week) {
     lineEl.replaceChildren(h('span', { class: 'clock' }, ev.t), ev.text);
     scoreEl.children[1].textContent = `${ev.score[0]} - ${ev.score[1]}`;
     if (game.desc.setScore) game.desc.setScore(ev.score[0], ev.score[1], ev.t, sbNames);
-    if (ev.points && ev.type !== 'xp') sfx(ev.side === playerSide ? 'cheer' : 'boo');
+    if (ev.points && ev.type !== 'xp') { crowdCheer(ev.side === 'home'); if (ev.side !== playerSide) sfx('boo'); }
     else if (['half', 'end', 'start'].includes(ev.type)) sfx('whistle');
     else if (['save', 'tackle', 'steal', 'strikeout', 'pick', 'stop'].includes(ev.type)) sfx('kick');
   };
@@ -260,6 +259,8 @@ export function playMatch(game, g, opp, week) {
   };
 
   const finish = () => {
+    stopCrowd();
+    duckMusic(false);
     e.extraUpdaters.delete(updater);
     ball.removeFromParent();
     hud.remove(); ticker.remove();
@@ -291,6 +292,14 @@ export function playMatch(game, g, opp, week) {
 }
 
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+/** How many fans come to a game: your home games use your gate numbers; elsewhere it depends on the matchup. */
+function attendanceFor(s, g) {
+  if (g.crestCup) return 180 + Math.min(70, (s.rivalry ? s.rivalry.games.length : 0) * 10); // the whole town turns out
+  if (g.home === s.team.name) return homeGameRevenue(s).fans;
+  const base = 12 + Math.round(hashString(g.home) % 14);
+  return g.playoff === 'Championship' ? base * 4 : g.playoff ? base * 2 : base;
+}
 
 function colorDist(a, b) {
   const ca = new THREE.Color(a); const cb = new THREE.Color(b);

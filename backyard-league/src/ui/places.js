@@ -1,14 +1,15 @@
 // Interactions with spots in the world (doors, shops, parents, desks...).
 import { h, modal, btn, toast, money, ask } from './dom.js';
 import { ITEMS, SHOPS, JOBS, SPORTS, FIELDS } from '../data/world.js';
-import { KID_BY_ID } from '../data/kids.js';
+import { KID_BY_ID, kidName } from '../data/kids.js';
+import { rivalryRecord, hilltopRoster, HILLTOP_TEAM } from '../game/rivalry.js';
 import { askParents, askChance, askQuestions, doChore, choresLeft, buy, recycleCans, jobUnlocked, jobReady, mowJobs, lemonadeCheck, generosityLimit, PITCH_ROUNDS, ASK_MAX, ASK_REASON_MIN, ASK_BIG_MAX } from '../game/economy.js';
 import { addItem, hasItem, itemCount, playerGrade } from '../game/state.js';
-import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS } from '../game/team.js';
+import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS, kidOverall } from '../game/team.js';
 import { askPrincipal, addPrep, SUBJECTS, makeQuiz } from '../game/school.js';
 import { doTask } from '../game/social.js';
 import { dayInfo, schoolBlockAt, formatTime } from '../game/time.js';
-import { standings, joinLeague } from '../game/league.js';
+import { standings, joinLeague, teamOverall } from '../game/league.js';
 import { SCIENCE } from '../data/questions.js';
 import { openPhone } from './phone.js';
 import { openMap } from './mapview.js';
@@ -26,6 +27,29 @@ export function handleSpot(game, kind, data, spot) {
 }
 
 const HANDLERS = {
+  'hilltop-plaque'(game) {
+    const rec = rivalryRecord(game.state);
+    modal({ title: 'Hilltop Preparatory Academy', body: `A shiny brass plaque:\n\n"HILLTOP PREPARATORY ACADEMY. Founded 1902. Excellentia, Elegantia, Endowment. Proud keepers of the Crest Cup."\n\nSomebody scratched a tally underneath: Suncrest ${rec.w}, Hilltop ${rec.l}${rec.t ? `, ties ${rec.t}` : ''}.` });
+  },
+  'hilltop-scout'(game) {
+    const s = game.state;
+    const hawks = hilltopRoster(s);
+    const body = h('div', {}, h('p', {}, `The ${HILLTOP_TEAM} run drills in matching tracksuits. A coach with a whistle made of actual gold yells "AGAIN!" You take notes.`),
+      h('p', {}, h('b', {}, `Team OVR: ${teamOverall(s, HILLTOP_TEAM)}`), ` (yours: ${teamOverall(s, s.team.name)})`),
+      ...hawks.map((id) => { const k = KID_BY_ID.get(id); const o = kidOverall(s, id); return h('div', { class: 'row' }, h('span', { style: { flex: 1 } }, `${kidName(k)}${k.routine.school.startsWith('Hilltop') ? '' : ' (scholarship)'}`), h('span', { class: 'muted' }, o.pos), h('span', { class: 'ovr' }, Math.round(o.rating))); }));
+    modal({ title: '🔭 Scouting the Hawks', body, wide: true });
+  },
+  trophycase(game, data) {
+    const cups = data.cups || [];
+    const plate = (c) => h('div', { class: 'plate' }, h('div', { class: 'plate-title' }, 'CREST CUP CHAMPIONS'), h('div', {}, `${c.date ? `${c.date} · ` : ''}${c.label}`),
+      h('div', { class: 'plate-score' }, `Suncrest Academy (${c.team}) ${c.score[1]}, Hilltop Prep Hawks ${c.score[0]}`), h('div', { class: 'muted' }, `Grade ${c.grade} League champions`));
+    modal({
+      title: '🏆 Suncrest Academy trophy case',
+      body: h('div', {}, cups.length ? h('div', { class: 'plates' }, ...cups.map(plate)) : h('p', {}, 'Two dusty trophies: "Best Attendance 1998" and "Third Place, Regional Spelling Bee." There\'s an empty spot in the middle with a little sign: RESERVED FOR THE CREST CUP.'),
+        h('p', { class: 'muted' }, 'Every time a Suncrest team beats Hilltop Prep in the Crest Cup, the cup goes in this case.')),
+      wide: cups.length > 2,
+    });
+  },
   exit(game) { openMap(game); },
   'go-home'(game) { game.enter('home'); },
   basement(game) { game.engine.teleport(game.desc.spawnBasement.x, game.desc.spawnBasement.z, Math.PI); },

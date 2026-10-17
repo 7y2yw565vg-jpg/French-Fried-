@@ -97,7 +97,7 @@ export function recordCrestCup(state, result) {
   const won = a > h; const tie = a === h;
   const info = dayInfo(state.time.day);
   const label = `${info.season ? info.season.name : 'Season'} ${2026 + yearOf(state) - 1}`;
-  r.games.push({ sid: state.league ? state.league.sid : 0, label, grade: playerGrade(state), team, mine, score: [h, a], won, tie, forfeit: result.forfeit || null });
+  r.games.push({ sid: state.league ? state.league.sid : 0, label, date: info.dateLabel, grade: playerGrade(state), team, mine, score: [h, a], won, tie, forfeit: result.forfeit || null });
   if (won) r.w++; else if (tie) r.t++; else r.l++;
   const msgs = [];
   const pz = PRIZES[leagueBand(playerGrade(state)).prize] || PRIZES.jr;

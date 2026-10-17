@@ -8,6 +8,11 @@ import { hashString } from './rng.js';
 
 const PUBLIC = new Set(['Suncrest Academy']);
 
+/** Does this kid go to Hilltop Prep? */
+export function atHilltop(kid) {
+  return kid.routine.school.startsWith('Hilltop');
+}
+
 export function schoolKind(kid, grade) {
   if (!PUBLIC.has(kid.routine.school)) return kid.routine.school === 'Homeschooled' ? 'home' : 'private';
   if (grade <= 5) return 'elem';
@@ -97,7 +102,11 @@ export function whereIsKid(kid, ctx) {
         default: return { loc: sLoc, zone: roomAt(null), activity: 'in class' };
       }
     }
-    if (!isPublic && m < 15 * 60 + 30) return null; // at their own school
+    if (!isPublic && m < 15 * 60 + 30) {
+      // Hilltop Prep kids are up at their campus; other private schools are off the map.
+      if (atHilltop(kid)) return { loc: 'hilltop', zone: m < 8 * 60 + 15 ? 'courtyard' : 'quad', activity: 'at Hilltop Prep' };
+      return null;
+    }
     if (m < 14 * 60 + 30 && isPublic) {
       const after = r.after_school[DOW[info.dow]];
       if (after.startsWith('School')) return { ...parseSpot(after, kid), loc: sLoc, activity: 'after school' };
@@ -105,7 +114,7 @@ export function whereIsKid(kid, ctx) {
     }
     if (m < 17 * 60 + 45) {
       const spot = parseSpot(r.after_school[DOW[info.dow]], kid);
-      if (spot.loc === 'school') spot.loc = isPublic ? sLoc : kidHood(kid);
+      if (spot.loc === 'school') { if (atHilltop(kid)) { spot.loc = 'hilltop'; spot.zone = 'field'; } else spot.loc = isPublic ? sLoc : kidHood(kid); }
       if (!isPublic && spot.loc === kidHood(kid) && spot.zone !== 'front yard' && !['cul-de-sac', 'driveway hoop', 'creek'].includes(spot.zone)) spot.zone = 'front yard';
       return { ...spot, activity: 'after school' };
     }
@@ -122,6 +131,7 @@ export function whereIsKid(kid, ctx) {
 
 function weekendSpot(kid, slot, grade) {
   const spot = parseSpot(kid.routine.weekend[slot], kid);
+  if (spot.loc === 'school' && atHilltop(kid)) return { loc: 'hilltop', zone: 'field', activity: slot.endsWith('AM') ? 'weekend practice at Hilltop' : 'hanging out at Hilltop' };
   if (spot.loc === 'school') spot.loc = schoolKind(kid, grade) === 'elem' || schoolKind(kid, grade) === 'middle' ? schoolLocFor(grade) : kidHood(kid);
   if (spot.loc === 'school' || spot.loc === 'middleschool') spot.zone = 'playground';
   return { ...spot, activity: slot.endsWith('AM') ? 'weekend morning' : 'weekend afternoon' };

@@ -87,7 +87,7 @@ export function openMap(game) {
   const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); parent.appendChild(e); return e; };
   el('rect', { x: 0, y: 0, width: 100, height: 92, fill: '#a7e08f' });
   el('path', { d: 'M -2 34 C 20 30, 30 40, 50 36 S 80 28, 102 40', stroke: '#4aa3df', 'stroke-width': 2.4, fill: 'none' });
-  const places = ['school', 'mall', 'library', 'museum', 'grocery', ...NEIGHBORHOODS.map((n) => n.id)];
+  const places = ['school', 'hilltop', 'mall', 'library', 'museum', 'grocery', ...NEIGHBORHOODS.map((n) => n.id)];
   // One city: everything sits inside the Suncrest city limits, and the neighborhoods are its districts.
   el('rect', { x: 1.2, y: 1.2, width: 97.6, height: 89.6, rx: 8, fill: 'none', stroke: '#2a1e1a', 'stroke-width': 0.5, 'stroke-dasharray': '2 1.4', opacity: 0.55 });
   const lim = el('text', { x: 4, y: 88.5, 'font-size': 2.1, fill: '#2a1e1a', opacity: 0.6, 'font-weight': 900 }); lim.textContent = 'SUNCREST CITY LIMITS';

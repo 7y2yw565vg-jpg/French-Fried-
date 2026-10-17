@@ -12,7 +12,7 @@ import { practiceToday } from '../game/team.js';
 import { doHangout, missHangout } from '../game/social.js';
 import { pickupsFor, collectPickup, jobReady, mowJobs } from '../game/economy.js';
 import { playerGameThisWeek, ensureSeason, kitBottoms } from '../game/league.js';
-import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue } from '../world3d/scenes.js';
+import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue, buildHilltop } from '../world3d/scenes.js';
 import { lookFromKid, adultLook } from '../world3d/kidModel.js';
 import { Builder } from '../world3d/toon.js';
 import { $, h, clear, toast, modal, modalOpen, closeTopModal, ask } from './dom.js';
@@ -24,7 +24,8 @@ import { handleSpot } from './places.js';
 import { openWait } from './wait.js';
 import { enterClass, exitClass, resumeClass } from './classroom.js';
 import { startMatchFlow, startCrestCup } from './match.js';
-import { crestCupToday, playerInCrestCup, HILLTOP_TEAM } from '../game/rivalry.js';
+import { openNewspaper, hasSundayPaper } from './newspaper.js';
+import { crestCupToday, playerInCrestCup, rivalryRecord, HILLTOP_TEAM } from '../game/rivalry.js';
 import { startTryout } from './tryout.js';
 import { sfx } from './audio.js';
 import { hashString, mulberry32 } from '../game/rng.js';
@@ -91,11 +92,12 @@ export class Game {
     const ups = s.team.upgrades;
     switch (loc) {
       case 'home': return buildHome({ sport: s.team.sport, upgrades: ups, colors: s.team.colors, trophies: s.inv.trophies, playerShirt: '#e63946' });
-      case 'school': return buildSchool({ grade: playerGrade(s) });
+      case 'school': return buildSchool({ grade: playerGrade(s), crestCups: rivalryRecord(s).games.filter((g) => g.won).reverse() });
       case 'mall': return buildMall();
       case 'library': return buildLibrary();
       case 'museum': return buildMuseum();
       case 'grocery': return buildGrocery();
+      case 'hilltop': return buildHilltop(s.team.sport);
       case 'venue': return buildVenue(s.team.sport, this.venueUpgrades || ups, this.venueColors || s.team.colors, this.venueLabel || 'League Field');
       default: {
         const hood = NEIGHBORHOODS.find((n) => n.id === loc);
@@ -766,8 +768,10 @@ export class Game {
     modal({
       title: `☀️ ${info.dateLabel}`,
       body: lines.length ? lines.join('\n\n') : 'A brand new day. What will you do?',
-      buttons: [{ label: 'Rise and shine!', cls: 'green' }],
+      buttons: [{ label: hasSundayPaper(s) ? 'Rise and shine! (📰 Sunday paper)' : 'Rise and shine!', cls: 'green' }],
       wide: lines.join('').length > 400,
+      // Sunday mornings: the paper is on the doorstep.
+      onClose: () => { if (hasSundayPaper(s)) openNewspaper(this); },
     });
   }
 

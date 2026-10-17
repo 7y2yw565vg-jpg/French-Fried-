@@ -5,7 +5,7 @@ import { showTitle, showCreator, stopTitleBackdrop, showcaseArena } from './ui/c
 import { Game } from './ui/game.js';
 import { newGame, saveToStorage } from './game/state.js';
 import { ensureSeason } from './game/league.js';
-import { setVolume } from './ui/audio.js';
+import { setVolume, startMusic } from './ui/audio.js';
 import { setupInput } from './ui/input.js';
 import { buildVenue } from './world3d/scenes.js';
 
@@ -19,6 +19,8 @@ try {
 
 let game = null;
 setupInput(engine, () => game);
+// Background music starts with the first click, tap or key press (browsers block audio before that).
+for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => startMusic(), { once: true });
 // Handy for debugging in the console (and for screenshot tests).
 window.__bl = {
   closeAllModals,

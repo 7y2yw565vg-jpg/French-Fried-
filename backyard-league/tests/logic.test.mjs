@@ -47,9 +47,12 @@ test('routines: public-school kids go to each subject teacher\'s room', () => {
   // Passing period: everyone's in the hallway.
   assert.equal(whereIsKid(kid, { day: 1, minute: 9 * 60 + 12, year: 1 }).zone, 'hallway');
   assert.equal(whereIsKid(kid, { day: 1, minute: 9 * 60 + 20, year: 1 }).zone, kidClass(kid, 3, 2).room);
-  const priv = KIDS.find((k) => k.routine.school.startsWith('Hilltop'));
+  const priv = KIDS.find((k) => k.routine.school.startsWith('St.'));
   assert.equal(whereIsKid(priv, { day: 1, minute: 9 * 60, year: 1 }), null);
   assert.ok(whereIsKid(priv, { day: 1, minute: 16 * 60, year: 1 }));
+  // Hilltop Prep kids spend the school day on their own campus.
+  const prep = KIDS.find((k) => k.routine.school.startsWith('Hilltop'));
+  assert.equal(whereIsKid(prep, { day: 1, minute: 9 * 60, year: 1 }).loc, 'hilltop');
   assert.equal(whereIsKid(kid, { day: 1, minute: 23 * 60, year: 1 }), null);
 });
 
@@ -621,4 +624,17 @@ test('crest cup: league champion represents Suncrest vs Hilltop after the champi
   const last = R.rivalryRecord(s).games[0];
   assert.equal(last.team, s.league.teams[0].name);
   assert.equal(last.mine, false);
+});
+
+test('attendance: bigger fields and better facilities draw more fans; seats cap the crowd; stadium bowl is buildable at the stadium', async () => {
+  const { fieldPreview, upgradeCap, homeGameRevenue } = await import('../src/game/team.js');
+  const s = newGame(opts('soccer'));
+  for (const k of Object.keys(s.team.upgrades)) s.team.upgrades[k] = 2;
+  const back = fieldPreview(s, 'backyard'); const school = fieldPreview(s, 'schoolfield'); const park = fieldPreview(s, 'park');
+  assert.ok(back.est.fans <= back.seats, 'the crowd never exceeds the seats');
+  assert.ok(park.est.fans > school.est.fans && school.est.fans > back.est.fans, `fans: ${back.est.fans} < ${school.est.fans} < ${park.est.fans}`);
+  s.team.upgrades.seating = 0;
+  assert.equal(homeGameRevenue(s).fans <= 15, true, 'standing room only holds 15');
+  s.team.field = 'stadium';
+  assert.equal(upgradeCap(s, 'seating'), 4, 'stadium bowl fits at the stadium');
 });
