@@ -8,6 +8,7 @@ import { standings, weekGames, kitBottoms, teamOverall } from '../game/league.js
 import { STAT_COLS, leagueLeaders, teamStats, seasonAwards } from '../game/leagueStats.js';
 import { openMap, kidCheckIn } from './mapview.js';
 import { jerseyPreview } from './jersey.js';
+import { appGlyph, iconBackground } from './appicons.js';
 import { letter, positionRating, heightScore, statRelevance } from '../game/stats.js';
 import { letterFor, playerClass, classmates, sharedClasses } from '../game/school.js';
 import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game/social.js';
@@ -32,6 +33,8 @@ const APPS = [
   ['settings', '⚙️', 'Settings', '#6c757d'],
 ];
 const APP_BY_ID = Object.fromEntries(APPS.map((a) => [a[0], a]));
+// Pinned to the dock at the bottom of the home screen, like a real phone.
+const DOCK = ['calls', 'social', 'settings'];
 // Old tab names still open the right app.
 const ALIASES = { kids: 'social', money: 'bank' };
 
@@ -59,12 +62,15 @@ export function openPhone(game, app = 'home') {
     screen.classList.toggle('home', id === 'home');
     const redraw = () => show(app);
     if (id === 'home') { homeScreen(game, screen, show); return; }
-    const [, icon, label, color] = APP_BY_ID[id];
+    const [, , label] = APP_BY_ID[id];
     const body = h('div', { class: 'phone-body' });
-    screen.append(h('div', { class: 'app-bar', style: { background: color } }, h('button', { type: 'button', class: 'app-back', onclick: () => { sfx('click'); show('home'); } }, '‹ Home'), h('b', {}, `${icon} ${label}`)), body);
+    screen.append(h('div', { class: 'app-bar', style: { background: iconBackground(id) } }, h('button', { type: 'button', class: 'app-back', onclick: () => { sfx('click'); show('home'); } }, '‹ Home'), h('span', { class: 'ab-icon', style: { background: iconBackground(id) }, html: appGlyph(id) }), h('b', {}, label)), body);
     APP_FNS[id](game, body, redraw, close);
     // App switcher: swipe (LB/RB on a controller) or tap to jump between apps.
-    for (const [aid, aicon, alabel] of APPS) dock.appendChild(h('div', { class: `tab dock-app ${aid === id ? 'sel' : ''}`, 'data-id': aid, title: alabel, onclick: () => { sfx('click'); show(aid); } }, aicon));
+    for (const [aid, , alabel] of APPS) {
+      dock.appendChild(h('div', { class: `tab dock-app ${aid === id ? 'sel' : ''}`, 'data-id': aid, title: alabel, onclick: () => { sfx('click'); show(aid); } },
+        h('span', { class: 'da-tile', style: { background: iconBackground(aid) }, html: appGlyph(aid) }), h('span', { class: 'sr-only' }, alabel)));
+    }
   };
   ov.appendChild(h('div', { class: 'screen-bg', onclick: close }));
   ov.appendChild(h('div', { class: 'screen' }, h('div', { class: 'phone-device' },
@@ -80,9 +86,13 @@ function homeScreen(game, root, show) {
   const badge = { social: met ? null : 'new', contacts: null, team: s.team.invites.length ? s.team.invites.length : null, backpack: s.inv.trophies.filter((t) => t.slot == null).length || null };
   root.append(
     h('div', { class: 'home-clock' }, h('div', { class: 'hc-time' }, formatTime(s.time.minute)), h('div', { class: 'hc-date' }, info.dateLabel), h('div', { class: 'hc-money' }, `🏦 ${money(s.money)}`)),
-    h('div', { class: 'app-grid' }, ...APPS.map(([id, icon, label, color]) => h('button', { type: 'button', class: 'app-icon tab', 'data-id': id, onclick: () => { sfx('click'); show(id); } },
-      h('span', { class: 'ai-tile', style: { background: color } }, icon, badge[id] ? h('span', { class: 'ai-badge' }, badge[id]) : null),
-      h('span', { class: 'ai-label' }, label)))));
+    h('div', { class: 'app-grid' }, ...APPS.filter(([id]) => !DOCK.includes(id)).map(([id, , label]) => appIcon(id, label))),
+    h('div', { class: 'home-dock' }, ...DOCK.map((id) => appIcon(id, APP_BY_ID[id][2], true))));
+  function appIcon(id, label, docked = false) {
+    return h('button', { type: 'button', class: `app-icon tab ${docked ? 'docked' : ''}`, 'data-id': id, 'aria-label': label, onclick: () => { sfx('click'); show(id); } },
+      h('span', { class: 'ai-tile', style: { background: iconBackground(id) } }, h('span', { class: 'ai-glyph-wrap', html: appGlyph(id) }), badge[id] ? h('span', { class: 'ai-badge' }, badge[id]) : null),
+      docked ? null : h('span', { class: 'ai-label' }, label));
+  }
 }
 
 // ------------------------------------------------------------------ team --

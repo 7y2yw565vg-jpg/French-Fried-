@@ -451,7 +451,7 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .ps-batt { display: inline-block; width: 22px; height: 11px; border: 2px solid #fff; border-radius: 3px; vertical-align: middle; position: relative; }
 .ps-batt i { position: absolute; inset: 1px 5px 1px 1px; background: #57cc99; border-radius: 1px; }
 .phone-screen { overflow: hidden; display: grid; grid-template-rows: auto 1fr; background: #fffaf0; }
-.phone-screen.home { display: block; overflow: auto; background: linear-gradient(160deg, #6ec6ff 0%, #8e6ce6 55%, #ff7eb6 100%); }
+.phone-screen.home { display: flex; flex-direction: column; overflow: auto; background: radial-gradient(120% 70% at 20% 0%, #9ad9ff 0%, transparent 60%), radial-gradient(90% 60% at 100% 100%, #ff9ccc 0%, transparent 60%), linear-gradient(165deg, #5fb4f5 0%, #7d63e0 55%, #e46fb0 100%); }
 .phone-screen .phone-body { overflow: auto; padding: 10px; }
 .phone-screen .grid2 { grid-template-columns: 1fr; }
 .phone-screen .box h3 { font-size: 18px; }
@@ -461,16 +461,28 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .hc-time { font-family: var(--font-display, 'Lilita One'), sans-serif; font-size: 52px; line-height: 1; }
 .hc-date { font-size: 16px; margin-top: 4px; }
 .hc-money { display: inline-block; margin-top: 8px; background: rgba(0,0,0,0.25); padding: 3px 12px; border-radius: 99px; font-size: 14px; }
-.app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 16px 14px 20px; }
-.app-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; background: none; border: 0; cursor: pointer; color: #fff; font-weight: 900; font-size: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); padding: 0; }
-.app-icon .ai-tile { position: relative; width: 62px; height: 62px; border-radius: 18px; display: grid; place-items: center; font-size: 32px; border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); text-shadow: none; }
-.app-icon:hover .ai-tile, .app-icon.pad-focus .ai-tile { transform: translateY(-2px); }
+.app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 6px; padding: 18px 14px 20px; align-content: start; flex: 1; }
+.home-dock { display: flex; justify-content: space-evenly; margin: 0 10px 10px; padding: 12px 8px; border-radius: 30px; background: rgba(255,255,255,0.28); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 6px 18px rgba(30,10,60,0.18); }
+.app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; cursor: pointer; color: #fff; font-weight: 800; font-size: 12px; letter-spacing: 0.1px; text-shadow: 0 1px 3px rgba(0,0,0,0.45); padding: 0; }
+.app-icon .ai-tile { position: relative; width: 62px; height: 62px; border-radius: 22.5%; display: grid; place-items: center; text-shadow: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 3px rgba(0,0,0,0.18), 0 3px 8px rgba(20,10,50,0.28); transition: transform 0.12s; }
+.app-icon .ai-tile::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.06) 48%, rgba(0,0,0,0) 52%); pointer-events: none; }
+.ai-glyph-wrap { width: 64%; height: 64%; display: grid; place-items: center; }
+.ai-glyph { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.22)); overflow: visible; }
+.app-icon:active .ai-tile { transform: scale(0.92); }
+.app-icon:hover .ai-tile, .app-icon.pad-focus .ai-tile { transform: translateY(-2px) scale(1.04); }
+.app-icon.pad-focus .ai-tile { outline: 3px solid #fff; outline-offset: 2px; }
 .ai-badge { position: absolute; top: -8px; right: -8px; min-width: 20px; height: 20px; padding: 0 5px; background: #e63946; color: #fff; border: 2px solid #fff; border-radius: 99px; font-size: 11px; display: grid; place-items: center; }
 .ai-label { max-width: 76px; text-align: center; line-height: 1.1; }
 .phone-dock { display: flex; gap: 4px; overflow-x: auto; padding: 6px 8px; background: #1c1f27; scrollbar-width: none; }
 .phone-dock:empty { display: none; }
-.dock-app { flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; font-size: 19px; border-radius: 10px; background: #2c303b; cursor: pointer; border: 2px solid transparent; padding: 0; }
-.dock-app.sel { background: var(--sun); border-color: #fff; }
+.dock-app { flex: 0 0 auto; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; cursor: pointer; padding: 2px; border: 2px solid transparent; opacity: 0.72; transition: opacity 0.1s, transform 0.1s; }
+.dock-app:hover { opacity: 1; }
+.dock-app.sel { opacity: 1; border-color: #fff; transform: translateY(-1px); }
+.da-tile { width: 100%; height: 100%; border-radius: 9px; display: grid; place-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45); }
+.da-tile .ai-glyph { width: 66%; height: 66%; }
+.ab-icon { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; box-shadow: 0 0 0 2px rgba(255,255,255,0.7), inset 0 1px 0 rgba(255,255,255,0.5); }
+.ab-icon .ai-glyph { width: 68%; height: 68%; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .phone-homebar { display: block; width: 130px; height: 6px; margin: 8px auto 2px; border-radius: 99px; background: #e9e9ee; border: 0; cursor: pointer; }
 .phone-close { position: absolute; top: -6px; right: -6px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--ink); background: #fff; font-weight: 900; cursor: pointer; }
 .hscroll { overflow-x: auto; }
@@ -502,7 +514,7 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 @media (max-width: 560px) {
   .phone-device { border-radius: 26px; padding: 6px; height: calc(100vh - 12px); }
   .phone-status { border-radius: 20px 20px 0 0; }
-  .app-icon .ai-tile { width: 54px; height: 54px; font-size: 28px; }
+  .app-icon .ai-tile { width: 54px; height: 54px; }
   .sched-row { grid-template-columns: 1fr; gap: 0; }
 }
 #overlay.show .screen > .phone-device { animation: phoneUp 0.3s cubic-bezier(.2,1.25,.4,1); }
