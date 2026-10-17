@@ -814,11 +814,11 @@ export class Game {
     this.skip(mins);
   }
 
-  /** Test/debug helper: eligible free agents for the current league band. */
+  /** Test/debug helper: eligible free agents for your grade's league. */
   debugEligibleFreeAgents(n = 10) {
     const s = this.state;
     return KIDS.filter((k) => !s.kids[k.id].team && !s.team.roster.includes(k.id))
-      .map((k) => k.id).filter((id) => { const g = playerGrade(s) + (KID_BY_ID.get(id).grade_at_start - 3); return g >= 3 && g <= 5 && KID_BY_ID.get(id).school_average >= 66; }).slice(0, n);
+      .map((k) => k.id).filter((id) => KID_BY_ID.get(id).grade_at_start === 3 && KID_BY_ID.get(id).school_average >= 66).slice(0, n);
   }
 
   destroy() {

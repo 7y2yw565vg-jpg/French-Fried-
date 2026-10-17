@@ -28,7 +28,7 @@ export function hilltopRoster(state) {
   const g = playerGrade(state);
   const mine = new Set(state.team.roster);
   const inGrade = KIDS.filter((k) => kidGrade(state, k.id) === g && !mine.has(k.id));
-  const byOvr = (a, b) => kidOverall(state, b.id) - kidOverall(state, a.id) || a.id.localeCompare(b.id);
+  const byOvr = (a, b) => kidOverall(state, b.id).rating - kidOverall(state, a.id).rating || a.id.localeCompare(b.id);
   const preppies = inGrade.filter((k) => k.routine.school.startsWith('Hilltop')).sort(byOvr).slice(0, ROSTER_SIZE);
   const ids = preppies.map((k) => k.id);
   if (ids.length < ROSTER_SIZE) {
