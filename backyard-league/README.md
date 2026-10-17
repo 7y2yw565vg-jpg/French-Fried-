@@ -21,9 +21,9 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 ```
 
 **Controls** (it plays with any of these, and switches as soon as you use one):
-- **Keyboard & mouse:** WASD or arrows to walk (Shift to run). **E** to talk and interact. **M** for the town map. **Tab** for your phone. Drag the mouse or use Q/R to turn the camera, and the mouse wheel to zoom. **Esc** closes windows.
+- **Keyboard & mouse:** WASD or arrows to walk (Shift to run). **E** to talk and interact. **M** for the town map. **Tab** for your phone (a home screen of apps: Team, League, Social, Bank, School, Maps and more). **I** opens your backpack. **Z** passes time, including skipping to your next game. Drag the mouse or use Q/R to turn the camera, and the mouse wheel to zoom. **Esc** closes windows.
 - **Touch (phones & tablets):** drag anywhere on the left side for a thumbstick (push it to the edge to run), tap the ✋ button to talk or interact, drag the right side to look around, pinch to zoom. The paper route gets big throw buttons. Settings → Controls can force touch controls on or off.
-- **Controller:** left stick to walk (RT to run), right stick for the camera, **A** talk / select, **B** back, **X** clutch moments, **Y** map, **Start** phone, **LB/RB** turn the camera, switch phone tabs and throw papers. Every menu works with the d-pad: it moves a highlight and A presses it.
+- **Controller:** left stick to walk (RT to run), right stick for the camera, **A** talk / select, **B** back, **X** clutch moments, **Y** map, **Start** phone, **LB/RB** turn the camera, switch phone apps and throw papers. Every menu works with the d-pad: it moves a highlight and A presses it.
 
 ## What's in this build
 
@@ -69,12 +69,12 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 - **Team attraction** combines roster, results, history, trophies *on display*, facilities, how much kids like you, fan buzz and coaching, minus any scandal penalty.
 
 **The league**
-- Every league has **8 teams**, counting yours. The 10-week season is a round robin with no byes. **They sign free agents before each season**, competing with you for the same kids. Some kids are poachable, and some are loyal to their team.
+- **One league per grade** (the Grade 3 League for third graders), with up to **8 teams** counting yours. Season stats (goals, assists, saves...), league leaders, team OVR ratings, and an MVP plus stat awards at season's end. The 10-week season is a round robin with no byes. **They sign free agents before each season**, competing with you for the same kids. Some kids are poachable, and some are loyal to their team.
 - Preseason registration, then 8 Saturday games, then semifinals and a final. The game simulation is event-based for all four sports.
 - **Game day in 3D:** both teams take the field in uniform with fans watching. Play-by-play commentary gets better as you upgrade your announcer, and the scoreboard updates live. **Clutch moments put you in control** with a timing minigame that decides the play.
 - Standings, schedule, a news feed, season history, **trophies you place on your shelf**, and a game ball for your first win.
 - **The ringer scandal:** a shady kid offers to "fix" an older kid's paperwork. Every game they play risks getting caught, which brings forfeited wins, playing one kid short for the rest of the season, a **3-year playoff ban**, a fine and grounding. A second offense gets your team expelled.
-- **Growing up:** every school year everyone moves up a grade. Stats follow each kid's growth curve (Phenom, Late Bloomer, Early Peaker, Dud, Morale Machine, and so on), kids get taller, and at 6th grade you move up to the Middle League.
+- **Growing up:** every school year everyone moves up a grade. Stats follow each kid's growth curve (Phenom, Late Bloomer, Early Peaker, Dud, Morale Machine, and so on), kids get taller, and your team moves up to the next grade's league with your class.
 
 **Presentation:** buildings show their full exterior and roof until you walk in. At school only the room you're in is drawn, against a dark backdrop. Doors swing open as you approach. Arriving at a location fades in with a broadcast-style banner. There are three graphics levels (Phone → Settings → Graphics), auto-picked for your GPU.
 

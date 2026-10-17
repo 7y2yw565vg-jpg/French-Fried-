@@ -46,7 +46,7 @@
 
 1. **Character creator:** name, look, pronouns, home neighborhood (affects starting neighbors), and one **starting perk**:
    - *Smooth Talker* (+Charisma), *Teacher's Kid* (+grades, −street cred), *Big Family* (more allowance asks, less backyard space), *Born Hustler* (+job pay), *Gym Rat* (you're a better player yourself).
-2. **Pick your first sport:** Soccer, Baseball, Basketball or Football (flag football in the Jr League).
+2. **Pick your first sport:** Soccer, Baseball, Basketball or Football (flag football in the grade leagues).
 3. **Tutorial day:** Mom & Dad, your bedroom, the backyard, walking to school, meeting your homeroom.
 4. **Goal card ("Start a Team!")** stays pinned until it's done:
 
@@ -72,7 +72,7 @@ Basketball is the easy start, Baseball the hard one. Each sport's achievements a
 |---|---|---|
 | **Your House** | bedroom (planning desk, computer), kitchen (parents), garage (equipment), backyard (field #1), basement (trophy room v1) | Asking for money, homework, managing the team, home games early on |
 | **Neighborhoods** (6) | Maple Hollow, Sunnyside Acres, Pickle Creek, Oakridge Heights (rich), Riverside Apartments, Old Town | Kids' homes, lawns to mow, paper route houses, cul-de-sac pickup games, meeting parents |
-| **School** | Grubbsville Elementary → Grubbsville Middle → (High School) | Classes, halls, cafeteria, playground, gym, nurse, principal's office |
+| **School** | Grubbsville School (grades 3–8) → (High School) | Classes, halls, cafeteria, playground, gym, nurse, principal's office |
 | **Mall** | arcade, food court, shoe store, sporting goods, pet store, fountain, game shop | Buying equipment & uniforms, meeting private-school kids, coin fountain (rare $) |
 | **Library** | kids' corner, computer row, reading nook, homework tables | Studying (+quiz prep), meeting bookworms, unlocking drill/playbook books |
 | **Museum** | dinosaur hall, space wing, bug zoo, gift shop | Field trips, weekend events, trivia-based recruiting, rare collectibles |
@@ -423,11 +423,16 @@ Announcer quality tiers change the vocabulary and the delivery:
 
 ## 13. Leagues & Progression
 
-| League | Grades | Format notes | Your age |
-|---|---|---|---|
-| **Jr League** | 3–5 | Small-sided (7v7 soccer, flag football, coach-pitch → kid-pitch baseball, 8ft hoops) | 3rd–5th |
-| **Middle League** | 6–8 | Full-sized formats begin. Tackle football. Travel teams appear | 6th–8th |
-| **High School League** | 9–12 | Requires **sanctioning** (see below) | 9th–12th |
+Every grade has its own league (the **Grade 3 League** for third graders, and so on), and rosters are grade-based: you recruit kids from your own grade. The same rival clubs move up with their kids each year. A league has 4–8 teams, depending on how many kids in that grade play sports.
+
+| Grades | Format notes | Prize money |
+|---|---|---|
+| **3–5** | Small-sided (7v7 soccer, flag football, coach-pitch → kid-pitch baseball, 8ft hoops) | Elementary purse |
+| **6–8** | Full-sized formats begin. Travel teams appear | Bigger purse |
+| **9–12** | Requires **sanctioning** (see below) | Biggest purse |
+
+- **Season stats** come from every league game: goals, assists, saves and tackles in soccer (points/threes/assists/steals, hits/HR/RBI/strikeouts, TDs/TD passes/interceptions/flag stops in the other sports). The League app shows standings with each team's **OVR**, league leaders and team stats.
+- **Awards:** at season's end the league names an **MVP** (from the stats plus team wins) and a winner for each stat award (Golden Boot, Golden Glove, Playmaker...). Winning one puts a trophy in your backpack.
 
 - Kids move up with you or leave for other teams. **Offseason re-signing** is a friendship & attraction check.
 - **Expanding:** after your first winning season you can found a **second sport**. A kid still plays for only one of your teams at a time, so multi-sport organizations need deeper rosters.
