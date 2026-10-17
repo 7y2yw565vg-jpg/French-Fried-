@@ -226,6 +226,7 @@ export class Engine {
       if (tap && tap.id === e.pointerId && e.type === 'pointerup' && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) < 8 && performance.now() - tap.t < 450) {
         const hit = this.pickNPC(e.clientX, e.clientY);
         if (hit) { this.cam.yaw = drag ? drag.yaw : this.cam.yaw; this.clickNPC(hit); }
+        else if (this.clickToMove(e.clientX, e.clientY) && drag) this.cam.yaw = drag.yaw; // click/tap the ground to walk there
       }
       tap = null;
       pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (drag && drag.id === e.pointerId) drag = null;
@@ -255,6 +256,7 @@ export class Engine {
 
   // ------------------------------------------------------------ world --
   loadWorld(desc, spawn) {
+    this.autoWalk = null; this._hideMoveMarker();
     if (this.world) {
       this.scene.remove(this.world.group);
       if (!this.world.keep) disposeTree(this.world.group); // cached worlds (title stadiums) are reused
@@ -291,6 +293,7 @@ export class Engine {
   }
 
   teleport(x, z, rot) {
+    this.autoWalk = null; this._hideMoveMarker();
     this.playerState.x = x; this.playerState.z = z;
     if (rot != null) this.playerState.rot = rot;
     this._placePlayer();
@@ -648,7 +651,7 @@ export class Engine {
       if (!mx && !mz && a && Math.hypot(a.x, a.y) > 0.18) { mx = a.x; mz = a.y; push = Math.min(1, Math.hypot(a.x, a.y)); }
     }
     let auto = null;
-    if (mx || mz) this.autoWalk = null; // your own steering always wins
+    if (mx || mz) { this.autoWalk = null; this._hideMoveMarker(); } // your own steering always wins
     else auto = this._autoWalkStep(dt);
     if (mx || mz || auto) {
       let dx; let dz;
@@ -661,7 +664,7 @@ export class Engine {
         const rx = Math.cos(yaw); const rz = -Math.sin(yaw);
         dx = rx * mx + fx * -mz; dz = rz * mx + fz * -mz;
       }
-      const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || (a && a.run) || (push > 0.92 && a && a.autoRun);
+      const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || (a && a.run) || (push > 0.92 && a && a.autoRun) || !!(auto && this.autoWalk && this.autoWalk.run);
       const sp = (run ? 5.6 : 3.3 * Math.max(0.45, push)) * this.speedMult;
       const [nx, nz] = this._collide(p.x + dx * sp * dt, p.z + dz * sp * dt);
       p.x = nx; p.z = nz;
@@ -753,6 +756,49 @@ export class Engine {
   }
 
   /** Clicked a character: talk now if close, otherwise walk over first. */
+  /**
+   * Click or tap to move: walk to the spot under the pointer. Clicking right by
+   * something you can use (a door, a shop counter...) walks there and uses it.
+   * Returns true if a walk started.
+   */
+  clickToMove(cx, cy) {
+    if (this.paused || this.camMode !== 'follow' || this.playerState.sitting || !this.world) return false;
+    const r = this.renderer.domElement.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    this._ray = this._ray || new THREE.Raycaster();
+    this._ray.setFromCamera(ndc, this.camera);
+    const hit = new THREE.Vector3();
+    if (!this._ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit)) return false;
+    const p = this.playerState;
+    if (Math.hypot(hit.x - p.x, hit.z - p.z) > 60) return false;
+    // Clicked next to an interactable spot? Walk there and use it.
+    let spot = null; let best = Infinity;
+    for (const it of (this.world.interact || [])) {
+      if (it.hidden) continue;
+      const d = Math.hypot(it.x - hit.x, it.z - hit.z);
+      if (d < Math.max(1.2, (it.r || 1.6) * 0.8) && d < best) { best = d; spot = it; }
+    }
+    const [tx, tz] = spot ? [spot.x, spot.z] : [hit.x, hit.z];
+    const far = Math.hypot(tx - p.x, tz - p.z);
+    this.autoWalk = { point: { x: tx, z: tz }, spot, t: 0, last: far, stuck: 0, run: far > 10 }; // long trips: jog
+    this._showMoveMarker(tx, tz);
+    return true;
+  }
+
+  _showMoveMarker(x, z) {
+    if (!this.moveMarker) {
+      const m = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.42, 28), new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.9, depthWrite: false }));
+      m.rotation.x = -Math.PI / 2; m.renderOrder = 3;
+      this.moveMarker = m;
+    }
+    const m = this.moveMarker;
+    if (m.parent !== this.scene) this.scene.add(m);
+    m.position.set(x, 0.14, z); // above roads and sidewalks (their tops sit up to 0.14)
+    m.visible = true; m.userData.t = 0;
+  }
+
+  _hideMoveMarker() { if (this.moveMarker) this.moveMarker.visible = false; }
+
   clickNPC(n) {
     const p = this.playerState;
     const pos = n.char.root.position;
@@ -771,9 +817,26 @@ export class Engine {
   /** World-space direction toward the auto-walk target (null when there's nothing to do). */
   _autoWalkStep(dt) {
     const w = this.autoWalk;
-    if (!w) return null;
-    const n = this.npcs.get(w.id);
+    if (!w) { this._hideMoveMarker(); return null; }
     const p = this.playerState;
+    if (w.point) {
+      // Walking to a clicked spot on the ground.
+      if (this.paused || this.camMode !== 'follow' || p.sitting) { this.autoWalk = null; this._hideMoveMarker(); return null; }
+      if (this.moveMarker) { this.moveMarker.userData.t += dt; this.moveMarker.scale.setScalar(1 + 0.15 * Math.sin(this.moveMarker.userData.t * 8)); }
+      const dx = w.point.x - p.x; const dz = w.point.z - p.z; const d = Math.hypot(dx, dz);
+      const reach = w.spot ? Math.min(1.2, (w.spot.r || 1.6) * 0.6) : 0.25;
+      if (d <= reach) {
+        this.autoWalk = null; this._hideMoveMarker();
+        if (w.spot) this.onInteract({ type: 'spot', kind: w.spot.kind, label: w.spot.label, data: w.spot.data, spot: w.spot });
+        return null;
+      }
+      w.t += dt;
+      if (w.last - d < 0.02 * 60 * dt) w.stuck += dt; else w.stuck = 0;
+      w.last = d;
+      if (w.t > 20 || w.stuck > 0.9) { this.autoWalk = null; this._hideMoveMarker(); return null; } // a wall in the way: stop
+      return [dx / d, dz / d];
+    }
+    const n = this.npcs.get(w.id);
     if (!n || this.paused || this.camMode !== 'follow' || p.sitting) { this.autoWalk = null; return null; }
     const pos = n.char.root.position;
     const dx = pos.x - p.x; const dz = pos.z - p.z; const d = Math.hypot(dx, dz);

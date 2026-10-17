@@ -759,7 +759,7 @@ function settingsTab(game, root, redraw, close) {
         btn('🚪 Save & quit to title', () => { saveToStorage(s); close(); game.onQuit(); }, 'red'))),
     h('div', { class: 'box' }, h('h3', {}, 'Controls'),
       h('b', {}, '⌨️ Keyboard & mouse'),
-      h('div', {}, 'WASD / Arrows: walk (Shift = run) · E / Space: talk & interact · M: map · Tab: phone · I: backpack · Z: wait · Esc: close'),
+      h('div', {}, 'WASD / Arrows or click / tap the ground: walk (Shift = run) · Click a kid or a spot to walk over and use it · E / Space: talk & interact · M: map · Tab: phone · I: backpack · Z: wait · Esc: close'),
       h('div', {}, 'Drag: look around · Wheel: zoom · Q/R: rotate camera'),
       h('b', { style: { display: 'block', marginTop: '8px' } }, '🎮 Controller'),
       h('div', {}, 'Left stick: walk (RT to run) · Right stick: camera · A: talk / select · B: back · X: clutch · Y: map · Start: phone · LB/RB: turn camera, switch tabs, throw papers'),

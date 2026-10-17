@@ -21,8 +21,8 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 ```
 
 **Controls** (it plays with any of these, and switches as soon as you use one):
-- **Keyboard & mouse:** WASD or arrows to walk (Shift to run). **E** to talk and interact. **M** for the town map. **Tab** for your phone (a home screen of apps: Team, League, Social, Bank, School, Maps and more). **I** opens your backpack. **Z** passes time, including skipping to your next game. Drag the mouse or use Q/R to turn the camera, and the mouse wheel to zoom. **Esc** closes windows.
-- **Touch (phones & tablets):** drag anywhere on the left side for a thumbstick (push it to the edge to run), tap the ✋ button to talk or interact, drag the right side to look around, pinch to zoom. The paper route gets big throw buttons. Settings → Controls can force touch controls on or off.
+- **Keyboard & mouse:** WASD or arrows to walk (Shift to run), or click the ground to walk there (click a kid, door or counter to walk over and use it). **E** to talk and interact. **M** for the town map. **Tab** for your phone (a home screen of apps: Team, League, Social, Bank, School, Maps and more). **I** opens your backpack. **Z** passes time, including skipping to your next game. Drag the mouse or use Q/R to turn the camera, and the mouse wheel to zoom. **Esc** closes windows.
+- **Touch (phones & tablets):** drag anywhere on the left side for a thumbstick (push it to the edge to run), tap the ✋ button to talk or interact, drag the right side to look around, tap the ground to walk there, pinch to zoom. The paper route gets big throw buttons. Settings → Controls can force touch controls on or off.
 - **Controller:** left stick to walk (RT to run), right stick for the camera, **A** talk / select, **B** back, **X** clutch moments, **Y** map, **Start** phone, **LB/RB** turn the camera, switch phone apps and throw papers. Every menu works with the d-pad: it moves a highlight and A presses it.
 
 ## What's in this build
