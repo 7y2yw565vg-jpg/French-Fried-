@@ -638,3 +638,54 @@ test('attendance: bigger fields and better facilities draw more fans; seats cap 
   s.team.field = 'stadium';
   assert.equal(upgradeCap(s, 'seating'), 4, 'stadium bowl fits at the stadium');
 });
+
+test('season sign-ups: open after the Crest Cup, remaining sports only, free entry, new team to recruit', async () => {
+  const S = await import('../src/game/seasons.js');
+  const { skipToNextYear, restartSeasonLeague } = await import('../src/game/clock.js');
+  const { entryFee } = await import('../src/game/team.js');
+  const s = newGame(opts('soccer'));
+  ensureSeason(s);
+  assert.equal(S.signupOpen(s), null, 'not during the season you signed up for');
+  const friend = KIDS.find((k) => kidGrade(s, k.id) === 3).id;
+  s.team.roster.push(friend); s.kids[friend].team = s.team.name;
+  // Crest Cup Sunday: we're the champs. Sign-ups open once it's played.
+  const R = await import('../src/game/rivalry.js');
+  while (dayInfo(s.time.day).season.week < 15 || dayInfo(s.time.day).dow < 6) sleep(s);
+  s.league.done = true; s.league.champion = s.team.name;
+  assert.equal(S.signupOpen(s), null, 'not before the Crest Cup');
+  R.recordCrestCup(s, { score: [1, 2] });
+  const n = S.signupOpen(s);
+  assert.ok(n && n.name === 'Winter' && !n.now);
+  assert.deepEqual(n.options, SPORT_IDS.filter((x) => x !== 'soccer'), 'soccer was already played this year');
+  assert.equal(S.chooseNextSport(s, 'soccer').ok, false);
+  assert.ok(S.chooseNextSport(s, 'basketball', 'Hoop Dreams').ok);
+  sleep(s); // Monday: Winter starts with the new team
+  assert.equal(s.team.sport, 'basketball');
+  assert.equal(s.team.name, 'Hoop Dreams');
+  assert.deepEqual(s.team.roster, ['PLAYER'], 'a new sport means recruiting a new team');
+  assert.equal(s.kids[friend].team, null);
+  assert.equal(s.league.sport, 'basketball');
+  assert.equal(entryFee(s), 0, 'entry is free');
+  assert.equal(S.signupOpen(s), null);
+  // Skip the rest of the year: lands on Fall of grade 4 with every sport open again.
+  const r = skipToNextYear(s);
+  assert.ok(r.ok);
+  assert.equal(dayInfo(s.time.day).season.name, 'Fall');
+  assert.equal(dayInfo(s.time.day).season.week, 1);
+  const f = S.signupOpen(s);
+  assert.ok(f && f.now && f.options.length === SPORT_IDS.length);
+  assert.ok(S.chooseNextSport(s, 'baseball').ok);
+  restartSeasonLeague(s);
+  assert.equal(s.team.sport, 'baseball');
+  assert.equal(s.league.sport, 'baseball');
+  assert.equal(S.signupOpen(s), null);
+});
+
+test('stat relevance: each sport highlights the skills its positions use', async () => {
+  const { statRelevance, sportStatImportance } = await import('../src/game/stats.js');
+  for (const sp of SPORT_IDS) {
+    const imp = sportStatImportance(sp);
+    assert.ok(Object.values(imp).some((v) => v === 1));
+    assert.ok(Object.keys(imp).some((c) => statRelevance(sp, c) === 'key'));
+  }
+});

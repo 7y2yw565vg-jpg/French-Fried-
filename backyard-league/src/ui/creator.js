@@ -10,6 +10,7 @@ import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT
 import { KIDS } from '../data/kids.js';
 import { loadFromStorage, deserialize, listSlots, deleteSlot, freeSlot, saveToStorage, playerGrade, yearOf } from '../game/state.js';
 import { dayInfo, formatTime } from '../game/time.js';
+import { statRelevance } from '../game/stats.js';
 import { sfx } from './audio.js';
 import { lookSpec, renderCharacter } from '../../art/charstyle/figure.js';
 
@@ -276,7 +277,7 @@ export function showCreator(engine, onDone) {
   const sportCards = h('div', { class: 'sport-cards' });
   for (const sp of Object.values(SPORTS)) {
     const c = h('div', { class: `sport-card ${cfg.sport === sp.id ? 'sel' : ''}`, onclick: () => {
-      cfg.sport = sp.id; sfx('click');
+      cfg.sport = sp.id; sfx('click'); drawStats(); // the highlighted stats follow the sport
       sportCards.querySelectorAll('.sport-card').forEach((x) => x.classList.remove('sel')); c.classList.add('sel');
     } }, h('div', { class: 'icon' }, sp.icon), h('h4', {}, sp.name), h('p', {}, `Need ${sp.minRoster} kids. ${sp.blurb}`));
     sportCards.appendChild(c);
@@ -302,14 +303,15 @@ export function showCreator(engine, onDone) {
     for (const c of STAT_CODES) {
       const v = cfg.statPoints[c];
       const val = PLAYER_BASE_STAT + v + gym;
-      grid.append(h('div', { class: 'stat-row' },
-        h('span', { class: 'stat-name' }, STAT_NAMES[c]),
+      const rel = statRelevance(cfg.sport, c);
+      grid.append(h('div', { class: `stat-row stat-${rel}`, title: rel === 'none' ? `Doesn't count in ${SPORTS[cfg.sport].name}` : `Counts in ${SPORTS[cfg.sport].name}` },
+        h('span', { class: 'stat-name' }, rel === 'key' ? `★ ${STAT_NAMES[c]}` : STAT_NAMES[c]),
         btn('−', () => { if (cfg.statPoints[c] > 0) { cfg.statPoints[c]--; drawStats(); } }, 'small white', v ? {} : { disabled: true }),
         h('div', { class: 'bar' }, h('i', { style: { width: `${val}%` } })),
         h('b', { class: 'stat-val' }, `${val}`),
         btn('+', () => { if (left > 0 && val < STAT_MAX) { cfg.statPoints[c]++; drawStats(); } }, 'small white', left > 0 && val < STAT_MAX ? {} : { disabled: true })));
     }
-    statBox.append(grid);
+    statBox.append(grid, h('div', { class: 'muted stat-legend' }, `★ = matters most in ${SPORTS[cfg.sport].name} · faded = doesn't count in ${SPORTS[cfg.sport].name} (it might in another sport later)`));
   };
   drawStats();
   // Turn the preview: drag (mouse or touch) or the arrow buttons.

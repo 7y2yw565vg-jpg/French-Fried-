@@ -91,3 +91,23 @@ export function bestPosition(stats, sport, heightS) {
   }
   return best;
 }
+
+/**
+ * How much each stat matters in a sport: its weight summed over the sport's
+ * lineup spots, scaled so the most important stat is 1. Stats a sport never
+ * uses aren't listed (height counts but isn't a trainable stat).
+ */
+export function sportStatImportance(sport) {
+  const tot = {};
+  const spots = [...SPORTS[sport].lineup];
+  if (POSITIONS[sport].BAT) spots.push(...SPORTS[sport].lineup.map(() => 'BAT')); // everybody bats in baseball
+  for (const pos of spots) for (const [code, w] of Object.entries(POSITIONS[sport][pos].w)) if (code !== 'HGT') tot[code] = (tot[code] || 0) + w;
+  const max = Math.max(...Object.values(tot));
+  return Object.fromEntries(Object.entries(tot).map(([c, v]) => [c, v / max]));
+}
+
+/** 'key' (matters a lot), 'some' (matters a little) or 'none' for a stat in a sport. */
+export function statRelevance(sport, code) {
+  const v = sportStatImportance(sport)[code] || 0;
+  return v >= 0.45 ? 'key' : v > 0.08 ? 'some' : 'none';
+}

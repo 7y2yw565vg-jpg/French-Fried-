@@ -533,3 +533,12 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .plate { background: linear-gradient(180deg, #f6d977, #d9a92b); border: 3px solid #7a5a12; border-radius: 6px; padding: 10px; text-align: center; font-family: Georgia, serif; color: #2a1e08; box-shadow: inset 0 1px 0 #fff6c8; }
 .plate-title { font-weight: 700; letter-spacing: 2px; font-size: 13px; border-bottom: 1px solid #7a5a12; margin-bottom: 4px; }
 .plate-score { font-weight: 700; margin-top: 4px; }
+.stat-grid .stat-key { background: #fff3b0; border-radius: 8px; box-shadow: inset 0 0 0 2px #e8c25a; }
+.stat-grid .stat-key span:first-child { font-weight: 900; }
+.stat-grid .stat-some span:first-child { font-weight: 800; }
+.stat-grid .stat-none { opacity: 0.45; }
+.stat-legend { font-size: 12px; margin-top: 4px; }
+.signup .sport-cards { margin: 8px 0; }
+.signup-key { font-weight: 800; background: #fff3b0; border-radius: 10px; padding: 6px 10px; margin: 6px 0; }
+.signup-note { margin: 4px 0 8px; }
+.signup input[type=text] { flex: 1; min-width: 0; }

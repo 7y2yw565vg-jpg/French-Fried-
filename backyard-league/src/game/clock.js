@@ -10,6 +10,7 @@ import { applyPractice, practiceToday, eligibility, practiceTesting, gradeAverag
 import { seeded, clamp } from './rng.js';
 import { crestCupToday, crestCupPending, crestCupDate, playerInCrestCup, recordCrestCup, CREST_CUP_TIME, HILLTOP_TEAM } from './rivalry.js';
 import { checkPassiveHooks } from './social.js';
+import { applySignup } from './seasons.js';
 
 export const GAME_TIME = 10 * 60;
 const SKIP_MAX_DAYS = 14;
@@ -49,17 +50,7 @@ export function skipToNextGame(state) {
   const myCup = () => crestCupToday(state) && playerInCrestCup(state);
   const atGame = () => (dayInfo(state.time.day).dow === 5 && playerGameThisWeek(state)) || myCup();
   while (!atGame() && days < SKIP_MAX_DAYS) {
-    const info = dayInfo(state.time.day);
-    if (info.isSchoolDay && info.dow === 4 && state.school.lastQuizDay !== state.time.day) {
-      const prep = SUBJECTS.reduce((a, sub) => a + (state.school.prep[sub] || 0), 0);
-      const r = seeded(state.seed, 'skipquiz', state.time.day)();
-      const pct = Math.round(clamp(gradeAverage(state) + prep * 1.5 - 4 + (r - 0.5) * 16, 35, 100));
-      recordQuiz(state, pct, SUBJECTS);
-      msgs.push(`📝 ${info.dateLabel}: Friday quiz ${pct}%.`);
-    }
-    if (info.isSchoolDay) state.school.attended[`${state.time.day}:all`] = true;
-    state.time.minute = CURFEW;
-    msgs.push(...sleep(state));
+    msgs.push(...skipDay(state));
     days++;
   }
   if (!atGame()) return { ok: false, msgs: [...msgs, 'No game this week after all (the bracket moved on).'] };
@@ -68,6 +59,60 @@ export function skipToNextGame(state) {
   state.time.minute = Math.max(state.time.minute, at - 15);
   msgs.push(`⏭️ Skipped ${days} day${days === 1 ? '' : 's'}. You went to every class. ${crest ? 'It\'s CREST CUP day!' : 'It\'s game day!'}`);
   return { ok: true, msgs, days, crest, at };
+}
+
+/** Live out the rest of today on autopilot: go to class, take Friday's quiz, sleep. */
+function skipDay(state) {
+  const msgs = [];
+  const info = dayInfo(state.time.day);
+  if (info.isSchoolDay && info.dow === 4 && state.school.lastQuizDay !== state.time.day) {
+    const prep = SUBJECTS.reduce((a, sub) => a + (state.school.prep[sub] || 0), 0);
+    const r = seeded(state.seed, 'skipquiz', state.time.day)();
+    const pct = Math.round(clamp(gradeAverage(state) + prep * 1.5 - 4 + (r - 0.5) * 16, 35, 100));
+    recordQuiz(state, pct, SUBJECTS);
+    msgs.push(`📝 ${info.dateLabel}: Friday quiz ${pct}%.`);
+  }
+  if (info.isSchoolDay) state.school.attended[`${state.time.day}:all`] = true;
+  state.time.minute = CURFEW;
+  msgs.push(...sleep(state));
+  return msgs;
+}
+
+/**
+ * Sit out the rest of the school year: skip to the first morning of next
+ * year (Fall, grade +1). Classes are attended and quizzes taken along the
+ * way; the leagues play on without you. Returns {ok, msgs, days}.
+ */
+export function skipToNextYear(state) {
+  const year = yearOf(state);
+  state.team.skipYear = year;
+  state.team.registered = false;
+  state.signup = null;
+  const quizzes = [];
+  const keep = [];
+  let days = 0;
+  while (yearOf(state) === year && days < 400) {
+    for (const m of skipDay(state)) (m.startsWith('📝') ? quizzes : keep).push(m);
+    days++;
+  }
+  const big = keep.filter((m) => /NEW SCHOOL YEAR|grade|League|🏆/.test(m)).slice(-6);
+  const msgs = [`⏭️ Skipped ${days} days to the first day of the new school year. You went to every class${quizzes.length ? ` and took ${quizzes.length} Friday quizzes` : ''}.`, ...big];
+  return { ok: true, msgs, days };
+}
+
+/**
+ * You just picked a sport for a season that's already under way: rebuild
+ * this season's league for that sport, with the weeks already gone simmed.
+ */
+export function restartSeasonLeague(state) {
+  const info = dayInfo(state.time.day);
+  state.league = null;
+  const msgs = ensureSeason(state);
+  if (!info.season) return msgs;
+  const last = info.season.week - (info.dow === 6 ? 0 : 1);
+  for (let w = 1; w <= last; w++) simOtherGames(state, w);
+  msgs.push(...finalizeSchedule(state));
+  return msgs;
 }
 
 /**
@@ -134,6 +179,8 @@ export function sleep(state) {
   if (yearOf(state) !== prevYear) msgs.push(...newSchoolYear(state));
 
   if (info.season) {
+    const su = applySignup(state); // a sport picked at sign-ups starts today
+    if (su) msgs.push(su.fresh ? `🆕 ${info.season.name} season! Your new ${SPORTS[su.sport].name} team, the ${su.name}, starts today. Recruit a team and register (it's free this season).` : `${info.season.name} season! The ${su.name} are back. Registration is free this season.`);
     const fresh = ensureSeason(state); // no-op unless a new season just started
     msgs.push(...fresh);
     if (info.season.week === 1 && info.dow === 0) { const cc = crestCupDate(state); if (cc) addNews(state, `This season's league champion will represent Suncrest Academy in the Crest Cup vs the ${HILLTOP_TEAM} on ${cc.label}, 1:00 PM at Hilltop's campus field.`); }

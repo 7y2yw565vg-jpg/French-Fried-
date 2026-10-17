@@ -159,7 +159,7 @@ export function registrationChecklist(state) {
     { id: 'roster', label: `Roster of at least ${sp.minRoster} (you count!)`, done: state.team.roster.length >= sp.minRoster, detail: `${state.team.roster.length}/${sp.minRoster}` },
     { id: 'shirts', label: `${sp.minRoster} team shirts ($${sp.shirtCost} each at Sporting Goods in the mall)`, done: state.team.shirts >= Math.max(sp.minRoster, state.team.roster.length), detail: `${state.team.shirts}/${Math.max(sp.minRoster, state.team.roster.length)}` },
     { id: 'setup', label: `Field setup: ${UPGRADES.goals.names[state.team.sport][0]} ($${sp.setupCost})`, done: state.team.setup, cost: sp.setupCost },
-    { id: 'fee', label: `League entry fee ($${sp.entryFee}) at the Library league desk`, done: isRegistered(state), cost: sp.entryFee },
+    { id: 'fee', label: entryFee(state) ? `League entry fee ($${sp.entryFee}) at the Library league desk` : 'Register at the Library league desk (FREE: you signed up for this season)', done: isRegistered(state), cost: entryFee(state) },
     { id: 'window', label: 'A league season with games left (join any time up to week 11)', done: isRegistered(state) || (!!info.season && info.season.week <= REGISTER_LAST_WEEK), detail: info.season ? `${info.season.name} week ${info.season.week}` : 'Summer break' },
   ];
 }
@@ -170,19 +170,24 @@ export function isRegistered(state) {
   return state.team.registered && state.team.registeredSeason === seasonId(state.time.day);
 }
 
+/** This season's league entry fee: free when you signed up for the season through sign-ups. */
+export function entryFee(state) {
+  return state.team.freeEntrySid && state.team.freeEntrySid === seasonId(state.time.day) ? 0 : SPORTS[state.team.sport].entryFee;
+}
+
 export function canRegister(state) {
   const list = registrationChecklist(state);
   const missing = list.filter((c) => c.id !== 'fee' && !c.done);
   if (state.scandal.expelledUntil && seasonId(state.time.day) <= state.scandal.expelledUntil) return { ok: false, reason: 'Your team is expelled from the league this season.' };
   if (missing.length) return { ok: false, reason: missing.map((m) => m.label).join('; ') };
-  if (state.money < SPORTS[state.team.sport].entryFee) return { ok: false, reason: 'Not enough money for the entry fee.' };
+  if (state.money < entryFee(state)) return { ok: false, reason: 'Not enough money for the entry fee.' };
   return { ok: true };
 }
 
 export function register(state) {
   const c = canRegister(state);
   if (!c.ok) return c;
-  state.money -= SPORTS[state.team.sport].entryFee;
+  state.money -= entryFee(state);
   state.team.registered = true;
   state.team.registeredSeason = seasonId(state.time.day);
   addLog(state, `Registered the ${state.team.name} for the ${playerBand(state).name}!`);

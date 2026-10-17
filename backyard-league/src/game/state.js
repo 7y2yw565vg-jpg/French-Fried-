@@ -53,6 +53,7 @@ export function newGame(opts) {
       roster: ['PLAYER'], invites: [], tryout: null, practice: { dows: [1, 3], start: 15 * 60 + 30, end: 17 * 60, focus: 'SPD' },
       field: 'backyard', permit: false, principalOK: false, admission: 0.5, upgrades, staff: {}, gear: Object.fromEntries(GEAR_IDS.map((g) => [g, 0])), kitBottoms: 'auto',
       history: [], championships: 0, wins: 0, losses: 0, firstWin: false, promised: [],
+      signedSid: 1, yearSports: { 1: [opts.sport || 'soccer'] },
     },
     league: null,
     scandal: { offerSeason: 0, offer: null, caught: 0, downAManSeason: 0, playoffBanUntil: 0, points: 0 },

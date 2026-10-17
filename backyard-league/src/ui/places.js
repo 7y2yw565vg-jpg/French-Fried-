@@ -5,7 +5,7 @@ import { KID_BY_ID, kidName } from '../data/kids.js';
 import { rivalryRecord, hilltopRoster, HILLTOP_TEAM } from '../game/rivalry.js';
 import { askParents, askChance, askQuestions, doChore, choresLeft, buy, recycleCans, jobUnlocked, jobReady, mowJobs, lemonadeCheck, generosityLimit, PITCH_ROUNDS, ASK_MAX, ASK_REASON_MIN, ASK_BIG_MAX } from '../game/economy.js';
 import { addItem, hasItem, itemCount, playerGrade } from '../game/state.js';
-import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS, kidOverall } from '../game/team.js';
+import { register, canRegister, registrationChecklist, isRegistered, placeTrophy, TROPHY_SLOTS, kidOverall, entryFee } from '../game/team.js';
 import { askPrincipal, addPrep, SUBJECTS, makeQuiz } from '../game/school.js';
 import { doTask } from '../game/social.js';
 import { dayInfo, schoolBlockAt, formatTime } from '../game/time.js';
@@ -209,7 +209,7 @@ const HANDLERS = {
     modal({
       title: 'League Desk', body, wide: true,
       buttons: [
-        !isRegistered(s) ? { label: `Register (${money(sp.entryFee)})`, cls: 'green', disabled: !reg.ok, onClick: () => { const r = register(s); if (r.ok) { sfx('good'); toast(`The ${s.team.name} are registered! 🎉`, 'good'); for (const m of joinLeague(s)) toast(m, 'good'); toast('Set ticket, snack and merch prices in Phone > Field & Staff.', ''); game.hud.render(); } else toast(r.reason, 'bad'); } } : null,
+        !isRegistered(s) ? { label: entryFee(s) ? `Register (${money(sp.entryFee)})` : 'Register (free)', cls: 'green', disabled: !reg.ok, onClick: () => { const r = register(s); if (r.ok) { sfx('good'); toast(`The ${s.team.name} are registered! 🎉`, 'good'); for (const m of joinLeague(s)) toast(m, 'good'); toast('Set ticket, snack and merch prices in Phone > Field & Staff.', ''); game.hud.render(); } else toast(r.reason, 'bad'); } } : null,
         !s.team.permit ? { label: 'Buy park permit ($15)', cls: 'blue', onClick: () => { if (s.money < 15) { toast('Need $15.', 'bad'); return; } s.money -= 15; s.team.permit = true; toast('You can now rent Old Town Park (Phone > Field).', 'good'); } } : null,
         { label: 'Close', cls: 'white' },
       ].filter(Boolean),

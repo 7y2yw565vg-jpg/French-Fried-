@@ -5,7 +5,8 @@ import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { LOCATIONS, NEIGHBORHOODS, HOOD_BY_NAME, TEACHERS, ADULTS, SPORTS, roomNumber } from '../data/world.js';
 import { saveToStorage, playerGrade, yearOf, heightOf, addLog, hasItem } from '../game/state.js';
 import { dayInfo, formatTime, schoolBlockAt, nextClassBlock } from '../game/time.js';
-import { advance, sleep, finishPractice, nextGameInfo, skipToNextGame, GAME_TIME } from '../game/clock.js';
+import { advance, sleep, finishPractice, nextGameInfo, skipToNextGame, skipToNextYear, GAME_TIME } from '../game/clock.js';
+import { maybeOpenSignup } from './signup.js';
 import { whereIsKid, schoolLocFor, sectionOf } from '../game/routines.js';
 import { seatChart, markTardy, markAbsent, applyPunishment, playerClass, teacherInfo } from '../game/school.js';
 import { practiceToday } from '../game/team.js';
@@ -743,6 +744,23 @@ export class Game {
     });
   }
 
+  /** Sit out the rest of the school year (from season sign-ups). */
+  skipToNextYear(after) {
+    const s = this.state;
+    ask('⏭️ Skip to next school year?', 'You\'ll sit out the rest of this school year\'s sports seasons and jump to the first day of next school year (and the next grade). You go to every class on the way and Friday quizzes still count. Your team won\'t play until you sign up again.', [{ label: 'Skip the year', value: true, cls: 'red' }, { label: 'Never mind', value: false, cls: 'white' }]).then((go) => {
+      if (!go) { if (after) after(); return; }
+      exitClass(this);
+      this.mode = 'free';
+      this.period = null; this.passing = null; this.hallPassUntil = 0;
+      const r = skipToNextYear(s);
+      s.loc = 'home';
+      saveToStorage(s);
+      this.enter('home', 'bed');
+      modal({ title: `☀️ ${dayInfo(s.time.day).dateLabel}`, body: r.msgs.join('\n\n'), wide: true, buttons: [{ label: 'Rise and shine!', cls: 'green' }], onClose: () => maybeOpenSignup(this, after) });
+      this.hud.render();
+    });
+  }
+
   // ------------------------------------------------------------ sleep ---
   goToBed(forced = false) {
     const s = this.state;
@@ -771,7 +789,8 @@ export class Game {
       buttons: [{ label: hasSundayPaper(s) ? 'Rise and shine! (📰 Sunday paper)' : 'Rise and shine!', cls: 'green' }],
       wide: lines.join('').length > 400,
       // Sunday mornings: the paper is on the doorstep.
-      onClose: () => { if (hasSundayPaper(s)) openNewspaper(this); },
+      // Sign-ups for a new season pop up after that.
+      onClose: () => { if (hasSundayPaper(s)) openNewspaper(this, () => maybeOpenSignup(this)); else maybeOpenSignup(this); },
     });
   }
 

@@ -1,5 +1,6 @@
 // Game day: travel to the field, both teams in uniform, play-by-play playback
 // with ball movement, scoreboard, crowd, and clutch moments for the player.
+import { maybeOpenSignup } from './signup.js';
 import * as THREE from 'three';
 import { $, h, clear, btn, modal, toast, money } from './dom.js';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
@@ -285,6 +286,7 @@ export function playMatch(game, g, opp, week) {
         e.player.root.visible = true;
         e.clearNPCs();
         game.enter(s.loc === 'venue' ? s.player.hood : 'home');
+        if (g.crestCup) setTimeout(() => maybeOpenSignup(game), 400); // the season's over: sign-ups open
       } }],
     });
   };

@@ -435,7 +435,8 @@ Every grade has its own league (the **Grade 3 League** for third graders, and so
 - **Awards:** at season's end the league names an **MVP** (from the stats plus team wins) and a winner for each stat award (Golden Boot, Golden Glove, Playmaker...). Winning one puts a trophy in your backpack.
 
 - Kids move up with you or leave for other teams. **Offseason re-signing** is a friendship & attraction check.
-- **Expanding:** after your first winning season you can found a **second sport**. A kid still plays for only one of your teams at a time, so multi-sport organizations need deeper rosters.
+- **Season sign-ups:** once a season's Crest Cup is played, sign-ups open for the next season. Pick one of the sports you haven't played yet this school year (Fall offers all four, including keeping your current team). Entry is free. A new sport means a new team: you start alone and recruit again, while your old teammates become free agents. Or skip ahead to next school year. If a season starts before you pick, you can still sign up until week 11.
+- **Stat highlighting:** kid stat cards star the skills that matter most in the current season's sport, bold the ones that matter some, and fade the rest.
 
 ### High School Sanctioning (after 8th grade)
 **Requirements:** $25,000+ banked, Reputation ≥ "Town Famous", a legit field with lights + restrooms + seating for 300, an adult certified head coach, a certified trainer, insurance, and a City Hall permit.

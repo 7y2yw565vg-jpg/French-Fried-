@@ -8,12 +8,14 @@ import { standings, weekGames, kitBottoms, teamOverall } from '../game/league.js
 import { STAT_COLS, leagueLeaders, teamStats, seasonAwards } from '../game/leagueStats.js';
 import { openMap, kidCheckIn } from './mapview.js';
 import { jerseyPreview } from './jersey.js';
-import { letter, positionRating, heightScore } from '../game/stats.js';
+import { letter, positionRating, heightScore, statRelevance } from '../game/stats.js';
 import { letterFor, playerClass, classmates, sharedClasses } from '../game/school.js';
 import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game/social.js';
 import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
 import { nextGameInfo } from '../game/clock.js';
+import { signupOpen } from '../game/seasons.js';
+import { openSignup } from './signup.js';
 import { HILLTOP_TEAM, hilltopRoster, rivalryRecord, crestCupDate, crestCupPending, crestCupTeam } from '../game/rivalry.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
 import { SCHOOL_BLOCKS } from '../data/world.js';
@@ -96,6 +98,14 @@ function teamTab(game, root, redraw) {
     h('div', { class: 'row' }, 'Uniform bottoms:', h('div', { class: 'chips' }, ...['shorts', 'pants'].map((v) => h('div', { class: `chip ${kitBottoms(s, s.team.name) === v ? 'sel' : ''}`, onclick: () => { s.team.kitBottoms = v; redraw(); } }, v === 'pants' ? '👖 Pants' : '🩳 Shorts')))),
     h('div', { class: 'row' }, 'Team attraction:', h('div', { class: 'bar', style: { width: '160px' } }, h('i', { style: { width: `${att}%` } })), h('b', {}, att), h('span', { class: 'muted' }, '(roster, results, history, trophies on display, facilities, how much kids like you)')));
   root.appendChild(head);
+
+  const su = signupOpen(s);
+  if (su) {
+    root.appendChild(h('div', { class: 'box signup-box', style: { marginTop: '10px' } },
+      h('h3', {}, `📝 ${su.name} season sign-ups are open`),
+      h('p', {}, su.picked ? `You're signed up: ${SPORTS[su.picked.sport].icon} ${SPORTS[su.picked.sport].name} as the ${su.picked.name}. It starts with the ${su.name} season.` : `Pick next season's sport (free) or skip to next school year.`),
+      btn(su.picked ? 'Change sign-up' : 'Open sign-ups', () => openSignup(game, redraw), 'small green')));
+  }
 
   if (!isRegistered(s)) {
     const reg = h('div', { class: 'box', style: { marginTop: '10px' } }, h('h3', {}, '📋 Get into the league'));
@@ -222,11 +232,25 @@ function practiceTestRow(s, redraw) {
   return box;
 }
 
+/**
+ * A kid's stats, with the ones that matter in your team's sport highlighted
+ * (★ = big effect, bold = some effect, faded = no effect this season).
+ */
+export function statGrid(s, id, sport = s.team.sport) {
+  const name = SPORTS[sport].name;
+  return h('div', {},
+    h('div', { class: 'stat-grid' }, ...STAT_CODES.map((c) => {
+      const rel = statRelevance(sport, c);
+      return h('div', { class: `stat-${rel}`, title: rel === 'key' ? `Big effect in ${name}` : rel === 'some' ? `Some effect in ${name}` : `No effect in ${name}` }, h('span', {}, rel === 'key' ? `★ ${STAT_NAMES[c]}` : STAT_NAMES[c]), gradeChip(revealLabel(s, id, c), 1));
+    })),
+    h('div', { class: 'muted stat-legend' }, `★ = matters most in ${name} · bold = matters some · faded = doesn't count this season`));
+}
+
 export function kidDetail(game, id, after) {
   const s = game.state;
   const k = getKid(s, id);
   const isMe = id === 'PLAYER';
-  const grid = h('div', { class: 'stat-grid' }, ...STAT_CODES.map((c) => h('div', {}, h('span', {}, STAT_NAMES[c]), gradeChip(revealLabel(s, id, c), 1))));
+  const grid = statGrid(s, id);
   const g = playerGrade(s);
   const mine = isMe && s.player.look ? h('div', { class: 'row', style: { alignItems: 'flex-start' } },
     h('div', { class: 'bible-card static', html: renderCharacter(lookSpec(s.player.look, { grade: g, perk: s.player.perk, heightIn: 50 + (g - 3) * 2.3 })).replace(' width="400" height="720"', '').replace('viewBox="0 0 400 720"', 'viewBox="30 56 340 640"') }),
@@ -425,7 +449,7 @@ function notebookEntry(game, id) {
     hook ? h('p', {}, `🤔 What it takes: ${hook.label}${ks.hook ? ' ✅ DONE' : ''}`) : null,
     ks.team && ks.team !== s.team.name ? h('p', {}, `🛡️ Plays for the ${ks.team}${k.recruitment.status === 'On Rival Team (Loyal)' ? ' (very loyal)' : ''}`) : null,
     h('h3', { style: { margin: '10px 0 4px' } }, 'Stats seen at tryouts'),
-    h('div', { class: 'stat-grid' }, ...STAT_CODES.map((c) => h('div', {}, h('span', {}, STAT_NAMES[c]), gradeChip(revealLabel(s, id, c), 1)))),
+    statGrid(s, id),
     s.team.staff.scout ? h('p', {}, `🔭 ${scoutLine(s, k)}`) : null);
   modal({ title: 'Profile', body, wide: true });
 }
