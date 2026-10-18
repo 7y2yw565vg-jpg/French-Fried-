@@ -161,7 +161,7 @@ export function serialize(state) {
 
 export function deserialize(text) {
   const s = JSON.parse(text);
-  if (!s || s.v !== SAVE_VERSION || !s.kids || !s.team) throw new Error('Not a Recess Rivals save');
+  if (!s || s.v !== SAVE_VERSION || !s.kids || !s.team) throw new Error('Not a Neighborhood Heroes save');
   // Saves from before class sections existed.
   if (s.player.section == null) s.player.section = s.seed % 2;
   if (!s.player.train) s.player.train = {}; // saves from before you could train yourself

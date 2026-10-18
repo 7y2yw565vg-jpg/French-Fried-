@@ -1,4 +1,4 @@
-// Recess Rivals character renderer: turns a character spec into a front-view
+// Neighborhood Heroes character renderer: turns a character spec into a front-view
 // A-pose SVG (400x720, ground at y 680) following the Character Design Bible.
 import { INK, BROW_DARK, SKIN, HAIR, DYE, EYES, CLOTH, FAVORITE, MUD, METAL } from './palette.js';
 import { hash, rng, r1, shape, fillOnly, line, circle, ellipse, limb } from './util.js';

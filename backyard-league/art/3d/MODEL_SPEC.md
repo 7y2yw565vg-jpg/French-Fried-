@@ -1,4 +1,4 @@
-# Recess Rivals: 3D character model spec
+# Neighborhood Heroes: 3D character model spec
 
 The character sheets in `art/characters/` are the design target. This spec
 says how to turn them into 3D models the game can load. Read the Character

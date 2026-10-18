@@ -1,8 +1,7 @@
-// The "Recess Rivals" title logo as SVG word art. The R in Recess is a
-// playground slide (ladder for the stem, the top deck as the bowl, a swooping
-// chute as the leg) with a ball that rides down it now and then. The
-// I in RIVALS is a baseball bat. Text pieces are measured after the font loads
-// so the custom letters sit right next to them.
+// The "Neighborhood Heroes" title logo as SVG word art. NEIGHBORHOOD arches
+// over a little row of houses and trees; HEROES is big, gold and extruded, with
+// a soccer ball for the O and a red hero's cape flapping behind it. Text pieces
+// are measured after the font loads so the custom pieces sit right next to them.
 const NS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs = {}, parent) => {
   const n = document.createElementNS(NS, tag);
@@ -11,7 +10,9 @@ const el = (tag, attrs = {}, parent) => {
   return n;
 };
 const INK = '#2a1e1a';
+const NAVY = '#1d3b74';
 const FONT = "'Lilita One', 'Trebuchet MS', sans-serif";
+const W = 1000;
 
 function defs(svg) {
   const d = el('defs', {}, svg);
@@ -19,13 +20,10 @@ function defs(svg) {
     const g = el('linearGradient', { id, x1: 0, y1: 0, x2, y2 }, d);
     stops.forEach(([o, c]) => el('stop', { offset: o, 'stop-color': c }, g));
   };
-  grad('lgYellow', [[0, '#fff6b0'], [0.45, '#ffd23f'], [1, '#ff8f1c']]);
-  grad('lgRed', [[0, '#ff7b7b'], [0.5, '#e63946'], [1, '#a5122a']]);
-  grad('lgRail', [[0, '#8fe3ff'], [1, '#1d6fd1']], 1, 0);
-  grad('lgSlide', [[0, '#ff6b9a'], [1, '#d62862']], 1, 1);
-  grad('lgChute', [[0, '#ffe680'], [1, '#f59f00']], 1, 1);
-  grad('lgBat', [[0, '#f8d9a8'], [0.55, '#dca15f'], [1, '#a8682e']], 1, 0);
-  grad('lgRibbon', [[0, '#2f5d9e'], [1, '#13294b']]);
+  grad('lgGold', [[0, '#fffbd1'], [0.38, '#ffd84a'], [0.72, '#ffab1f'], [1, '#f2700f']]);
+  grad('lgSky', [[0, '#ffffff'], [1, '#cfe6ff']]);
+  grad('lgCape', [[0, '#ff5a5f'], [0.55, '#e01e37'], [1, '#9b0d23']], 1, 1);
+  grad('lgSun', [[0, '#fff3b0'], [1, '#ffc23d']]);
   // Sticker look: a thick white border, a dark outer edge and a solid drop shadow.
   const f = el('filter', { id: 'lgSticker', x: '-12%', y: '-15%', width: '124%', height: '150%' }, d);
   el('feMorphology', { in: 'SourceAlpha', operator: 'dilate', radius: 9, result: 'white' }, f);
@@ -37,25 +35,7 @@ function defs(svg) {
   el('feOffset', { in: 'inkRing', dy: 12, result: 'drop' }, f);
   const m = el('feMerge', {}, f);
   for (const n of ['drop', 'inkRing', 'whiteRing', 'SourceGraphic']) el('feMergeNode', { in: n }, m);
-}
-
-/** A pennant ribbon behind the second line, with folded tails. */
-function ribbon(g, x0, x1, y0, y1) {
-  const mid = (y0 + y1) / 2; const tail = 70; const fold = 26;
-  const P = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
-  // tails (behind), with darker folds
-  for (const sd of [-1, 1]) {
-    const xe = sd < 0 ? x0 : x1;
-    const t = `M ${P(xe, y0 + fold)} L ${P(xe + sd * tail, y0 + fold)} L ${P(xe + sd * (tail - 34), mid + fold / 2)} L ${P(xe + sd * tail, y1 + fold)} L ${P(xe, y1 + fold)} Z`;
-    el('path', { d: t, fill: '#13294b', stroke: INK, 'stroke-width': 10, 'stroke-linejoin': 'round' }, g);
-    el('path', { d: `M ${P(xe, y1)} L ${P(xe + sd * fold, y1 + fold)} L ${P(xe, y1 + fold)} Z`, fill: '#0b1a33', stroke: INK, 'stroke-width': 8, 'stroke-linejoin': 'round' }, g);
-  }
-  // the band, gently arched
-  const band = `M ${P(x0, y0)} Q ${P((x0 + x1) / 2, y0 - 18)} ${P(x1, y0)} L ${P(x1, y1)} Q ${P((x0 + x1) / 2, y1 - 18)} ${P(x0, y1)} Z`;
-  el('path', { d: band, fill: 'url(#lgRibbon)', stroke: INK, 'stroke-width': 12, 'stroke-linejoin': 'round' }, g);
-  // stitching + top shine
-  const inset = 12;
-  el('path', { d: `M ${P(x0 + inset, y0 + inset)} Q ${P((x0 + x1) / 2, y0 + inset - 18)} ${P(x1 - inset, y0 + inset)} M ${P(x0 + inset, y1 - inset)} Q ${P((x0 + x1) / 2, y1 - inset - 18)} ${P(x1 - inset, y1 - inset)}`, fill: 'none', stroke: 'rgba(255,255,255,0.55)', 'stroke-width': 4, 'stroke-dasharray': '14 10' }, g);
+  return d;
 }
 
 /** A twinkling four-point sparkle. */
@@ -66,110 +46,175 @@ function sparkle(g, x, y, r, delay) {
   el('animate', { attributeName: 'opacity', values: '0.3;1;0.3', dur: '2.4s', begin: `${delay}s`, repeatCount: 'indefinite' }, star);
 }
 
-/** Text drawn in layers: chunky dark outline, optional inner outline, gradient fill, glossy top. */
-function layeredText(g, str, x, y, size, fill, inner) {
-  const base = { x, y, 'font-size': size, 'font-family': FONT, 'stroke-linejoin': 'round', 'letter-spacing': size * -0.01 };
-  const outline = el('text', { ...base, fill: INK, stroke: INK, 'stroke-width': size * 0.16 }, g);
-  outline.textContent = str;
-  if (inner) { const t = el('text', { ...base, fill: inner, stroke: inner, 'stroke-width': size * 0.075 }, g); t.textContent = str; }
-  const main = el('text', { ...base, fill }, g);
-  main.textContent = str;
-  return outline;
+// ------------------------------------------------------------- top arc --
+const ARC = [[90, 236], [500, 112], [910, 236]];
+const arcPt = (t) => {
+  const u = 1 - t;
+  return [u * u * ARC[0][0] + 2 * u * t * ARC[1][0] + t * t * ARC[2][0], u * u * ARC[0][1] + 2 * u * t * ARC[1][1] + t * t * ARC[2][1]];
+};
+const arcAngle = (t) => {
+  const dx = 2 * (1 - t) * (ARC[1][0] - ARC[0][0]) + 2 * t * (ARC[2][0] - ARC[1][0]);
+  const dy = 2 * (1 - t) * (ARC[1][1] - ARC[0][1]) + 2 * t * (ARC[2][1] - ARC[1][1]);
+  return Math.atan2(dy, dx) * 180 / Math.PI;
+};
+
+/** A little house: body, roof, door and lit windows. Origin = bottom center. */
+function house(g, w, h, body, roof, kind) {
+  const roofH = h * 0.5;
+  const o = { stroke: INK, 'stroke-width': 5, 'stroke-linejoin': 'round' };
+  if (kind === 'chimney') el('rect', { x: w * 0.18, y: -h - roofH * 0.7, width: w * 0.14, height: roofH * 0.6, fill: '#b5523b', ...o }, g);
+  el('rect', { x: -w / 2, y: -h, width: w, height: h, fill: body, ...o }, g);
+  if (kind === 'flat') {
+    el('rect', { x: -w / 2 - 5, y: -h - 10, width: w + 10, height: 12, fill: roof, ...o }, g);
+  } else {
+    el('path', { d: `M ${-w / 2 - 8} ${-h + 2} L 0 ${-h - roofH} L ${w / 2 + 8} ${-h + 2} Z`, fill: roof, ...o }, g);
+    el('circle', { cx: 0, cy: -h - roofH * 0.42, r: w * 0.08, fill: '#ffe48a', stroke: INK, 'stroke-width': 3 }, g);
+  }
+  el('rect', { x: -w * 0.12, y: -h * 0.5, width: w * 0.24, height: h * 0.5, fill: '#6b3e26', stroke: INK, 'stroke-width': 3 }, g);
+  for (const sx of [-1, 1]) el('rect', { x: sx * w * 0.3 - w * 0.1, y: -h * 0.78, width: w * 0.2, height: h * 0.22, fill: '#ffe48a', stroke: INK, 'stroke-width': 3 }, g);
 }
 
-/** Slide-shaped R. x0 = left edge, y = baseline, s = scale (1 = 200px type).
- * One chunky letter first (so it reads as an R next to "ecess"): the stem is a
- * ladder, the bowl is the slide's top deck and the leg is a swooping chute. */
-function slideR(g, x0, y, s) {
-  const P = (dx, dy) => `${(x0 + dx * s).toFixed(1)} ${(y + dy * s).toFixed(1)}`;
-  const line = (d, w, color, extra = {}) => el('path', { d, fill: 'none', stroke: color, 'stroke-width': w * s, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', ...extra }, g);
-  const stem = `M ${P(4, -142)} Q ${P(4, -150)} ${P(14, -150)} L ${P(44, -150)} L ${P(48, -4)} Q ${P(48, 2)} ${P(40, 2)} L ${P(10, 2)} Q ${P(2, 2)} ${P(2, -6)} Z`;
-  const bowl = `M ${P(30, -131)} L ${P(78, -131)} C ${P(132, -131)} ${P(132, -77)} ${P(78, -77)} L ${P(30, -77)}`;
-  const chute = `M ${P(58, -80)} C ${P(90, -76)} ${P(96, -48)} ${P(106, -28)} C ${P(114, -12)} ${P(126, -8)} ${P(138, -8)} Q ${P(150, -8)} ${P(152, -20)}`;
-  // one shared ink silhouette
-  el('path', { d: stem, fill: INK, stroke: INK, 'stroke-width': 26 * s, 'stroke-linejoin': 'round' }, g);
-  line(bowl, 38 + 26, INK);
-  line(chute, 34 + 26, INK);
-  // chute (the leg): orange side walls, yellow sliding surface, shine
-  line(chute, 34, '#c2410c');
-  line(chute, 24, 'url(#lgChute)');
-  line(chute, 6, 'rgba(255,255,255,0.75)', { transform: `translate(0 ${-4 * s})` });
-  // top deck (the bowl), same gradient as the letters
-  line(bowl, 38, 'url(#lgYellow)');
-  line(`M ${P(40, -142)} L ${P(78, -142)} C ${P(104, -142)} ${P(116, -130)} ${P(118, -116)}`, 6, 'rgba(255,255,255,0.7)');
-  // ladder (the stem): solid letter fill with rails and rungs pressed in
-  el('path', { d: stem, fill: 'url(#lgYellow)' }, g);
-  for (const rx of [12, 38]) line(`M ${P(rx, -140)} L ${P(rx + 1, -8)}`, 4, '#c2410c');
-  for (let k = 0; k < 6; k++) { const ry = -18 - k * 22; line(`M ${P(13, ry)} L ${P(38, ry)}`, 6, '#c2410c'); line(`M ${P(13, ry - 3)} L ${P(38, ry - 3)}`, 3, 'rgba(255,255,255,0.7)'); }
-  // a little safety rail on the deck
-  line(`M ${P(50, -150)} L ${P(50, -170)} L ${P(90, -170)} L ${P(90, -150)}`, 14, INK);
-  line(`M ${P(50, -150)} L ${P(50, -170)} L ${P(90, -170)} L ${P(90, -150)}`, 6, '#e63946');
-  // a ball that rides down the chute now and then
-  const ball = el('g', {}, g);
-  el('circle', { r: 12 * s, fill: '#ffffff', stroke: INK, 'stroke-width': 4 * s }, ball);
-  el('path', { d: `M ${-6 * s} ${-4 * s} l ${6 * s} ${-5 * s} l ${6 * s} ${5 * s} l ${-2 * s} ${7 * s} l ${-8 * s} 0 z`, fill: INK }, ball);
-  // Only shows up while it's sliding (a resting ball on the chute looked like an eye).
-  el('animateMotion', { dur: '5s', repeatCount: 'indefinite', path: chute, rotate: 'auto', keyPoints: '0;0;1;1', keyTimes: '0;0.62;0.86;1', calcMode: 'linear' }, ball);
-  el('animate', { attributeName: 'opacity', dur: '5s', repeatCount: 'indefinite', values: '0;0;1;1;0;0', keyTimes: '0;0.6;0.63;0.85;0.88;1' }, ball);
-  return 172 * s; // advance width
+function tree(g, r) {
+  el('rect', { x: -r * 0.14, y: -r * 1.1, width: r * 0.28, height: r * 1.1, fill: '#7a4a2a', stroke: INK, 'stroke-width': 4 }, g);
+  el('circle', { cx: 0, cy: -r * 1.6, r, fill: '#4caf50', stroke: INK, 'stroke-width': 5 }, g);
+  el('circle', { cx: -r * 0.3, cy: -r * 1.9, r: r * 0.35, fill: '#7ed957' }, g);
 }
 
-/** A baseball bat standing in for the letter I. */
-function batI(g, x0, y, h) {
-  const w = h * 0.4;
-  const cx = x0 + w / 2;
-  // One solid shape: knob, a sturdy taped handle, and a fat barrel (so it never reads as "!").
-  const bat = `M ${cx - w * 0.3} ${y} L ${cx - w * 0.24} ${y - h * 0.4} L ${cx - w * 0.52} ${y - h * 0.9} Q ${cx} ${y - h * 1.1} ${cx + w * 0.52} ${y - h * 0.9} L ${cx + w * 0.24} ${y - h * 0.4} L ${cx + w * 0.3} ${y} Z`;
-  const grp = el('g', { transform: `rotate(-9 ${cx} ${y})` }, g);
-  el('path', { d: bat, fill: INK, stroke: INK, 'stroke-width': h * 0.16, 'stroke-linejoin': 'round' }, grp);
-  el('ellipse', { cx, cy: y - h * 0.02, rx: w * 0.42, ry: h * 0.07, fill: INK, stroke: INK, 'stroke-width': h * 0.1 }, grp);
-  el('path', { d: bat, fill: 'url(#lgBat)' }, grp);
-  el('ellipse', { cx, cy: y - h * 0.02, rx: w * 0.36, ry: h * 0.055, fill: '#a8682e' }, grp);
-  for (let k = 0; k < 4; k++) el('line', { x1: cx - w * 0.26, x2: cx + w * 0.26, y1: y - h * (0.08 + k * 0.08), y2: y - h * (0.12 + k * 0.08), stroke: '#2a1e1a', 'stroke-width': h * 0.03 }, grp);
-  el('path', { d: `M ${cx - w * 0.28} ${y - h * 0.86} Q ${cx - w * 0.1} ${y - h * 0.98} ${cx + w * 0.1} ${y - h * 0.95}`, fill: 'none', stroke: 'rgba(255,255,255,0.65)', 'stroke-width': h * 0.04, 'stroke-linecap': 'round' }, grp);
-  return w;
+/** The skyline that peeks out over NEIGHBORHOOD. */
+function skyline(g, lift) {
+  // sun behind the middle
+  const [sx, sy] = arcPt(0.5);
+  const sun = el('g', { transform: `translate(${sx} ${sy - lift - 92})` }, g);
+  for (let k = 0; k < 12; k++) {
+    const a = k * Math.PI / 6;
+    el('path', { d: `M ${Math.cos(a - 0.12) * 54} ${Math.sin(a - 0.12) * 54} L ${Math.cos(a) * 82} ${Math.sin(a) * 82} L ${Math.cos(a + 0.12) * 54} ${Math.sin(a + 0.12) * 54} Z`, fill: '#ffd23f', stroke: INK, 'stroke-width': 5, 'stroke-linejoin': 'round' }, sun);
+  }
+  el('circle', { r: 54, fill: 'url(#lgSun)', stroke: INK, 'stroke-width': 6 }, sun);
+  const items = [
+    [0.07, 'tree', 26], [0.15, 'house', 64, 54, '#7cc6fe', '#2f6fb3', 'chimney'], [0.25, 'tree', 30],
+    [0.33, 'house', 74, 62, '#ffb4a2', '#c2453b'], [0.42, 'house', 60, 56, '#fff1c1', '#6a4c93', 'flat'],
+    [0.58, 'house', 60, 56, '#b8f2c9', '#2d8a52', 'flat'], [0.67, 'house', 74, 62, '#ffd6a5', '#d9480f', 'chimney'],
+    [0.75, 'tree', 30], [0.85, 'house', 64, 54, '#e0c3fc', '#5a3ea8'], [0.93, 'tree', 26],
+  ];
+  for (const [t, kind, a, b, c, d, e] of items) {
+    const [x, y] = arcPt(t);
+    const it = el('g', { transform: `translate(${x} ${y - lift}) rotate(${arcAngle(t) * 0.8})` }, g);
+    if (kind === 'tree') tree(it, a); else house(it, a, b, c, d, e);
+  }
+}
+
+/** NEIGHBORHOOD along the arc: ink outline, navy rim, sky-white fill. */
+function arcText(g, svgDefs, size) {
+  if (!svgDefs.querySelector('#lgArc')) el('path', { id: 'lgArc', d: `M ${ARC[0].join(' ')} Q ${ARC[1].join(' ')} ${ARC[2].join(' ')}` }, svgDefs);
+  const mk = (attrs, dy = 0) => {
+    const t = el('text', { 'font-size': size, 'font-family': FONT, 'letter-spacing': size * 0.05, 'text-anchor': 'middle', 'stroke-linejoin': 'round', transform: `translate(0 ${dy})`, ...attrs }, g);
+    const tp = el('textPath', { href: '#lgArc', startOffset: '50%' }, t);
+    tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#lgArc');
+    tp.textContent = 'NEIGHBORHOOD';
+    return t;
+  };
+  for (let dy = 8; dy >= 0; dy -= 2) mk({ fill: INK, stroke: INK, 'stroke-width': size * 0.2 }, dy);
+  for (let dy = 8; dy >= 1; dy -= 1) mk({ fill: NAVY }, dy);
+  mk({ fill: NAVY, stroke: NAVY, 'stroke-width': size * 0.08 });
+  mk({ fill: 'url(#lgSky)' });
+}
+
+// ------------------------------------------------------------ HEROES ----
+/** A soccer ball standing in for the O. cx/cy = center, r = radius. */
+function ball(g, cx, cy, r, depth) {
+  for (let k = depth; k >= 0; k -= 2) el('circle', { cx, cy: cy + k, r: r + 13, fill: INK }, g);
+  for (let k = depth; k >= 1; k -= 1) el('circle', { cx, cy: cy + k, r: r + 4, fill: '#8a2a12' }, g);
+  el('circle', { cx, cy, r: r + 6, fill: '#ffffff' }, g);
+  const b = el('g', { transform: `translate(${cx} ${cy})` }, g);
+  el('circle', { r, fill: '#ffffff', stroke: INK, 'stroke-width': 6 }, b);
+  const pent = (x, y, s, rot) => {
+    const pts = []; for (let k = 0; k < 5; k++) { const a = rot + k * 2 * Math.PI / 5 - Math.PI / 2; pts.push(`${(x + Math.cos(a) * s).toFixed(1)},${(y + Math.sin(a) * s).toFixed(1)}`); }
+    el('polygon', { points: pts.join(' '), fill: INK, stroke: INK, 'stroke-width': 3, 'stroke-linejoin': 'round' }, b);
+  };
+  pent(0, 0, r * 0.3, 0);
+  for (let k = 0; k < 5; k++) {
+    const a = k * 2 * Math.PI / 5 - Math.PI / 2;
+    el('line', { x1: Math.cos(a) * r * 0.3, y1: Math.sin(a) * r * 0.3, x2: Math.cos(a) * r * 0.72, y2: Math.sin(a) * r * 0.72, stroke: INK, 'stroke-width': 5, 'stroke-linecap': 'round' }, b);
+    pent(Math.cos(a) * r * 0.92, Math.sin(a) * r * 0.92, r * 0.24, Math.PI);
+  }
+  const clip = el('clipPath', { id: 'lgBallClip' }, b);
+  el('circle', { r: r - 3 }, clip);
+  const sh = el('g', { 'clip-path': 'url(#lgBallClip)' }, b);
+  el('circle', { r: r - 3, fill: 'none', stroke: 'rgba(42,30,26,0.18)', 'stroke-width': r * 0.28, transform: `translate(${r * 0.18} ${r * 0.2})` }, sh);
+  el('ellipse', { cx: -r * 0.38, cy: -r * 0.5, rx: r * 0.28, ry: r * 0.14, fill: 'rgba(255,255,255,0.9)', transform: `rotate(-35 ${-r * 0.38} ${-r * 0.5})` }, b);
+  el('circle', { r, fill: 'none', stroke: INK, 'stroke-width': 7 }, b);
+}
+
+/** Chunky extruded word: ink rim, deep red-brown sides, white inner rim, gold face, gloss. */
+function heroText(g, str, x, y, size, depth, glossId) {
+  const base = { x, y, 'font-size': size, 'font-family': FONT, 'stroke-linejoin': 'round', 'letter-spacing': size * -0.005 };
+  const mk = (attrs, dy = 0) => { const t = el('text', { ...base, y: y + dy, ...attrs }, g); t.textContent = str; return t; };
+  for (let k = depth; k >= 0; k -= 2) mk({ fill: INK, stroke: INK, 'stroke-width': size * 0.13 }, k);
+  for (let k = depth; k >= 1; k -= 1) mk({ fill: '#8a2a12', stroke: '#8a2a12', 'stroke-width': size * 0.05 }, k);
+  mk({ fill: '#ffffff', stroke: '#ffffff', 'stroke-width': size * 0.06 });
+  const face = mk({ fill: 'url(#lgGold)' });
+  // glossy band over the top half of the letters
+  const clip = el('clipPath', { id: glossId }, g);
+  const ct = el('text', { ...base }, clip); ct.textContent = str;
+  const gl = el('g', { 'clip-path': `url(#${glossId})` }, g);
+  el('path', { d: `M ${x - 20} ${y - size} L ${x + size * 4} ${y - size} L ${x + size * 4} ${y - size * 0.52} Q ${x + size * 2} ${y - size * 0.62} ${x - 20} ${y - size * 0.46} Z`, fill: 'rgba(255,255,255,0.42)' }, gl);
+  return face;
+}
+
+/** The hero's cape flapping out behind the word. */
+function cape(g, x0, x1, top, bottom) {
+  const span = x1 - x0;
+  const P = (fx, fy) => `${(x0 + span * fx).toFixed(1)} ${(top + (bottom - top) * fy).toFixed(1)}`;
+  // tied on behind the H, billowing out to the right in three flapping tails
+  const outline = `M ${P(0.02, 0.12)} C ${P(0.3, 0.02)} ${P(0.6, 0.14)} ${P(0.98, 0.0)}
+    C ${P(1.06, 0.06)} ${P(1.1, 0.12)} ${P(1.2, 0.08)}
+    C ${P(1.13, 0.26)} ${P(1.12, 0.38)} ${P(1.22, 0.5)}
+    C ${P(1.1, 0.56)} ${P(1.1, 0.72)} ${P(1.17, 0.9)}
+    C ${P(0.95, 0.8)} ${P(0.82, 0.98)} ${P(0.62, 0.9)}
+    C ${P(0.45, 1.0)} ${P(0.26, 0.86)} ${P(0.08, 0.96)}
+    C ${P(0.03, 0.7)} ${P(-0.01, 0.4)} ${P(0.02, 0.12)} Z`;
+  const cg = el('g', { transform: `rotate(-3 ${x0 + span / 2} ${(top + bottom) / 2})` }, g);
+  el('path', { d: outline, fill: INK, stroke: INK, 'stroke-width': 22, 'stroke-linejoin': 'round', transform: 'translate(0 10)' }, cg);
+  el('path', { d: outline, fill: 'url(#lgCape)', stroke: INK, 'stroke-width': 10, 'stroke-linejoin': 'round' }, cg);
+  // folds
+  for (const [a, b] of [[0.32, 0.86], [0.6, 0.8], [0.88, 0.76]]) el('path', { d: `M ${P(a - 0.06, 0.08)} Q ${P(a + 0.02, 0.45)} ${P(a, b)}`, fill: 'none', stroke: 'rgba(90,0,15,0.45)', 'stroke-width': 9, 'stroke-linecap': 'round' }, cg);
+  el('path', { d: `M ${P(0.1, 0.06)} C ${P(0.34, 0.06)} ${P(0.62, 0.16)} ${P(0.98, 0.05)}`, fill: 'none', stroke: 'rgba(255,255,255,0.45)', 'stroke-width': 7, 'stroke-linecap': 'round' }, cg);
+  // a gentle flap
+  el('animateTransform', { attributeName: 'transform', type: 'skewY', values: '0;-1.4;0;1;0', dur: '3.2s', repeatCount: 'indefinite', additive: 'sum' }, cg);
 }
 
 export function buildLogo() {
   const wrap = document.createElement('div');
   wrap.className = 'logo-art';
   wrap.setAttribute('role', 'img');
-  wrap.setAttribute('aria-label', 'Recess Rivals');
-  const svg = el('svg', { viewBox: '0 -20 1000 470' });
-  defs(svg);
+  wrap.setAttribute('aria-label', 'Neighborhood Heroes');
+  const svg = el('svg', { viewBox: '0 -40 1000 560' });
+  const svgDefs = defs(svg);
   const art = el('g', { filter: 'url(#lgSticker)' }, svg);
   const sparkles = el('g', {}, svg);
-  [[70, 70, 26, 0], [940, 96, 20, 0.8], [905, 318, 16, 1.6], [60, 300, 18, 1.2]].forEach(([x, y, r, dl]) => sparkle(sparkles, x, y, r, dl));
+  [[60, 120, 24, 0], [950, 110, 20, 0.8], [960, 420, 18, 1.6], [40, 440, 20, 1.2]].forEach(([x, y, r, dl]) => sparkle(sparkles, x, y, r, dl));
   wrap.appendChild(svg);
 
   const layout = () => {
     while (art.firstChild) art.firstChild.remove();
-    // Line 1: [slide R] + "ecess"
-    const l1 = el('g', {}, art);
-    const probe = layeredText(l1, 'ecess', 0, 210, 205, 'url(#lgYellow)');
-    const w1 = probe.getComputedTextLength ? probe.getComputedTextLength() : 520;
-    l1.remove();
-    const rW = 172;
-    const start1 = (1000 - (rW + w1 + 6)) / 2;
-    const line1 = el('g', {}, art);
-    slideR(line1, start1, 214, 1);
-    layeredText(line1, 'ecess', start1 + rW + 6, 214, 205, 'url(#lgYellow)');
-    // Line 2: "R" + bat + "VALS", tilted like a team script
-    const line2 = el('g', { transform: 'rotate(-4 500 340)' }, art);
-    const size = 150; const y2 = 392;
-    const mR = layeredText(line2, 'R', 0, y2, size, 'url(#lgRed)', '#ffffff');
-    const wR = mR.getComputedTextLength ? mR.getComputedTextLength() : 95;
-    const mV = layeredText(line2, 'VALS', 0, y2, size, 'url(#lgRed)', '#ffffff');
-    const wV = mV.getComputedTextLength ? mV.getComputedTextLength() : 330;
-    while (line2.firstChild) line2.firstChild.remove();
-    const batW = size * 0.78 * 0.4;
-    const total = wR + 16 + batW + 18 + wV;
-    let x = (1000 - total) / 2;
-    ribbon(line2, x - 70, x + total + 70, y2 - size * 0.86, y2 + 22);
-    layeredText(line2, 'R', x, y2, size, 'url(#lgRed)', '#ffffff'); x += wR + 16;
-    const batX = x; x += batW + 18;
-    layeredText(line2, 'VALS', x, y2, size, 'url(#lgRed)', '#ffffff');
-    batI(line2, batX, y2 + 4, size * 0.8); // drawn last so it sits on top
+    const topSize = 96;
+    // Line 1: houses behind, then NEIGHBORHOOD on the arc
+    skyline(el('g', {}, art), topSize * 0.62);
+    arcText(el('g', {}, art), svgDefs, topSize);
+    // Line 2: HER + ball + ES, extruded, over the cape
+    const size = 222; const y2 = 470; const depth = 18;
+    const line2 = el('g', { transform: 'rotate(-3 500 400)' }, art);
+    const probe = el('g', {}, line2);
+    const m = (s) => { const t = el('text', { 'font-size': size, 'font-family': FONT, 'letter-spacing': size * -0.005 }, probe); t.textContent = s; return t.getComputedTextLength ? t.getComputedTextLength() : s.length * size * 0.55; };
+    const wHer = m('HER'); const wEs = m('ES');
+    probe.remove();
+    const r = size * 0.33; const gap = 10;
+    const total = wHer + gap + r * 2 + gap + wEs;
+    let x = (W - total) / 2 - 48; // nudged left to leave room for the cape tails
+    cape(line2, x + 20, x + total - 24, y2 - size * 0.62, y2 + 30);
+    heroText(line2, 'HER', x, y2, size, depth, 'lgGloss1'); x += wHer + gap;
+    ball(line2, x + r, y2 - size * 0.34, r, depth); x += r * 2 + gap;
+    heroText(line2, 'ES', x, y2, size, depth, 'lgGloss2');
   };
   // Lay out now (fallback metrics) and again once the display font is ready.
   requestAnimationFrame(layout);

@@ -1,4 +1,4 @@
-# ⚽ Recess Rivals (working title)
+# ⚽ Neighborhood Heroes (working title)
 
 A hand-drawn 2D cartoon life sim and sports team management game, seen from a 3/4 top-down view. You're a 3rd grader starting a sports team: you recruit kids from around town, earn money for shirts and the league fee, keep your grades up, and take a backyard team all the way to the championship.
 

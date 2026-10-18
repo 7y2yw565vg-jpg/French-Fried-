@@ -15,7 +15,7 @@ let engine;
 try {
   engine = new Engine($('#view3d'));
 } catch (err) {
-  document.body.innerHTML = '<div class="loading">Recess Rivals needs WebGL (3D graphics). Try another browser or update your graphics drivers.</div>';
+  document.body.innerHTML = '<div class="loading">Neighborhood Heroes needs WebGL (3D graphics). Try another browser or update your graphics drivers.</div>';
   throw err;
 }
 

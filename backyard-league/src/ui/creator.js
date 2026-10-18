@@ -106,7 +106,7 @@ function loadScreen(engine, onNew, onContinue, current) {
     const f = fileInput.files[0];
     if (!f) return;
     let st;
-    try { st = deserialize(await f.text()); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Recess Rivals save. (${e.message})` }); return; }
+    try { st = deserialize(await f.text()); } catch (e) { modal({ title: 'Oops', body: `That file isn't a Neighborhood Heroes save. (${e.message})` }); return; }
     slotPicker('Import save file', `Put ${st.player?.name || 'this save'}'s game (${st.team.name}) in which slot?`, 'Put it here', (i) => {
       st.slot = i;
       saveToStorage(st);

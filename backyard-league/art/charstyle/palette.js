@@ -1,4 +1,4 @@
-// Character Design Bible palette (Recess Rivals). Every color a generated
+// Character Design Bible palette (Neighborhood Heroes). Every color a generated
 // character uses comes from here. Entries marked "addition" are not in the
 // bible yet: the roster needed them and they should be added there.
 

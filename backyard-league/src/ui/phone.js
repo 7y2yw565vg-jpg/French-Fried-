@@ -841,7 +841,7 @@ function settingsTab(game, root, redraw, close) {
         btn('💾 Save now', () => game.save(), 'green'),
         btn('⬇️ Export save file', () => {
           const blob = new Blob([serialize(s)], { type: 'application/json' });
-          const a = h('a', { href: URL.createObjectURL(blob), download: `recess-rivals-${s.team.name.replace(/\W+/g, '-')}.json` });
+          const a = h('a', { href: URL.createObjectURL(blob), download: `neighborhood-heroes-${s.team.name.replace(/\W+/g, '-')}.json` });
           document.body.appendChild(a); a.click(); a.remove();
         }, 'white'),
         btn('🚪 Save & quit to title', () => { saveToStorage(s); close(); game.onQuit(); }, 'red'))),
