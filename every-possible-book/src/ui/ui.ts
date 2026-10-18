@@ -17,6 +17,11 @@ import { settings } from './settings';
 import { machinesBuilt as E_machines } from '../core/engine';
 import { C } from '../render/palette';
 
+/** Narrow screens get the stacked phone layout (see the matching media query in styles.css). */
+export function isPhone(): boolean {
+  return window.matchMedia('(max-width: 820px)').matches;
+}
+
 export class UI {
   root: HTMLElement;
   private top!: HTMLElement;
@@ -113,6 +118,13 @@ export class UI {
     const right = this.side.getBoundingClientRect().left;
     const top = this.top.getBoundingClientRect().bottom;
     const bottom = this.proof.getBoundingClientRect().top;
+    if (isPhone()) {
+      // Phone: counters and desk strip on top, tabs in a sheet at the bottom, library between.
+      const deskBottom = this.desk.getBoundingClientRect().bottom;
+      const sheetTop = this.side.getBoundingClientRect().top;
+      this.scene.setViewport({ x: 4, y: deskBottom + 4, w: w - 8, h: Math.max(120, sheetTop - deskBottom - 8) });
+      return;
+    }
     this.scene.setViewport({ x: left + 10, y: top + 10, w: Math.max(200, (right || w) - left - 20), h: Math.max(200, (bottom || hgt) - top - 20) });
   }
 
@@ -181,6 +193,8 @@ export class UI {
     const depth = Math.min(1, (s.shelfPrestiges > 0 ? 0.15 : 0) + s.floorPrestiges * 0.03 + s.wingPrestiges * 0.05 + (s.stacks ? 0.3 + s.stacks.level * 0.05 : 0));
     audio.setAtmosphere(depth, s.forbidden.dread / 100);
     this.scene.reducedMotion = settings.reducedMotion;
+    // The desk grows and shrinks (hints, lucid pages), so keep the library's frame in step.
+    this.layout();
   }
 
   /** One line of advice for whoever is new here. Goes quiet once the library is running. */
