@@ -56,6 +56,11 @@ function road(b, x, z, len, width = 7, horiz = true) {
 function sidewalk(b, x, z, w, d) { b.box(w, 0.14, d, '#d6d2ca', x, 0, z, { mat: 'concrete' }); }
 
 function portico(b, x, z, w, n, h, color = '#f4f1ea', face = 1) {
+  const prev = b.grp; b.grp = `portico:${x}:${z}`; // fades as one piece when it hides you
+  try { porticoShape(b, x, z, w, n, h, color, face); } finally { b.grp = prev; }
+}
+
+function porticoShape(b, x, z, w, n, h, color, face) {
   for (let i = 0; i < n; i++) {
     const cx = x - w / 2 + (i + 0.5) * (w / n);
     b.cyl(0.32, 0.36, h, color, cx, 0.6, z, { mat: 'stucco', collide: true });
