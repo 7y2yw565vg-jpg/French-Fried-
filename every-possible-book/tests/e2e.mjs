@@ -58,6 +58,21 @@ await page.waitForTimeout(300);
 await page.click('.lucid-btn');
 await page.waitForTimeout(800);
 await page.screenshot({ path: join(out, '05-lucid.png') });
+// Find a word by dragging, and another by tapping its first and last letters.
+async function selectWord(index, how) {
+  const w = await page.evaluate((i) => window.__epbPuzzle.words[i], index);
+  const cols = await page.evaluate(() => window.__epbPuzzle.cols);
+  const cells = await page.$$('.hunt-grid .cell');
+  const box = async ([r, c]) => { const b = await cells[r * cols + c].boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+  const [x1, y1] = await box(w.cells[0]);
+  const [x2, y2] = await box(w.cells[w.cells.length - 1]);
+  if (how === 'drag') { await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 8 }); await page.mouse.up(); }
+  else { await page.mouse.click(x1, y1); await page.mouse.click(x2, y2); }
+  await page.waitForTimeout(200);
+  return page.$$eval('.hw.got', (x) => x.length);
+}
+if ((await selectWord(0, 'drag')) !== 1) errors.push('word hunt: drag did not find a word');
+if ((await selectWord(1, 'tap')) !== 2) errors.push('word hunt: tap-tap did not find a word');
 await page.click('.hunt .btn.ghost');
 await page.waitForTimeout(500);
 // Jump ahead: a tower with wings.

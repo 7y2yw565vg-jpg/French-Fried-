@@ -132,36 +132,82 @@ export interface PuzzleOptions {
 export function openPuzzle(game: Game, opts: PuzzleOptions): void {
   const seed = (Math.random() * 2 ** 32) >>> 0;
   const p: Puzzle = makePuzzle(game.s, seed, game.stats.puzzleTime, opts.words ? { words: opts.words, tier: 2 } : undefined);
+  (window as unknown as { __epbPuzzle: Puzzle }).__epbPuzzle = p;
   const found = new Set<string>();
   let timeLeft = p.time;
   let done = false;
   const cells: HTMLElement[][] = [];
   const grid = h('div', { class: 'hunt-grid', style: `grid-template-columns: repeat(${p.cols}, 1fr)` });
-  let start: [number, number] | null = null;
+  // Selection works three ways: drag with a mouse, drag with a finger, or tap the first letter
+  // and then the last. Touch drags keep reporting to the element they started on, so the grid
+  // listens for everything itself and asks the page which cell is under the pointer.
+  let start: [number, number] | null = null; // where the current drag began
+  let anchor: [number, number] | null = null; // a tapped first letter, waiting for the last
   let current: [number, number][] = [];
+  let dragging = false;
+  let moved = false;
   const paint = () => {
-    for (const row of cells) for (const c of row) c.classList.remove('sel');
+    for (const row of cells) for (const c of row) c.classList.remove('sel', 'anchor');
     for (const [r, c] of current) cells[r][c].classList.add('sel');
+    if (anchor) cells[anchor[0]][anchor[1]].classList.add('anchor');
   };
+  const cellAt = (x: number, y: number): [number, number] | null => {
+    const el = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('.cell') as HTMLElement | null;
+    if (!el || !grid.contains(el)) return null;
+    return [Number(el.dataset.r), Number(el.dataset.c)];
+  };
+  const same = (a: [number, number] | null, b: [number, number] | null) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
   for (let r = 0; r < p.rows; r++) {
     cells.push([]);
     for (let c = 0; c < p.cols; c++) {
-      const cell = h('span', { class: 'cell' }, p.grid[r][c]);
-      cell.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        start = [r, c];
-        current = [[r, c]];
-        paint();
-      });
-      cell.addEventListener('pointerenter', () => {
-        if (!start) return;
-        current = lineCells(start, [r, c]) || current;
-        paint();
-      });
+      const cell = h('span', { class: 'cell', 'data-r': String(r), 'data-c': String(c) }, p.grid[r][c]);
       cells[r].push(cell);
       grid.appendChild(cell);
     }
   }
+  grid.addEventListener('pointerdown', (e) => {
+    const at = cellAt(e.clientX, e.clientY);
+    if (!at) return;
+    e.preventDefault();
+    if (grid.hasPointerCapture?.(e.pointerId) === false) grid.setPointerCapture?.(e.pointerId);
+    if (anchor && !same(anchor, at)) {
+      // Second tap: the selection runs from the tapped letter to this one.
+      const a = anchor;
+      anchor = null;
+      current = lineCells(a, at) || [];
+      paint();
+      check(a, at);
+      return;
+    }
+    start = at;
+    current = [at];
+    dragging = true;
+    moved = false;
+    paint();
+  });
+  grid.addEventListener('pointermove', (e) => {
+    if (!dragging || !start) return;
+    const at = cellAt(e.clientX, e.clientY);
+    if (!at) return;
+    if (!same(at, start)) moved = true;
+    current = lineCells(start, at) || current;
+    paint();
+  });
+  const release = () => {
+    if (!dragging || !start) return;
+    dragging = false;
+    if (moved && current.length > 1) {
+      check(start, current[current.length - 1]);
+    } else {
+      // A tap without a drag: remember it as the first letter (tap it again to let go).
+      anchor = same(anchor, start) ? null : start;
+      current = [];
+      paint();
+    }
+    start = null;
+  };
+  grid.addEventListener('pointerup', release);
+  grid.addEventListener('pointercancel', release);
   const words = h('div', { class: 'hunt-words' });
   const sentence = h('div', { class: 'hunt-sentence' });
   const renderWords = () => {
@@ -178,22 +224,21 @@ export function openPuzzle(game: Game, opts: PuzzleOptions): void {
     closeModal(true);
     opts.onDone(found.size, p.words.length);
   };
-  const up = () => {
-    if (!start) return;
-    const end = current[current.length - 1];
-    const hit = end ? matchSelection(p, start, end, found) : null;
+  function check(a: [number, number], b: [number, number]): void {
+    const hit = matchSelection(p, a, b, found);
     if (hit) {
       found.add(hit.word);
       audio.wordFound(found.size);
       for (const [r, c] of hit.cells) cells[r][c].classList.add('found');
       renderWords();
       if (found.size >= p.words.length) setTimeout(finish, 700);
+    } else {
+      for (const [r, c] of current) cells[r][c].classList.add('miss');
+      setTimeout(() => cells.flat().forEach((c) => c.classList.remove('miss')), 350);
     }
-    start = null;
     current = [];
     paint();
-  };
-  window.addEventListener('pointerup', up);
+  }
   const bar = h('div', { class: 'hunt-bar' }, h('div', { class: 'hunt-fill' }));
   const timer = window.setInterval(() => {
     if (opts.untimed) return;
@@ -211,9 +256,9 @@ export function openPuzzle(game: Game, opts: PuzzleOptions): void {
     opts.untimed ? null : bar,
     grid,
     words,
-    h('div', { class: 'row between' }, h('span', { class: 'muted small' }, 'Drag from the first letter to the last. Words run in straight lines.'), h('button', { class: 'btn ghost', onclick: finish }, opts.untimed ? 'Leave it' : 'Close the book')),
+    h('div', { class: 'row between' }, h('span', { class: 'muted small' }, 'Drag from the first letter to the last, or tap one and then the other. Words run in straight lines.'), h('button', { class: 'btn ghost', onclick: finish }, opts.untimed ? 'Leave it' : 'Close the book')),
   );
-  openModal(content, { locked: true, wide: true, onClose: () => window.removeEventListener('pointerup', up) });
+  openModal(content, { locked: true, wide: true });
 }
 
 export const FINAL_SENTENCE = '“{come} {and} {look} — it’s a {lovely} {day}. {dont} {spend} it all {waiting} for me.”';

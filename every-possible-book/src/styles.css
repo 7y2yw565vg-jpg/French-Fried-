@@ -363,6 +363,8 @@ input[type='checkbox'] { accent-color: var(--amber); }
 }
 .hunt-grid .cell:hover { background: rgba(201, 180, 138, 0.1); }
 .hunt-grid .cell.sel { background: rgba(240, 184, 96, 0.35); color: #fff; }
+.hunt-grid .cell.anchor { background: rgba(240, 184, 96, 0.5); color: #fff; box-shadow: 0 0 0 1px var(--amber); }
+.hunt-grid .cell.miss { background: rgba(192, 74, 52, 0.35); }
 .hunt-grid .cell.found { color: var(--amber); text-shadow: 0 0 8px rgba(240, 184, 96, 0.7); background: rgba(240, 184, 96, 0.08); }
 .hunt-words { display: flex; flex-wrap: wrap; gap: 10px; font-family: var(--mono); letter-spacing: 0.15em; margin-bottom: 10px; }
 .hunt-words .hw { color: var(--ink-dim); }
@@ -420,4 +422,42 @@ body.ended-abandon #stage { filter: brightness(2.2) saturate(0.2); }
 @media (max-width: 1280px) {
   :root { --desk-w: 240px; --side-w: 370px; }
   html, body { font-size: calc(15.5px * var(--text-scale)); }
+}
+
+/* ---- phones ------------------------------------------------------------------------------- */
+
+@media (max-width: 820px) {
+  html, body { font-size: calc(15px * var(--text-scale)); }
+  .hud-top { left: 8px; right: 8px; top: 6px; }
+  .meaning-num { font-size: 1.9em; }
+  .hud-sub { font-size: 0.78em; }
+  .desk {
+    top: auto;
+    bottom: auto;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    top: 92px;
+    max-height: 30vh;
+    padding: 8px;
+    gap: 6px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+  .desk-title, .desk-sub, .overheard, .door-note { display: none !important; }
+  .read-btn { flex: 1 1 100%; padding: 0.45em; font-size: 1.1em; }
+  .lucid-btn, .unread-btn { flex: 1 1 45%; font-size: 0.9em; padding: 0.4em; }
+  .desk-book { flex: 1 1 100%; padding: 4px 8px; font-size: 0.9em; }
+  .hint { flex: 1 1 100%; font-size: 0.85em; }
+  .side { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 44vh; border-radius: 10px 10px 0 0; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tab { white-space: nowrap; flex: 0 0 auto; }
+  .proof { display: none; }
+  .toasts { left: 8px; right: 8px; width: auto; bottom: calc(44vh + 8px); }
+  .modal { padding: 16px 14px; }
+  .modal h2 { font-size: 1.35em; }
+  .hunt-grid .cell { font-size: clamp(13px, 4.2vw, 20px); }
+  .hunt .row.between { flex-direction: column; align-items: stretch; }
+  .achievements { grid-template-columns: 1fr; }
 }
