@@ -1,0 +1,46 @@
+api_name,display_name,description,hidden,icon,icon_gray
+FIRST_WORD,"A Word","Read your first book.",0,achievements/FIRST_WORD.png,achievements/FIRST_WORD_locked.png
+FIRST_SENTENCE,"Subject, Verb, Object","Find a sentence in the noise.",0,achievements/FIRST_SENTENCE.png,achievements/FIRST_SENTENCE_locked.png
+HUNDRED_BOOKS,"Bookish","Read 100 books.",0,achievements/HUNDRED_BOOKS.png,achievements/HUNDRED_BOOKS_locked.png
+TEN_K_BOOKS,"Voracious","Read 10,000 books.",0,achievements/TEN_K_BOOKS.png,achievements/TEN_K_BOOKS_locked.png
+MILLION_BOOKS,"A Rounding Error","Read a million books. That is almost none of them.",0,achievements/MILLION_BOOKS.png,achievements/MILLION_BOOKS_locked.png
+BILLION_BOOKS,"Still Almost None","Read a billion books.",0,achievements/BILLION_BOOKS.png,achievements/BILLION_BOOKS_locked.png
+TEN_PRESSES,"Clatter","Own 10 printing presses.",0,achievements/TEN_PRESSES.png,achievements/TEN_PRESSES_locked.png
+HUNDRED_PRESSES,"Thunder","Own 100 printing presses.",0,achievements/HUNDRED_PRESSES.png,achievements/HUNDRED_PRESSES_locked.png
+STAFF,"Staffed","Employ 25 librarians.",0,achievements/STAFF.png,achievements/STAFF_locked.png
+MEANING_1M,"Meaningful","Find a million meaning in total.",0,achievements/MEANING_1M.png,achievements/MEANING_1M_locked.png
+MEANING_1T,"Significant","Find a trillion meaning in total.",0,achievements/MEANING_1T.png,achievements/MEANING_1T_locked.png
+MEANING_1E30,"Profound","Find 1e30 meaning in total.",0,achievements/MEANING_1E30.png,achievements/MEANING_1E30_locked.png
+MEANING_1E60,"Unfathomable","Find 1e60 meaning in total.",0,achievements/MEANING_1E60.png,achievements/MEANING_1E60_locked.png
+FIRST_TEXT,"A Page That Makes Sense","Find a text among the noise.",0,achievements/FIRST_TEXT.png,achievements/FIRST_TEXT_locked.png
+TEXTS_50,"Anthology","Find 50 texts.",0,achievements/TEXTS_50.png,achievements/TEXTS_50_locked.png
+TEXTS_100,"Collected Works","Find 100 texts.",0,achievements/TEXTS_100.png,achievements/TEXTS_100_locked.png
+TEXTS_150,"Complete Works","Find 150 texts.",0,achievements/TEXTS_150.png,achievements/TEXTS_150_locked.png
+TEXTS_200,"Every Possible Page","Find 200 texts.",0,achievements/TEXTS_200.png,achievements/TEXTS_200_locked.png
+LUCID_1,"Lucid","Solve a lucid page.",0,achievements/LUCID_1.png,achievements/LUCID_1_locked.png
+LUCID_25,"Clear-Eyed","Solve 25 lucid pages.",0,achievements/LUCID_25.png,achievements/LUCID_25_locked.png
+LUCID_PERFECT,"Nothing Missed","Find every word on a lucid page.",0,achievements/LUCID_PERFECT.png,achievements/LUCID_PERFECT_locked.png
+LUCID_PERFECT_10,"Hawk-Eyed","Find every word on 10 lucid pages.",0,achievements/LUCID_PERFECT_10.png,achievements/LUCID_PERFECT_10_locked.png
+SHELF_1,"Sealed","Seal a shelf.",0,achievements/SHELF_1.png,achievements/SHELF_1_locked.png
+SHELF_25,"Habitual","Seal 25 shelves.",0,achievements/SHELF_25.png,achievements/SHELF_25_locked.png
+TRANSLATE,"Polyglot","Reach fluency 1 in any language.",0,achievements/TRANSLATE.png,achievements/TRANSLATE_locked.png
+TRANSLATE_ALL,"Babel","Reach fluency 1 in all six languages at once.",0,achievements/TRANSLATE_ALL.png,achievements/TRANSLATE_ALL_locked.png
+FLOOR_1,"Up the Stair","Seal a floor.",0,achievements/FLOOR_1.png,achievements/FLOOR_1_locked.png
+FLOOR_10,"Tower","Seal 10 floors.",0,achievements/FLOOR_10.png,achievements/FLOOR_10_locked.png
+CARDS_1000,"Cross-Referenced","Write 1,000 catalog cards.",0,achievements/CARDS_1000.png,achievements/CARDS_1000_locked.png
+WING_1,"No Walls","Open a wing.",0,achievements/WING_1.png,achievements/WING_1_locked.png
+SECTION_1,"Forbidden","Finish reading a forbidden section.",0,achievements/SECTION_1.png,achievements/SECTION_1_locked.png
+SECTION_ALL,"Seven Keys","Finish every forbidden section.",0,achievements/SECTION_ALL.png,achievements/SECTION_ALL_locked.png
+DREAD_75,"Something Behind You","Let dread reach 75.",0,achievements/DREAD_75.png,achievements/DREAD_75_locked.png
+OVERRUN,"Read Back","Be overrun by dread.",1,achievements/OVERRUN.png,achievements/OVERRUN_locked.png
+PROPHECY_5,"As It Was Written","Fulfil 5 prophecies.",0,achievements/PROPHECY_5.png,achievements/PROPHECY_5_locked.png
+DEFY_5,"Free Will (Probably)","Defy 5 prophecies.",0,achievements/DEFY_5.png,achievements/DEFY_5_locked.png
+DOOR_10,"Knock Knock","Try the door 10 times.",1,achievements/DOOR_10.png,achievements/DOOR_10_locked.png
+STACKS,"Infinite","Enter the Infinite Stacks.",0,achievements/STACKS.png,achievements/STACKS_locked.png
+STACKS_DEEP,"Deep Reader","Descend to the fourth level of the stacks.",0,achievements/STACKS_DEEP.png,achievements/STACKS_DEEP_locked.png
+CENTER,"The Center","Reach the Center.",0,achievements/CENTER.png,achievements/CENTER_locked.png
+END_FINISH,"Finish","Read the book nobody printed.",1,achievements/END_FINISH.png,achievements/END_FINISH_locked.png
+END_BURN,"Burn","Strike the match.",1,achievements/END_BURN.png,achievements/END_BURN_locked.png
+END_ABANDON,"Abandon","Open the door.",1,achievements/END_ABANDON.png,achievements/END_ABANDON_locked.png
+ALL_ENDINGS,"Every Possible Ending","See all three endings.",1,achievements/ALL_ENDINGS.png,achievements/ALL_ENDINGS_locked.png
+HOURS_10,"Long Shift","Spend 10 hours in the library.",0,achievements/HOURS_10.png,achievements/HOURS_10_locked.png

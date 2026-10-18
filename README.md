@@ -94,3 +94,10 @@ The code has no runtime dependencies. It is plain ES modules:
    `steamcmd +login <user> +run_app_build ../steam/app_build.vdf +quit`.
 4. Steam integration uses the optional `steamworks.js` dependency. The game reads the App ID from
    `STEAM_APP_ID` or `steam_appid.txt`, and runs fine without Steam.
+
+## Also in this repository
+
+- **[Every Possible Book](every-possible-book/)**: an incremental game with word puzzles and literary
+  horror (TypeScript + PixiJS, Electron for Steam). A librarian, a press that prints random letters, and
+  a library that slowly starts describing the person reading it. The Pages build serves it at
+  `/every-possible-book/`.
