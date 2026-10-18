@@ -4,6 +4,7 @@ import { $, h, clear, btn, toast, modal, money } from './dom.js';
 import { KID_BY_ID, kidName } from '../data/kids.js';
 import { ITEMS, STAFF_ROLES, ADULTS, SPORTS } from '../data/world.js';
 import { SKIN, HAIR, OUTFIT } from '../world2d/build.js';
+import { renderImage } from '../world2d/sprites.js';
 import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, inviteHangout, doHangout, hasNumber } from '../game/social.js';
 import { formatTime } from '../game/time.js';
 import { kidGrade, addLog } from '../game/state.js';
@@ -25,6 +26,16 @@ export function portrait(kid, size = 110) {
   c.fillRect(0, 0, S, S);
   c.fillStyle = 'rgba(255,255,255,0.25)';
   c.beginPath(); c.arc(S * 0.5, S * 1.15, S * 0.55, 0, Math.PI * 2); c.fill();
+  const img = renderImage(kid.id, 'front');
+  if (img) {
+    // head-and-shoulders crop of the kid's render
+    const paint = () => {
+      const side = img.naturalHeight * 0.42;
+      c.drawImage(img, (img.naturalWidth - side) / 2, 0, side, side, S * 0.04, S * 0.08, S * 0.92, S * 0.92);
+    };
+    if (img.complete && img.naturalWidth) paint(); else img.addEventListener('load', paint, { once: true });
+    return framed(cv);
+  }
   const hair = HAIR[L.hair_color] || '#5c3a21';
   const skin = SKIN[L.skin_tone] || '#c28a5b';
   const big = ['curly afro', 'high puff', 'messy mop', 'shaggy'].includes(L.hair_style);
@@ -43,6 +54,10 @@ export function portrait(kid, size = 110) {
   c.strokeStyle = '#7a2626'; c.lineWidth = S * 0.018;
   c.beginPath(); c.arc(S * 0.5, S * 0.62, S * 0.07, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
   if ((L.accessories || []).includes('glasses')) { c.strokeStyle = '#222'; c.lineWidth = S * 0.012; for (const sx of [-1, 1]) { c.beginPath(); c.arc(S * (0.5 + sx * 0.09), S * 0.55, S * 0.06, 0, Math.PI * 2); c.stroke(); } }
+  return framed(cv);
+}
+
+function framed(cv) {
   const el = h('div', { class: 'portrait' });
   cv.style.width = cv.style.height = '100%';
   el.appendChild(cv);

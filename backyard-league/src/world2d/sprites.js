@@ -9,6 +9,7 @@ import { ADULT_CAST, adultSpec } from '../../art/charstyle/adults.js';
 import { CLOTH } from '../../art/charstyle/palette.js';
 import { hashString } from '../game/rng.js';
 import { PY } from './project.js';
+import { RENDERS } from '../data/renders.js';
 
 export const FRAME_M = 2.03; // the 720-unit art frame, in meters
 export const CHAR_SCALE = 1.3; // characters read a bit bigger than life, like most 2D games
@@ -69,6 +70,17 @@ function frameImage(sp, view, step) {
   return e;
 }
 
+const renderCache = new Map();
+/** A kid's polished 2D render (view = 'front' | 'back'), or null if they don't have one. */
+export function renderImage(id, view = 'front') {
+  const r = RENDERS[id];
+  if (!r) return null;
+  const key = `${id}|${view}`;
+  let img = renderCache.get(key);
+  if (!img) { img = new Image(); img.src = r[view]; renderCache.set(key, img); }
+  return img;
+}
+
 export class Character {
   constructor(look, opts = {}) {
     this.look = look;
@@ -79,11 +91,14 @@ export class Character {
     this.anim = 'idle';
     this.phase = Math.random() * 10;
     this.t = 0;
+    // kids with a polished render use it (except in team uniforms, which only the sheet art can show)
+    this.hasRender = !opts.uniform && !!RENDERS[look.id];
+    if (this.hasRender) { renderImage(look.id, 'front'); renderImage(look.id, 'back'); }
     // warm up the common frames
     for (const v of ['front', 'back']) for (const st of [0, 1, -1]) frameImage(this.spec, v, st);
   }
 
-  setUniform(uniform, number) { this.spec = specForLook(this.look, { uniform, number }); }
+  setUniform(uniform, number) { this.spec = specForLook(this.look, { uniform, number }); this.hasRender = false; }
 
   update(dt, anim = 'idle', speed = 1) {
     if (anim !== this.anim) { this.anim = anim; this.t = 0; }
@@ -100,6 +115,7 @@ export class Character {
     const moving = this.anim === 'walk' || this.anim === 'run';
     const ph = Math.sin(this.phase);
     const step = moving ? (ph > 0.35 ? 1 : ph < -0.35 ? -1 : 0) : 0;
+    if (this.hasRender && this.drawRender(ctx, X, Y, alpha, back, moving, ph)) return;
     const e = frameImage(this.spec, back ? 'back' : 'front', step);
     if (!e.ready) return;
     let lift = (r.position.y || 0) * PY;
@@ -124,6 +140,33 @@ export class Character {
       ctx.restore();
     } else ctx.drawImage(src, X - Wd / 2, top, Wd, H * sq);
     ctx.globalAlpha = 1;
+  }
+
+  /** Draw the polished render (no walk frames, so walking sways and bobs instead). False until it has loaded. */
+  drawRender(ctx, X, Y, alpha, back, moving, ph) {
+    const img = renderImage(this.look.id, back ? 'back' : 'front');
+    if (!img || !img.complete || !img.naturalWidth) return false;
+    const r = this.root;
+    let lift = (r.position.y || 0) * PY;
+    if (moving) lift += Math.abs(Math.cos(this.phase)) * 0.06;
+    if (this.anim === 'cheer') lift += Math.abs(Math.sin(this.t * 7)) * 0.32;
+    if (this.anim === 'talk') lift += Math.abs(Math.sin(this.t * 9)) * 0.015;
+    const H = (this.height - 0.05 * CHAR_SCALE) * PY;
+    const Wd = H * img.naturalWidth / img.naturalHeight;
+    const sit = this.anim === 'sit';
+    const sq = this.anim === 'cheer' ? 1 + Math.sin(this.t * 14) * 0.02 : 1;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(X, Y, 0.36, 0.13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save();
+    ctx.translate(X, Y - lift + (sit ? 0.34 + H * 0.22 : 0)); // renders fill their frame, so seated ones sink lower
+    if (moving) ctx.rotate(ph * 0.06);
+    if (Math.sin(r.rotation.y) < -0.3) ctx.scale(-1, 1); // heading left: mirror
+    if (sit) { ctx.beginPath(); ctx.rect(-Wd, -H * sq - 1, Wd * 2, H * 0.5 + 1); ctx.clip(); }
+    ctx.drawImage(img, -Wd / 2, -H * sq, Wd, H * sq);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    return true;
   }
 
   /** Screen-meter box (for picking and occlusion). */

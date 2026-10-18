@@ -10,6 +10,7 @@ import { ensureSeason } from './game/league.js';
 import { setVolume, startMusic } from './ui/audio.js';
 import { setupInput } from './ui/input.js';
 import { buildVenue } from './world2d/scenes.js';
+import { openTalk } from './ui/talk.js';
 
 let engine;
 try {
@@ -29,6 +30,8 @@ window.__bl = {
   engine,
   stopTitle: () => stopTitleBackdrop(),
   arena: (sport) => showcaseArena(engine, sport),
+  /** Open a conversation with a kid by id (needs a game in progress). */
+  talk: (id) => openTalk(window.__game, id),
   /** Show a sport's field at an upgrade tier (0-4) from above. */
   venue(sport, tier = 2) {
     const ups = Object.fromEntries(['goals', 'lines', 'flags', 'benches', 'seating', 'scoreboard', 'announcer', 'concessions', 'uniforms', 'training'].map((k) => [k, tier]));
