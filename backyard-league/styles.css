@@ -353,10 +353,10 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 
 /* Title screen: logo pinned to the top, buttons to the bottom, stadium in between. */
 .screen.title-screen { display: block; padding: 0; overflow: hidden; }
-.title-screen .title-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: max(30px, 7vh) 16px max(18px, 4vh); pointer-events: none; }
+.title-screen .title-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: max(18px, 4vh); padding: 24px 16px 6vh; pointer-events: none; }
 .title-screen .title-wrap > * { pointer-events: auto; }
-.title-screen .title-wrap::before { inset: 0; background: linear-gradient(to bottom, rgba(10,18,30,0.5), rgba(10,18,30,0) 30%, rgba(10,18,30,0) 70%, rgba(10,18,30,0.5)); }
-.title-screen .logo-art { width: min(780px, 90vw, 72vh); margin: 0 auto; }
+.title-screen .title-wrap::before { display: none; }
+.title-screen .logo-art { width: min(1080px, 98vw, 118vh); margin: 0 auto; animation: logoIn 0.9s cubic-bezier(.2,1.4,.4,1) both, logoBob 6s ease-in-out 1s infinite; filter: drop-shadow(0 22px 30px rgba(20,40,90,0.35)); }
 .title-screen .title-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; }
 .title-screen .title-buttons .btn { min-width: 220px; }
 
@@ -596,3 +596,20 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .pf-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .pf-tag { background: #ffe1ef; color: #b0306a; border-radius: 99px; padding: 3px 10px; font-weight: 800; font-size: 13px; }
 .pf-tag.trait { background: #dff3ff; color: #1d5f99; }
+
+/* Title screen: a painted sunburst sky behind the word art */
+.title-sky { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 42%, #fff6c9 0%, #ffd77a 18%, #7fd0ff 48%, #4aa8f0 100%); }
+.title-rays { position: absolute; left: 50%; top: 42%; width: 260vmax; height: 260vmax; margin: -130vmax 0 0 -130vmax; background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.22) 0deg 7deg, rgba(255,255,255,0) 7deg 18deg); -webkit-mask: radial-gradient(circle, #000 0%, #000 22%, transparent 55%); mask: radial-gradient(circle, #000 0%, #000 22%, transparent 55%); animation: raysSpin 120s linear infinite; }
+.title-cloud { position: absolute; width: 220px; height: 70px; background: #fff; border-radius: 70px; opacity: 0.92; filter: drop-shadow(0 6px 0 rgba(42,30,26,0.12)); animation: cloudDrift 70s linear infinite; }
+.title-cloud::before, .title-cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+.title-cloud::before { width: 100px; height: 100px; left: 30px; top: -50px; }
+.title-cloud::after { width: 130px; height: 130px; left: 90px; top: -72px; }
+.title-cloud.c1 { top: 14vh; left: -10vw; transform: scale(0.9); animation-delay: -10s; }
+.title-cloud.c2 { top: 26vh; left: 70vw; transform: scale(0.65); animation-duration: 95s; animation-delay: -50s; }
+.title-cloud.c3 { top: 8vh; left: 40vw; transform: scale(0.5); animation-duration: 120s; animation-delay: -80s; opacity: 0.8; }
+.title-hill { position: absolute; left: -10%; right: -10%; bottom: -34vh; height: 58vh; border-radius: 50% 50% 0 0 / 60% 60% 0 0; background: linear-gradient(#8fd06a, #5ea845); border-top: 6px solid #2a1e1a; box-shadow: inset 0 18px 0 rgba(255,255,255,0.18); }
+.title-hill::before { content: ''; position: absolute; left: 6%; right: 6%; top: 10vh; height: 40vh; border-radius: 50% 50% 0 0 / 60% 60% 0 0; background: rgba(40,100,30,0.18); }
+@keyframes raysSpin { to { transform: rotate(360deg); } }
+@keyframes cloudDrift { from { translate: 0 0; } to { translate: 120vw 0; } }
+@keyframes logoBob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(-0.6deg); } }
+@media (prefers-reduced-motion: reduce) { .title-rays, .title-cloud, .title-screen .logo-art { animation: none; } }

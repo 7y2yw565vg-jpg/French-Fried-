@@ -25,8 +25,45 @@ function defs(svg) {
   grad('lgSlide', [[0, '#ff6b9a'], [1, '#d62862']], 1, 1);
   grad('lgChute', [[0, '#ffe680'], [1, '#f59f00']], 1, 1);
   grad('lgBat', [[0, '#f8d9a8'], [0.55, '#dca15f'], [1, '#a8682e']], 1, 0);
-  const f = el('filter', { id: 'lgShadow', x: '-10%', y: '-10%', width: '130%', height: '140%' }, d);
-  el('feDropShadow', { dx: 0, dy: 10, stdDeviation: 0, 'flood-color': INK, 'flood-opacity': 1 }, f);
+  grad('lgRibbon', [[0, '#2f5d9e'], [1, '#13294b']]);
+  // Sticker look: a thick white border, a dark outer edge and a solid drop shadow.
+  const f = el('filter', { id: 'lgSticker', x: '-12%', y: '-15%', width: '124%', height: '150%' }, d);
+  el('feMorphology', { in: 'SourceAlpha', operator: 'dilate', radius: 9, result: 'white' }, f);
+  el('feMorphology', { in: 'SourceAlpha', operator: 'dilate', radius: 14, result: 'edge' }, f);
+  el('feFlood', { 'flood-color': '#ffffff', result: 'w' }, f);
+  el('feComposite', { in: 'w', in2: 'white', operator: 'in', result: 'whiteRing' }, f);
+  el('feFlood', { 'flood-color': INK, result: 'k' }, f);
+  el('feComposite', { in: 'k', in2: 'edge', operator: 'in', result: 'inkRing' }, f);
+  el('feOffset', { in: 'inkRing', dy: 12, result: 'drop' }, f);
+  const m = el('feMerge', {}, f);
+  for (const n of ['drop', 'inkRing', 'whiteRing', 'SourceGraphic']) el('feMergeNode', { in: n }, m);
+}
+
+/** A pennant ribbon behind the second line, with folded tails. */
+function ribbon(g, x0, x1, y0, y1) {
+  const mid = (y0 + y1) / 2; const tail = 70; const fold = 26;
+  const P = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+  // tails (behind), with darker folds
+  for (const sd of [-1, 1]) {
+    const xe = sd < 0 ? x0 : x1;
+    const t = `M ${P(xe, y0 + fold)} L ${P(xe + sd * tail, y0 + fold)} L ${P(xe + sd * (tail - 34), mid + fold / 2)} L ${P(xe + sd * tail, y1 + fold)} L ${P(xe, y1 + fold)} Z`;
+    el('path', { d: t, fill: '#13294b', stroke: INK, 'stroke-width': 10, 'stroke-linejoin': 'round' }, g);
+    el('path', { d: `M ${P(xe, y1)} L ${P(xe + sd * fold, y1 + fold)} L ${P(xe, y1 + fold)} Z`, fill: '#0b1a33', stroke: INK, 'stroke-width': 8, 'stroke-linejoin': 'round' }, g);
+  }
+  // the band, gently arched
+  const band = `M ${P(x0, y0)} Q ${P((x0 + x1) / 2, y0 - 18)} ${P(x1, y0)} L ${P(x1, y1)} Q ${P((x0 + x1) / 2, y1 - 18)} ${P(x0, y1)} Z`;
+  el('path', { d: band, fill: 'url(#lgRibbon)', stroke: INK, 'stroke-width': 12, 'stroke-linejoin': 'round' }, g);
+  // stitching + top shine
+  const inset = 12;
+  el('path', { d: `M ${P(x0 + inset, y0 + inset)} Q ${P((x0 + x1) / 2, y0 + inset - 18)} ${P(x1 - inset, y0 + inset)} M ${P(x0 + inset, y1 - inset)} Q ${P((x0 + x1) / 2, y1 - inset - 18)} ${P(x1 - inset, y1 - inset)}`, fill: 'none', stroke: 'rgba(255,255,255,0.55)', 'stroke-width': 4, 'stroke-dasharray': '14 10' }, g);
+}
+
+/** A twinkling four-point sparkle. */
+function sparkle(g, x, y, r, delay) {
+  const s = el('g', { transform: `translate(${x} ${y})` }, g);
+  const star = el('path', { d: `M 0 ${-r} Q ${r * 0.18} ${-r * 0.18} ${r} 0 Q ${r * 0.18} ${r * 0.18} 0 ${r} Q ${-r * 0.18} ${r * 0.18} ${-r} 0 Q ${-r * 0.18} ${-r * 0.18} 0 ${-r} Z`, fill: '#fffbe0', stroke: INK, 'stroke-width': 4, 'stroke-linejoin': 'round' }, s);
+  el('animateTransform', { attributeName: 'transform', type: 'scale', values: '0.35;1;0.35', dur: '2.4s', begin: `${delay}s`, repeatCount: 'indefinite' }, star);
+  el('animate', { attributeName: 'opacity', values: '0.3;1;0.3', dur: '2.4s', begin: `${delay}s`, repeatCount: 'indefinite' }, star);
 }
 
 /** Text drawn in layers: chunky dark outline, optional inner outline, gradient fill, glossy top. */
@@ -93,9 +130,11 @@ export function buildLogo() {
   wrap.className = 'logo-art';
   wrap.setAttribute('role', 'img');
   wrap.setAttribute('aria-label', 'Recess Rivals');
-  const svg = el('svg', { viewBox: '0 0 1000 430' });
+  const svg = el('svg', { viewBox: '0 -20 1000 470' });
   defs(svg);
-  const art = el('g', { filter: 'url(#lgShadow)' }, svg);
+  const art = el('g', { filter: 'url(#lgSticker)' }, svg);
+  const sparkles = el('g', {}, svg);
+  [[70, 70, 26, 0], [940, 96, 20, 0.8], [905, 318, 16, 1.6], [60, 300, 18, 1.2]].forEach(([x, y, r, dl]) => sparkle(sparkles, x, y, r, dl));
   wrap.appendChild(svg);
 
   const layout = () => {
@@ -121,6 +160,7 @@ export function buildLogo() {
     const batW = size * 0.78 * 0.4;
     const total = wR + 16 + batW + 18 + wV;
     let x = (1000 - total) / 2;
+    ribbon(line2, x - 70, x + total + 70, y2 - size * 0.86, y2 + 22);
     layeredText(line2, 'R', x, y2, size, 'url(#lgRed)', '#ffffff'); x += wR + 16;
     const batX = x; x += batW + 18;
     layeredText(line2, 'VALS', x, y2, size, 'url(#lgRed)', '#ffffff');
