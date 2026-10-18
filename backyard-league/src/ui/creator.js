@@ -3,7 +3,8 @@ import { knowledgeOn, setKnowledgeOn, knowledgeSummary } from '../game/knowledge
 import * as THREE from '../world2d/three2d.js';
 import { h, btn, clear, $, modal } from './dom.js';
 import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world2d/build.js';
-import { buildArena } from '../world2d/arenas.js';
+import { buildVenue } from '../world2d/scenes.js';
+import { lookFromKid, ball as ballMesh } from '../world2d/looks.js';
 import { buildLogo } from './logo.js';
 import { TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, SHOE_COLORS, HAIR_STYLES } from '../world2d/looks.js';
 import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT_MAX, PLAYER_BASE_STAT } from '../data/world.js';
@@ -24,53 +25,108 @@ export function randomTeamName() {
   return `${ADJ[Math.floor(Math.random() * ADJ.length)]} ${NOUN[Math.floor(Math.random() * NOUN.length)]}`;
 }
 
-// Title background: aerial shots of pro stadiums for each sport, slowly
-// circling, switching sport every few seconds. The next stadium is built in the
-// background and swapped in without a fade to black.
+// Title background: backyard pickup games, one sport at a time. Real roster
+// kids in two team colors chase the ball around a hand-drawn backyard field
+// while the camera drifts; every few seconds it cuts to the next sport.
 const SHOWCASE = [
-  ['soccer', ['#e63946', '#ffffff'], 'ROCKETS', ['ROCKETS', 'SHARKS'], [3, 2]],
-  ['baseball', ['#24427a', '#f9d342'], 'COMETS', ['COMETS', 'BANDITS'], [7, 5]],
-  ['basketball', ['#8a5cd6', '#ffd23f'], 'THUNDER', ['THUNDER', 'HORNETS'], [98, 94]],
-  ['football', ['#2fa35b', '#ffffff'], 'GORILLAS', ['GORILLAS', 'DRAGONS'], [21, 17]],
+  ['soccer', ['#e63946', '#ffffff'], ['#3a86ff', '#ffd23f'], 'SATURDAY SOCCER'],
+  ['baseball', ['#24427a', '#f9d342'], ['#2fa35b', '#ffffff'], 'SANDLOT BASEBALL'],
+  ['basketball', ['#8a5cd6', '#ffd23f'], ['#f4842a', '#2b2b2f'], 'DRIVEWAY HOOPS'],
+  ['football', ['#2fa35b', '#ffffff'], ['#e63946', '#2b2b2f'], 'BACKYARD FOOTBALL'],
 ];
-const SLIDE_MS = 9000;
+const SLIDE_MS = 11000;
+const YARD = { goals: 1, lines: 1, flags: 1, benches: 1, seating: 0, scoreboard: 0, announcer: 0, concessions: 0, uniforms: 1, training: 0 };
 let slideTimer = null;
 let slideIndex = 0;
-let spinAngle = 0.6;
-// Stadiums are built once and reused, so later laps swap instantly.
-const arenaCache = new Map();
+let showcase = null; // { engine, updater }
 
-function arenaFor(i) {
-  const k = i % SHOWCASE.length;
-  if (arenaCache.has(k)) return arenaCache.get(k);
-  const [sport, colors, label, names, score] = SHOWCASE[k];
-  const desc = buildArena(sport, colors, label);
-  desc.setScore(score[0], score[1], 'FINAL', names);
-  desc.keep = true; // the engine leaves cached worlds intact when swapping
-  arenaCache.set(k, desc);
-  return desc;
+function stopShowcase() {
+  if (!showcase) return;
+  const { engine, updater, ball } = showcase;
+  engine.extraUpdaters.delete(updater);
+  if (ball) ball.removeFromParent();
+  engine.clearNPCs();
+  showcase = null;
 }
 
-function showArena(engine, desc) {
-  // Carry the spin across slides so the camera keeps circling instead of restarting.
-  if (engine.camMode === 'cine' && engine.cine) spinAngle = engine.cine.angle;
+/** One pickup game: the field, ten kids, a ball and a tiny "game director". */
+function showGame(engine, i) {
+  stopShowcase();
+  const [sport, homeKit, awayKit, label] = SHOWCASE[i % SHOWCASE.length];
+  const desc = buildVenue(sport, YARD, homeKit, label);
   engine.loadWorld(desc, desc.spawn);
   if (engine.player) engine.player.root.visible = false;
-  engine.clearNPCs();
-  engine.setTimeOfDay(17 * 60 + 30, false);
-  const v = desc.view;
-  engine.cinematic({ x: v.x, z: v.z }, v.radius, { height: v.height, spin: 0.07, angle: spinAngle });
-  engine.cine.look.set(v.x, 0, v.z);
+  engine.setTimeOfDay(16 * 60 + 30, false);
+  const f = desc.fieldInfo;
+  const area = { x: f.cx, z: f.cz, w: f.L * 0.8, d: f.W * 0.8 };
+  // ten different kids each slide
+  const pool = KIDS.filter((k) => k.grade_at_start <= 4);
+  const kids = Array.from({ length: 10 }, (_, k) => pool[(i * 37 + k * 11) % pool.length]);
+  const ids = [];
+  kids.forEach((kid, k) => {
+    const home = k < 5;
+    const id = `show-${kid.id}`;
+    const x = f.cx + (home ? -1 : 1) * (2 + Math.random() * f.L * 0.35);
+    const z = f.cz + (Math.random() - 0.5) * f.W * 0.7;
+    engine.addNPC({ id, look: lookFromKid(kid, 3), uniform: [...(home ? homeKit : awayKit), 'shorts'], x, z, rot: home ? Math.PI / 2 : -Math.PI / 2, mode: 'wander', alwaysVisible: true,
+      area: { x: f.cx + (home ? -1 : 1) * f.L * 0.2, z: f.cz, w: f.L * 0.5, d: f.W * 0.8 } });
+    ids.push(id);
+  });
+  const ball = ballMesh(sport);
+  ball.position.set(f.cx, 0.15, f.cz);
+  desc.group.add(ball);
+  const air = sport !== 'soccer'; // thrown sports arc through the air
+  const bs = { vx: 0, vz: 0, t: 0, fly: 0, flyT: 0, chase: 0 };
+  const kick = () => {
+    const tx = area.x + (Math.random() - 0.5) * area.w; const tz = area.z + (Math.random() - 0.5) * area.d;
+    const dx = tx - ball.position.x; const dz = tz - ball.position.z; const d = Math.hypot(dx, dz) || 1;
+    const sp = air ? 7 : 6 + Math.random() * 3;
+    bs.vx = (dx / d) * sp; bs.vz = (dz / d) * sp;
+    bs.fly = air ? d / sp : 0; bs.flyT = 0;
+  };
+  const updater = (dt) => {
+    // ball physics: rolls with friction (soccer) or arcs through the air
+    ball.position.x += bs.vx * dt; ball.position.z += bs.vz * dt;
+    if (bs.fly > 0) {
+      bs.flyT += dt;
+      const k = Math.min(1, bs.flyT / bs.fly);
+      ball.position.y = 0.9 + Math.sin(k * Math.PI) * Math.min(4, bs.fly * 2.2);
+      if (k >= 1) { bs.fly = 0; bs.vx *= 0.2; bs.vz *= 0.2; }
+    } else {
+      const fr = Math.max(0, 1 - dt * 1.4); bs.vx *= fr; bs.vz *= fr;
+      ball.position.y = sport === 'basketball' ? 0.15 + Math.abs(Math.sin(performance.now() / 180)) * 0.6 : 0.15;
+    }
+    ball.position.x = Math.max(area.x - area.w / 2 - 1, Math.min(area.x + area.w / 2 + 1, ball.position.x));
+    ball.position.z = Math.max(area.z - area.d / 2 - 1, Math.min(area.z + area.d / 2 + 1, ball.position.z));
+    // the nearest kids chase the ball; whoever gets there kicks/throws it on
+    bs.chase -= dt;
+    const near = ids.map((id) => engine.npc(id)).filter(Boolean)
+      .map((n) => ({ n, d: Math.hypot(n.char.root.position.x - ball.position.x, n.char.root.position.z - ball.position.z) })).sort((a, b) => a.d - b.d);
+    if (bs.chase <= 0) {
+      bs.chase = 0.4;
+      near.forEach(({ n }, k) => {
+        if (k < 3) { n.mode = 'goto'; n.tx = ball.position.x; n.tz = ball.position.z; n.gotoSpeed = k === 0 ? 5 : 3.8; n.afterGoto = 'wander'; } else if (n.mode === 'goto') n.mode = 'wander';
+      });
+    }
+    if (near[0] && near[0].d < 0.7 && bs.fly <= 0 && Math.hypot(bs.vx, bs.vz) < 2.5) {
+      near[0].n.animOverride = 'cheer'; setTimeout(() => { if (near[0].n) near[0].n.animOverride = null; }, 400);
+      kick();
+    }
+  };
+  engine.extraUpdaters.add(updater);
+  showcase = { engine, updater, ball };
+  engine.cinematic({ x: f.cx, z: f.cz }, Math.max(f.L, f.W) * 0.48, { spin: 0.05, angle: (i * 1.3) % 6 });
+  engine.cine.look.set(f.cx, 0.6, f.cz);
+  setTimeout(kick, 600);
 }
 
 export function titleBackdrop(engine) {
   stopTitleBackdrop();
-  showArena(engine, arenaFor(slideIndex));
-  // Build and swap on the cut itself, so any hitch is hidden by the change of shot.
+  showGame(engine, slideIndex);
   const tick = () => {
     slideTimer = setTimeout(() => {
       slideIndex++;
-      showArena(engine, arenaFor(slideIndex));
+      showGame(engine, slideIndex);
       tick();
     }, SLIDE_MS);
   };
@@ -80,18 +136,15 @@ export function titleBackdrop(engine) {
 export function stopTitleBackdrop() {
   clearTimeout(slideTimer);
   slideTimer = null;
-  // Free the cached stadiums; the one on screen goes when the next world loads.
-  for (const d of arenaCache.values()) d.keep = false;
-  arenaCache.clear();
+  stopShowcase();
 }
 
-/** Show one showcase stadium (debug / screenshots). */
+/** Show one showcase game (debug / screenshots). */
 export function showcaseArena(engine, sport) {
   const i = Math.max(0, SHOWCASE.findIndex((x) => x[0] === sport));
   stopTitleBackdrop();
-  const d = arenaFor(i);
-  showArena(engine, d);
-  return d;
+  showGame(engine, i);
+  return engine.world;
 }
 
 /**
