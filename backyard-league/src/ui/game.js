@@ -543,23 +543,34 @@ export class Game {
         toast(`🏃 Passing period! Get to ${c.subject} with ${c.teacher} (Room ${roomNumber(c.grade, c.subject)}) before the bell.`, 'good');
       }
     } else if (block.kind === 'recess') {
+      const next = this.nextClassText(block.end);
       if (s.school.noRecessUntil && s.time.day <= s.school.noRecessUntil) toast('No recess for you today (you got in trouble). Sit tight.', 'bad');
       else if (s.loc === 'school') {
-        // You pick where recess starts; you can still walk in or out on your own.
-        ask('🔔 Recess!', 'Where do you want to spend recess?', [{ label: '🌳 Outside (playground)', value: 'out', cls: 'green' }, { label: '🏀 Inside (gym)', value: 'in', cls: 'blue' }]).then((where) => {
-          if (this.state.loc !== 'school') return;
-          const z = this.desc.zones[where === 'in' ? 'gym' : 'playground'];
+        // Head out to the playground, or stay in the hallway (walk into your next room early to skip ahead).
+        const door = wasInClass && leftRoom ? this.doorSpot(leftRoom) : null;
+        if (door) this.engine.teleport(door.x, door.z, door.rot ?? 0);
+        ask('🔔 Recess!', `Where do you want to spend recess?${next ? `\n\nNext class: ${next}. Walk in early to skip ahead to the bell.` : ''}`, [{ label: '🌳 Outside (playground)', value: 'out', cls: 'green' }, { label: '🚪 Stay in the hallway', value: 'hall', cls: 'white' }]).then((where) => {
+          if (this.state.loc !== 'school' || where !== 'out') return;
+          const z = this.desc.zones.playground;
           if (!z) return;
-          if (where === 'in') this.engine.teleport(z.x, z.z + z.d / 2 - 2, Math.PI);
-          else this.engine.teleport(z.x - 2, z.z + z.d / 2 - 2, Math.PI);
+          this.engine.teleport(z.x - 2, z.z + z.d / 2 - 2, Math.PI);
           this.refreshPresence(true);
         });
       } else toast('RECESS! (You\'re not at school, though.)');
     } else if (block.kind === 'lunch') {
-      toast('Lunch time! Head to the cafeteria.', 'good');
+      const next = this.nextClassText(block.end);
+      toast(`Lunch time! Head to the cafeteria.${next ? ` Next class: ${next}.` : ''}`, 'good');
       if (s.loc === 'school' && wasInClass && leftRoom) { const spot = this.doorSpot(leftRoom); if (spot) this.engine.teleport(spot.x, spot.z, spot.rot ?? 0); }
     }
     this.hud.render();
+  }
+
+  /** "Science, Room 312" for your first class after `minute`, or null. */
+  nextClassText(minute) {
+    const nb = nextClassBlock(minute);
+    if (!nb) return null;
+    const c = playerClass(this.state, nb.period);
+    return `${c.subject}, Room ${roomNumber(c.grade, c.subject)}`;
   }
 
   /** Seconds of real time left in the passing period (for the HUD countdown). */

@@ -1,7 +1,7 @@
 // Heads-up display: clock, money, grades, current school period, goal.
 import { $, h, clear, btn, money } from './dom.js';
 import { openWait } from './wait.js';
-import { dayInfo, formatTime, schoolBlockAt } from '../game/time.js';
+import { dayInfo, formatTime, schoolBlockAt, nextClassBlock } from '../game/time.js';
 import { playerClass } from '../game/school.js';
 import { roomNumber } from '../data/world.js';
 import { gradeAverage, registrationChecklist, isRegistered } from '../game/team.js';
@@ -64,6 +64,12 @@ export class Hud {
       const c = block.kind === 'class' ? playerClass(s, block.period) : null;
       const subj = c ? c.subject : block.label;
       text = `🏫 ${subj} until ${formatTime(block.end)}`;
+      if (block.kind === 'recess' || block.kind === 'lunch') {
+        // Where to go next, in case you want to head there early.
+        const nb = nextClassBlock(block.end);
+        const n = nb && playerClass(s, nb.period);
+        if (n) text += ` · Next: ${n.subject}, Room ${roomNumber(n.grade, n.subject)}`;
+      }
       if (c && g.period && !g.period.attended) { text = `⚠️ GET TO ${subj.toUpperCase()} (ROOM ${roomNumber(c.grade, c.subject)})!`; alert = true; }
       if (block.kind === 'pass' && g.passing) {
         const secs = Math.ceil(g.passingSecondsLeft());
