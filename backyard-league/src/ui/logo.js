@@ -1,6 +1,6 @@
-// The "Recess Rivals" title logo as SVG word art. The R in Recess is a twisty
-// playground slide (ladder for the stem, the slide's top loop as the bowl, a
-// twisting chute as the leg) with a ball that rides down it now and then. The
+// The "Recess Rivals" title logo as SVG word art. The R in Recess is a
+// playground slide (ladder for the stem, the top deck as the bowl, a swooping
+// chute as the leg) with a ball that rides down it now and then. The
 // I in RIVALS is a baseball bat. Text pieces are measured after the font loads
 // so the custom letters sit right next to them.
 const NS = 'http://www.w3.org/2000/svg';
@@ -77,36 +77,41 @@ function layeredText(g, str, x, y, size, fill, inner) {
   return outline;
 }
 
-/** Slide-shaped R. x0 = left edge, y = baseline, s = scale (1 = 200px type). */
+/** Slide-shaped R. x0 = left edge, y = baseline, s = scale (1 = 200px type).
+ * One chunky letter first (so it reads as an R next to "ecess"): the stem is a
+ * ladder, the bowl is the slide's top deck and the leg is a swooping chute. */
 function slideR(g, x0, y, s) {
   const P = (dx, dy) => `${(x0 + dx * s).toFixed(1)} ${(y + dy * s).toFixed(1)}`;
   const line = (d, w, color, extra = {}) => el('path', { d, fill: 'none', stroke: color, 'stroke-width': w * s, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', ...extra }, g);
-  // ladder = the stem
-  for (const rx of [14, 56]) { line(`M ${P(rx, -148)} L ${P(rx, 0)}`, 24, INK); }
-  for (let k = 0; k < 6; k++) { const ry = -18 - k * 24; line(`M ${P(14, ry)} L ${P(56, ry)}`, 15, INK); }
-  for (let k = 0; k < 6; k++) { const ry = -18 - k * 24; line(`M ${P(14, ry)} L ${P(56, ry)}`, 7, '#cfe8ff'); }
-  for (const rx of [14, 56]) { line(`M ${P(rx, -148)} L ${P(rx, 0)}`, 13, 'url(#lgRail)'); }
-  // top deck + loop = the bowl
-  const bowl = `M ${P(8, -146)} L ${P(92, -146)} C ${P(168, -146)} ${P(170, -64)} ${P(96, -64)} L ${P(60, -64)}`;
-  line(bowl, 40, INK);
-  line(bowl, 28, 'url(#lgSlide)');
-  line(`M ${P(20, -150)} L ${P(92, -150)} C ${P(150, -150)} ${P(160, -110)} ${P(150, -96)}`, 7, 'rgba(255,255,255,0.55)');
-  // twisting chute = the leg, with a flat run-out at the bottom
-  const chute = `M ${P(78, -66)} C ${P(150, -60)} ${P(96, -22)} ${P(134, -12)} S ${P(176, 2)} ${P(196, 0)}`;
-  line(chute, 44, INK);
-  line(chute, 34, '#d98200');            // side walls
-  line(chute, 24, 'url(#lgChute)');       // the sliding surface
-  line(chute, 7, 'rgba(255,255,255,0.7)');
-  // little support posts under the chute
-  for (const [px, py] of [[118, -30], [168, -6]]) line(`M ${P(px, py + 8)} L ${P(px, 0)}`, 10, INK);
-  // a ball that rides down the slide
+  const stem = `M ${P(4, -142)} Q ${P(4, -150)} ${P(14, -150)} L ${P(44, -150)} L ${P(48, -4)} Q ${P(48, 2)} ${P(40, 2)} L ${P(10, 2)} Q ${P(2, 2)} ${P(2, -6)} Z`;
+  const bowl = `M ${P(30, -131)} L ${P(78, -131)} C ${P(132, -131)} ${P(132, -77)} ${P(78, -77)} L ${P(30, -77)}`;
+  const chute = `M ${P(58, -80)} C ${P(90, -76)} ${P(96, -48)} ${P(106, -28)} C ${P(114, -12)} ${P(126, -8)} ${P(138, -8)} Q ${P(150, -8)} ${P(152, -20)}`;
+  // one shared ink silhouette
+  el('path', { d: stem, fill: INK, stroke: INK, 'stroke-width': 26 * s, 'stroke-linejoin': 'round' }, g);
+  line(bowl, 38 + 26, INK);
+  line(chute, 34 + 26, INK);
+  // chute (the leg): orange side walls, yellow sliding surface, shine
+  line(chute, 34, '#c2410c');
+  line(chute, 24, 'url(#lgChute)');
+  line(chute, 6, 'rgba(255,255,255,0.75)', { transform: `translate(0 ${-4 * s})` });
+  // top deck (the bowl), same gradient as the letters
+  line(bowl, 38, 'url(#lgYellow)');
+  line(`M ${P(40, -142)} L ${P(78, -142)} C ${P(104, -142)} ${P(116, -130)} ${P(118, -116)}`, 6, 'rgba(255,255,255,0.7)');
+  // ladder (the stem): solid letter fill with rails and rungs pressed in
+  el('path', { d: stem, fill: 'url(#lgYellow)' }, g);
+  for (const rx of [12, 38]) line(`M ${P(rx, -140)} L ${P(rx + 1, -8)}`, 4, '#c2410c');
+  for (let k = 0; k < 6; k++) { const ry = -18 - k * 22; line(`M ${P(13, ry)} L ${P(38, ry)}`, 6, '#c2410c'); line(`M ${P(13, ry - 3)} L ${P(38, ry - 3)}`, 3, 'rgba(255,255,255,0.7)'); }
+  // a little safety rail on the deck
+  line(`M ${P(50, -150)} L ${P(50, -170)} L ${P(90, -170)} L ${P(90, -150)}`, 14, INK);
+  line(`M ${P(50, -150)} L ${P(50, -170)} L ${P(90, -170)} L ${P(90, -150)}`, 6, '#e63946');
+  // a ball that rides down the chute now and then
   const ball = el('g', {}, g);
-  el('circle', { r: 13 * s, fill: '#ffffff', stroke: INK, 'stroke-width': 4 * s }, ball);
+  el('circle', { r: 12 * s, fill: '#ffffff', stroke: INK, 'stroke-width': 4 * s }, ball);
   el('path', { d: `M ${-6 * s} ${-4 * s} l ${6 * s} ${-5 * s} l ${6 * s} ${5 * s} l ${-2 * s} ${7 * s} l ${-8 * s} 0 z`, fill: INK }, ball);
   // Only shows up while it's sliding (a resting ball on the chute looked like an eye).
   el('animateMotion', { dur: '5s', repeatCount: 'indefinite', path: chute, rotate: 'auto', keyPoints: '0;0;1;1', keyTimes: '0;0.62;0.86;1', calcMode: 'linear' }, ball);
   el('animate', { attributeName: 'opacity', dur: '5s', repeatCount: 'indefinite', values: '0;0;1;1;0;0', keyTimes: '0;0.6;0.63;0.85;0.88;1' }, ball);
-  return 200 * s; // advance width
+  return 172 * s; // advance width
 }
 
 /** A baseball bat standing in for the letter I. */
@@ -144,7 +149,7 @@ export function buildLogo() {
     const probe = layeredText(l1, 'ecess', 0, 210, 205, 'url(#lgYellow)');
     const w1 = probe.getComputedTextLength ? probe.getComputedTextLength() : 520;
     l1.remove();
-    const rW = 200;
+    const rW = 172;
     const start1 = (1000 - (rW + w1 + 6)) / 2;
     const line1 = el('g', {}, art);
     slideR(line1, start1, 214, 1);
