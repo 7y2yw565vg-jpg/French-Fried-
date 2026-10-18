@@ -453,7 +453,10 @@ export function buildNeighborhood(hoodId, residents, opts = {}) {
     const slots = [];
     for (let i = 0; i < n && i < 20; i++) {
       const side = i % 2 === 0 ? -1 : 1;
-      slots.push({ x: -58 + Math.floor(i / 2) * 14, z: side * 16, face: side < 0 ? 1 : -1 });
+      // Every house faces the camera (south), like a classic 2D town: the north row
+      // fronts the street; the south row turns its back to the street and is
+      // reached by a side walkway.
+      slots.push({ x: -58 + Math.floor(i / 2) * 14, z: side < 0 ? -16 : 16 + (st.big ? 3 : 1.5), face: 1, toStreet: side < 0 ? 1 : -1 }); // south row set back so its roofs clear the sidewalk
     }
     const assign = [];
     if (opts.playerHome) assign.push({ address: 'Your house', you: true });
@@ -464,17 +467,37 @@ export function buildNeighborhood(hoodId, residents, opts = {}) {
       const wall = a.you ? '#ffd6e0' : st.walls[Math.floor(rng() * st.walls.length)];
       const big = st.big ? 1.25 : 1;
       const style = st.styles[Math.floor(rng() * st.styles.length)];
-      const h = P.house(b, s.x, s.z, { w: 8.4 * big, d: 7 * big, wall, roof: st.roofs[Math.floor(rng() * st.roofs.length)], face: s.face, style, brick: st.brick, shutter: ['#4a6fa5', '#2d6a4f', '#9d0208', '#5a189a', null][Math.floor(rng() * 5)], garage: st.big ? (rng() < 0.5 ? 1 : -1) : 0 });
+      const garage = st.big ? (rng() < 0.5 ? 1 : -1) : 0;
+      const h = P.house(b, s.x, s.z, { w: 8.4 * big, d: 7 * big, wall, roof: st.roofs[Math.floor(rng() * st.roofs.length)], face: s.face, style, brick: st.brick, shutter: ['#4a6fa5', '#2d6a4f', '#9d0208', '#5a189a', null][Math.floor(rng() * 5)], garage });
       const frontZ = s.z + s.face * (3.5 * big);
+      const st2 = s.toStreet; // which way the street is (+1 = south)
+      const fronting = st2 === s.face; // front yard on the street side?
       const lawn = { x: s.x, z: (frontZ + s.face * 5.8 + s.face * 0) - s.face * 2.6, w: 10, d: 4.2 };
-      b.box(1.3, 0.06, Math.abs(s.z + s.face * 5.75 - frontZ) - 2, '#cfcac0', h.door.x, 0, (frontZ + s.face * 1.6 + s.z + s.face * 5.75) / 2, { mat: 'concrete' });
-      P.mailbox(b, s.x + 3.6, s.z + s.face * 10.6);
-      if (rng() < 0.7) P.tree(b, s.x - 4.3, s.z + s.face * 8.6, 0.95 + rng() * 0.35, st.tree + (rng() < 0.3 ? 1 : 0));
+      const walkEdge = st2 > 0 ? 4.75 + 1 : -4.75 - 1; // street-side edge of the sidewalk
+      let drop = h.porch;
+      if (fronting) b.box(1.3, 0.06, Math.abs(s.z + s.face * 5.75 - frontZ) - 2, '#cfcac0', h.door.x, 0, (frontZ + s.face * 1.6 + s.z + s.face * 5.75) / 2, { mat: 'concrete' });
+      else {
+        // side walkway from the sidewalk around to the front door
+        const sideX = s.x + (garage ? -garage : 1) * (4.2 * big + 0.9);
+        const zEnd = h.door.z + s.face * 0.2;
+        b.box(1.2, 0.06, Math.abs(zEnd - walkEdge), '#cfcac0', sideX, 0, (zEnd + walkEdge) / 2, { mat: 'concrete' });
+        b.box(Math.abs(sideX - h.door.x) + 1.2, 0.06, 1.2, '#cfcac0', (sideX + h.door.x) / 2, 0, h.door.z, { mat: 'concrete' });
+        // the backyard faces the street, behind a fence with a gap for the walkway
+        const fz = s.z - s.face * (3.5 * big + 1.2);
+        const col = st.big ? '#2b2d42' : '#f4ead5';
+        const x0 = s.x - 6.5; const x1 = s.x + 6.5;
+        if (sideX - 0.9 > x0) P.fence(b, x0, fz, sideX - 0.9, fz, col, 0.9);
+        if (sideX + 0.9 < x1) P.fence(b, sideX + 0.9, fz, x1, fz, col, 0.9);
+        drop = { x: sideX, z: walkEdge + st2 * -1.2 }; // papers land on the walkway by the sidewalk
+      }
+      const mail = { x: s.x + 3.6, z: s.z + st2 * 10.6 };
+      P.mailbox(b, mail.x, mail.z);
+      if (rng() < 0.7) P.tree(b, s.x - 4.3, s.z + st2 * 8.6, 0.95 + rng() * 0.35, st.tree + (rng() < 0.3 ? 1 : 0));
       for (let k = 0; k < 3; k++) P.bush(b, s.x + 1.2 + k * 1.1, frontZ + s.face * 0.7, 0.7);
-      if (rng() < 0.5) P.fence(b, s.x - 5, s.z + s.face * 11.4, s.x - 1.5, s.z + s.face * 11.4, st.big ? '#2b2d42' : '#f4ead5', 0.9);
+      if (fronting && rng() < 0.5) P.fence(b, s.x - 5, s.z + st2 * 11.4, s.x - 1.5, s.z + st2 * 11.4, st.big ? '#2b2d42' : '#f4ead5', 0.9);
       const number = a.you ? 'HOME' : String(a.address).split(' ')[0];
-      P.addSign(sc.group, number, s.x + 3.6, 1.62, s.z + s.face * 10.6 + s.face * 0.27, 0.55, s.face > 0 ? 0 : Math.PI, { bg: '#ffffff' });
-      houses.push({ address: a.address, you: !!a.you, x: s.x, z: s.z, face: s.face, door: h.door, porch: h.porch, windows: h.windows, lawn });
+      P.addSign(sc.group, number, mail.x, 1.62, mail.z + st2 * 0.27, 0.55, st2 > 0 ? 0 : Math.PI, { bg: '#ffffff' });
+      houses.push({ address: a.address, you: !!a.you, x: s.x, z: s.z, face: s.face, toStreet: st2, door: h.door, porch: h.porch, drop, mail, windows: h.windows, lawn });
       if (a.you) {
         act(sc, 'go-home', h.door.x, h.door.z, 'Go inside your house');
         P.addSign(sc.group, `${opts.playerName || 'Your'}'s House`, s.x, 6.6, s.z + s.face * 3.7, 3, s.face > 0 ? 0 : Math.PI, { bg: '#ffe5ec' });

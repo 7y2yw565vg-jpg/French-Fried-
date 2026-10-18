@@ -142,7 +142,7 @@ export function startPaperRoute(game) {
   e.playerState.override = 'sit';
   // Rolled-paper markers on every subscriber's mailbox.
   const flags = new Builder();
-  for (const hh of houses) flags.box(0.18, 0.18, 0.4, '#ffd23f', hh.x + 3.6, 1.25, hh.z + hh.face * 10.6, { mat: 'plastic', center: true });
+  for (const hh of houses) { const m = hh.mail || { x: hh.x + 3.6, z: hh.z + hh.face * 10.6 }; flags.box(0.18, 0.18, 0.4, '#ffd23f', m.x, 1.25, m.z, { mat: 'plastic', center: true }); }
   const flagMesh = flags.mesh();
   game.desc.group.add(flagMesh);
   const endX = houses[houses.length - 1].porch.x + 10;
@@ -168,7 +168,7 @@ export function startPaperRoute(game) {
     let landX = tx; let landZ = tz; let result = 'miss';
     if (target) {
       const dx = Math.abs(target.porch.x - tx);
-      if (dx < 2.2) { result = 'hit'; landX = target.porch.x; landZ = target.porch.z; done.add(target); }
+      if (dx < 2.2) { result = 'hit'; const dp = target.drop || target.porch; landX = dp.x; landZ = dp.z; done.add(target); }
       else if (dx < 3.6) { result = 'window'; landX = target.windows ? target.windows[0].x : target.porch.x; landZ = target.porch.z - side * 0.8; done.add(target); }
     }
     papers.push({ mesh, from: new THREE.Vector3(x, 1, z), to: new THREE.Vector3(landX, 0.15, landZ), t: 0, result });
