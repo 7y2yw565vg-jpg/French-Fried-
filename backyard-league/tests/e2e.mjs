@@ -32,7 +32,7 @@ await page.click('text=Let\'s do this!');
 await shot('04-bedroom', 800);
 
 // Ask parents for money.
-await g(() => { const s = window.__game.state; window.__game.engine.teleport(-5.5, -3.0, Math.PI); });
+await g(() => { const s = window.__game.state; const gm = window.__game; const [px, pz] = (gm.desc.xf || ((a, b) => [a, b]))(-5.5, -3.0); const m = gm.engine.npc('ADULT-mom').char.root.position; gm.engine.teleport(px, pz, Math.atan2(m.x - px, m.z - pz)); });
 await frames(3);
 await page.keyboard.press('KeyE');
 await shot('05-parents', 600);

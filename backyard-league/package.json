@@ -22,9 +22,6 @@
     "art:png": "node art/charstyle/png.mjs",
     "art:prompts": "node art/charstyle/prompts.mjs"
   },
-  "dependencies": {
-    "three": "0.170.0"
-  },
   "devDependencies": {
     "@fontsource/lilita-one": "^5.2.5",
     "@fontsource/nunito": "^5.2.5",

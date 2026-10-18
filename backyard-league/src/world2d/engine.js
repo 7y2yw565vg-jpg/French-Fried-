@@ -678,14 +678,16 @@ export class Engine {
       const occ = this._occluders(s);
       if (!occ.length) continue;
       const see = s.isPlayer;
-      if (see) this._fadeGroups(occ);
+      // which occluders really cover you (chest or head), not just touch your box?
+      const covers = see ? new Set(occ.filter((it) => this._covers(this._live(it), s))) : null;
+      if (see) this._fadeGroups(covers);
       for (const it of occ) {
         const d = this._live(it);
         if (!d) continue;
         const faded = it.grp && this.faded.has(it.grp);
-        drawItem(ctx, d, px, faded ? 0.32 : see && !it.flat ? 0.3 : 1);
+        drawItem(ctx, d, px, faded ? 0.32 : see && covers.has(it) ? 0.3 : 1);
       }
-      if (see) { // silhouette of you behind things
+      if (see && covers.size) { // silhouette of you behind things
         ctx.save(); ctx.globalAlpha = 0.35; s.draw(0.35); ctx.restore();
       }
     }
@@ -709,6 +711,23 @@ export class Engine {
     c.fillStyle = g; c.fillRect(0, 0, W, H);
     this._vig = cv;
     return cv;
+  }
+
+  /** Does a drawn item cover the sprite's chest or head? */
+  _covers(d, s) {
+    if (!d || d.flat) return false;
+    const cx = (s.sb.x0 + s.sb.x1) / 2; const h = s.sb.y1 - s.sb.y0;
+    const pts = [[cx, s.sb.y1 - h * 0.45], [cx, s.sb.y1 - h * 0.8]];
+    if (d.type !== 'faces') return pts.some(([x, y]) => x > d.sb.x0 && x < d.sb.x1 && y > d.sb.y0 && y < d.sb.y1);
+    const c = this.ctx;
+    c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+    let hit = false;
+    for (const f of d.faces) {
+      const p = f.path || (f.path = facePath(f.pts));
+      if (pts.some(([x, y]) => c.isPointInPath(p, x, y))) { hit = true; break; }
+    }
+    c.restore();
+    return hit;
   }
 
   /** Buildings (groups) standing in front of you fade out as a whole; their tiles are redrawn. */
@@ -818,6 +837,8 @@ function forCells(sb, cell, f) {
   if ((x1 - x0) * (y1 - y0) > 4000) return; // absurdly large: skip
   for (let gx = x0; gx <= x1; gx++) for (let gy = y0; gy <= y1; gy++) f(`${gx},${gy}`);
 }
+
+function facePath(pts) { const p = new Path2D(); p.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) p.lineTo(pts[i][0], pts[i][1]); p.closePath(); return p; }
 
 function push(map, k, v) { let l = map.get(k); if (!l) map.set(k, (l = [])); l.push(v); }
 function unionBox(a, b) { return { x0: Math.min(a.x0, b.x0), x1: Math.max(a.x1, b.x1), y0: Math.min(a.y0, b.y0), y1: Math.max(a.y1, b.y1) }; }

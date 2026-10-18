@@ -1,8 +1,8 @@
 // Dev-only: load a location into the engine for screenshots.
-import { Engine } from '../world3d/engine.js';
-import * as S from '../world3d/scenes.js';
+import { Engine } from '../world2d/engine.js';
+import * as S from '../world2d/scenes.js';
 import { KIDS } from '../data/kids.js';
-import { lookFromKid } from '../world3d/kidModel.js';
+import { lookFromKid } from '../world2d/looks.js';
 
 const q = new URLSearchParams(location.search);
 const which = q.get('s') || 'home';
@@ -38,6 +38,5 @@ if (q.get('p')) eng.cam.pitch = Number(q.get('p'));
 const off = Number(q.get('o') || 0);
 const nk = Number(q.get('n') ?? 8);
 KIDS.slice(off, off + nk).forEach((k, i) => eng.addNPC({ id: k.id, look: lookFromKid(k, 3), tag: q.get('notag') ? null : k.first_name, x: sx + (i % 4) * 1.3 - 2, z: sz - 2.5 - Math.floor(i / 4) * 1.6, rot: Number(q.get('kr') || 0), mode: 'idle', interact: 'Talk' }));
-if (q.get('cam')) { const [cx, cy, cz, lx, ly, lz] = q.get('cam').split(',').map(Number); eng.camMode = 'fixed'; eng.player.root.visible = false; eng.camera.position.set(cx, cy, cz); eng.camera.lookAt(lx, ly, lz); eng._updateCamera = () => {}; }
 if (q.get('cine')) eng.cinematic(desc.fieldInfo ? { x: desc.fieldInfo.cx, z: desc.fieldInfo.cz } : { x: sx, z: sz }, 22);
 setTimeout(() => { window.__done = { npcs: eng.npcs.size, colliders: desc.colliders.length, interact: desc.interact.map((i) => i.kind) }; }, 800);

@@ -50,7 +50,7 @@ const watch = (page) => { page.on('pageerror', (e) => errors.push(`pageerror: ${
   console.log('touch moved', moved.toFixed(2), JSON.stringify(await page.evaluate(() => ({ mode: window.__game.mode, t: document.querySelector('#touch').className, z: document.querySelector('.stick-zone').className, paused: window.__game.engine.paused, a: window.__game.engine.analog, panel: document.querySelector('#panel').textContent.slice(0, 80), ov: document.querySelector('#overlay').className, m: document.querySelector('#modal').textContent.slice(0, 160) }))));
   if (moved < 0.05) fail('thumbstick did not move the player');
   // Walk up to Mom & Dad and tap the action button.
-  await page.evaluate(() => { window.__game.engine.teleport(-5.5, -3.0, Math.PI); });
+  await page.evaluate(() => { const gm = window.__game; const [px, pz] = (gm.desc.xf || ((a, b) => [a, b]))(-5.5, -3.0); const m = gm.engine.npc('ADULT-mom').char.root.position; gm.engine.teleport(px, pz, Math.atan2(m.x - px, m.z - pz)); });
   await page.waitForTimeout(800);
   await frames(page, 3);
   await page.tap('.touch-btn.act', { force: true });

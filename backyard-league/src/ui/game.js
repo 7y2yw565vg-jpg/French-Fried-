@@ -14,7 +14,7 @@ import { practiceToday } from '../game/team.js';
 import { doHangout, missHangout } from '../game/social.js';
 import { pickupsFor, collectPickup, jobReady, mowJobs } from '../game/economy.js';
 import { playerGameThisWeek, ensureSeason, kitBottoms } from '../game/league.js';
-import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue, buildHilltop } from '../world2d/scenes.js';
+import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue, buildHilltop, turnAround } from '../world2d/scenes.js';
 import { lookFromKid, adultLook } from '../world2d/looks.js';
 import { Builder } from '../world2d/build.js';
 import { $, h, clear, toast, modal, modalOpen, closeTopModal, ask } from './dom.js';
@@ -93,7 +93,7 @@ export class Game {
     const s = this.state;
     const ups = s.team.upgrades;
     switch (loc) {
-      case 'home': return buildHome({ sport: s.team.sport, upgrades: ups, colors: s.team.colors, trophies: s.inv.trophies, playerShirt: '#e63946' });
+      case 'home': return turnAround(buildHome({ sport: s.team.sport, upgrades: ups, colors: s.team.colors, trophies: s.inv.trophies, playerShirt: '#e63946' })); // front door faces the camera
       case 'school': return buildSchool({ grade: playerGrade(s), crestCups: rivalryRecord(s).games.filter((g) => g.won).reverse() });
       case 'mall': return buildMall();
       case 'library': return buildLibrary();
@@ -300,8 +300,9 @@ export class Game {
     const d = this.desc;
     const add = (id, name, x, z, opts = {}) => this.engine.addNPC({ id: `ADULT-${id}`, look: adultLook(name, opts.look || {}), tag: name, tagColor: '#4dabf7', x, z, rot: opts.rot || 0, mode: opts.mode || 'idle', area: opts.area, interact: `Talk to ${name}`, data: { name, role: opts.role || id } });
     if (s.loc === 'home') {
-      add('mom', 'Mom', -6.6, -5.2, { look: { shirt: 'purple', hair: 'bob' }, role: 'parents' });
-      add('dad', 'Dad', -4.8, -5.8, { look: { shirt: 'navy', hair: 'side part', accessories: ['glasses'] }, role: 'parents' });
+      const xf = d.xf || ((x, z) => [x, z]);
+      add('mom', 'Mom', ...xf(-6.6, -5.2), { look: { shirt: 'purple', hair: 'bob' }, role: 'parents' });
+      add('dad', 'Dad', ...xf(-4.8, -5.8), { look: { shirt: 'navy', hair: 'side part', accessories: ['glasses'] }, role: 'parents' });
     }
     if (s.loc === 'school') {
       for (const [zn, z] of Object.entries(d.zones)) {

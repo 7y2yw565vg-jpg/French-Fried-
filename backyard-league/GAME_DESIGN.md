@@ -5,7 +5,7 @@
 > *Working title. Alternates: "Lemonade to League", "Recess Moguls", "Kid Commissioner".*
 
 **Platform:** Steam (Windows first; Steam Deck verified target; Mac/Linux later)
-**Genre:** 3D open-world life sim + sports team management
+**Genre:** 2D (3/4 top-down) open-world life sim + sports team management
 **Art style:** Stylized cartoon, high fidelity (Pixar / *Fortnite* / *Sackboy* territory: soft lighting, chunky proportions, expressive faces)
 **Rating target:** ESRB E10+ / PEGI 7. Mischief is cartoony and always has consequences.
 **Player fantasy:** *"I'm 8 years old and I'm building a sports dynasty out of my parents' backyard."*
@@ -66,9 +66,9 @@ Basketball is the easy start, Baseball the hard one. Each sport's achievements a
 
 ## 4. World & Locations
 
-**Suncrest**, a sunny suburban town. The **town map** has clickable destinations. Inside each one you get a fully 3D open area to walk around, with every kid interactable.
+**Suncrest**, a sunny suburban town. The **town map** has clickable destinations. Inside each one you get an open area to walk around, with every kid interactable.
 
-| Location | 3D Zones | What it's for |
+| Location | Zones | What it's for |
 |---|---|---|
 | **Your House** | bedroom (planning desk, computer), kitchen (parents), garage (equipment), backyard (field #1), basement (trophy room v1) | Asking for money, homework, managing the team, home games early on |
 | **Neighborhoods** (6) | Maple Hollow, Sunnyside Acres, Pickle Creek, Oakridge Heights (rich), Riverside Apartments, Old Town | Kids' homes, lawns to mow, paper route houses, cul-de-sac pickup games, meeting parents |
@@ -129,7 +129,7 @@ Every grade has four core teachers: **Math, Language Arts, Science and History**
 - Kids on your roster have grades too (see `school_average`). A kid who drops below the league rule (Jr: D, HS: state standard) is **benched**. Tutoring your own players is a valid strategy.
 
 ### Classroom mechanics
-- **Seat chart:** each class has a 3D seat grid. You can only whisper to adjacent seats.
+- **Seat chart:** each class has a seat grid. You can only whisper to adjacent seats.
 - **Pass a note:** pick a recipient. The note is handed kid-to-kid along a path, and each kid on the path rolls **Willingness** (friendship with you, personality, bribe). Snitches might hand it to the teacher, and the teacher may read it aloud (embarrassment −Charisma for the day).
 - **Ask to switch seats:** the teacher says yes if your grade is good and you've had no recent trouble. The other kid has to agree too (friendship check, or a favor/payment).
 - **Ask for the hall pass:** leave class for 3 real minutes. Meet a kid who's also out (bathroom kid, office runner) or sneak to another classroom's doorway to wave someone out. Hall monitors (5th grade Rule Followers) patrol.
@@ -407,7 +407,7 @@ Each kid weights these differently by personality: Jocks care about results, Soc
 - **League schedule:** every league has at least 8 teams, counting yours. 10 regular season games (a round robin with no byes) and a 4-team playoff. Saturday game days. Rival teams sign free agents before the season starts, so they compete with you for the same kids.
 - **If you're on your own roster** (default in the Jr League): you play the game in an **arcade-style** controlled mode, as your character, with AI teammates. You can call simple plays.
 - **If you're not playing** (coach-only, or later as owner): the game is **simulated**. You can:
-  - **Spectate in 3D** (watch the sim play out with commentary), or
+  - **Spectate** (watch the sim play out with commentary), or
   - **Quick Sim** with a box score and highlight reel.
 - **Rival games** (any match you aren't in) are always simulated. You can go to them to spectate and scout.
 - **Sim engine:** possession/event-based. Every event picks the involved players and rolls position ratings, aura, fatigue, crowd and traits (Stage Fright, Crowd Lover). The play-by-play is generated from the event log.
@@ -540,7 +540,7 @@ The player levels up by doing things (Skyrim-style use-to-improve) and picks a *
 | **5. 1.0** | +6–9 months EA | Full 3rd → 12th grade run, Workshop, polish |
 
 ### Biggest risks
-1. **Scope:** 216 fully-routined kids in 3D is a lot. Mitigate with the modular rig, abstracted off-screen sims, and data-driven routines.
+1. **Scope:** 216 fully-routined kids is a lot. Mitigate with the modular rig, abstracted off-screen sims, and data-driven routines.
 2. **Four sports' gameplay:** playable arcade modes for 4 sports is effectively 4 games. Mitigation: ship the **sim + spectate** for all 4 first, then a playable arcade mode for one sport per milestone.
 3. **School tedium:** a full class day every in-game day can drag. Mitigation: "skip to next free period" once a class is done, and quizzes only weekly.
 4. **Balance:** the cheat options must be tempting but not dominant. Needs a Phase 0 spreadsheet sim.

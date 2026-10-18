@@ -511,9 +511,9 @@ test('four save slots: continue picks the most recent, slots stay separate', asy
 
 test('the player\'s created look renders in the character bible style for every option', async () => {
   const { lookSpec, renderCharacter } = await import('../art/charstyle/figure.js');
-  const { HAIR_STYLES } = await import('../src/world3d/hair.js');
-  const { TOPS, BOTTOMS, SHOE_TYPES, PANTS_COLORS, SHOE_COLORS } = await import('../src/world3d/kidModel.js');
-  const { SKIN, HAIR, EYES, OUTFIT } = await import('../src/world3d/toon.js');
+  const { HAIR_STYLES } = await import('../src/world2d/looks.js');
+  const { TOPS, BOTTOMS, SHOE_TYPES, PANTS_COLORS, SHOE_COLORS } = await import('../src/world2d/looks.js');
+  const { SKIN, HAIR, EYES, OUTFIT } = await import('../src/world2d/build.js');
   const pick = (o, i) => { const k = Object.keys(o); return k[i % k.length]; };
   const n = Math.max(HAIR_STYLES.length, TOPS.length, BOTTOMS.length, SHOE_TYPES.length, Object.keys(OUTFIT).length);
   for (let i = 0; i < n; i++) {

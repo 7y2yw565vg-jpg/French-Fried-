@@ -13,6 +13,7 @@ import { PY } from './project.js';
 export const FRAME_M = 2.03; // the 720-unit art frame, in meters
 export const CHAR_SCALE = 1.3; // characters read a bit bigger than life, like most 2D games
 const FEET = 680 / 720;
+const BMP_W = 160; const BMP_H = 288; // cached raster size per pose
 
 function pal(hex) {
   const c = new THREE.Color(hex);
@@ -54,11 +55,16 @@ function frameImage(sp, view, step) {
   if (!e) {
     const svg = renderCharacter({ ...sp, view, pose: { step } });
     const img = new Image();
-    e = { img, ready: false };
-    img.onload = () => { e.ready = true; };
+    e = { img, ready: false, bmp: null };
+    img.onload = () => {
+      // rasterize once: drawing an SVG image every frame is slow
+      const cv = document.createElement('canvas'); cv.width = BMP_W; cv.height = BMP_H;
+      cv.getContext('2d').drawImage(img, 0, 0, BMP_W, BMP_H);
+      e.bmp = cv; e.ready = true;
+    };
     img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     imgCache.set(key, e);
-    if (imgCache.size > 1600) imgCache.delete(imgCache.keys().next().value);
+    if (imgCache.size > 700) imgCache.delete(imgCache.keys().next().value);
   }
   return e;
 }
@@ -107,14 +113,16 @@ export class Character {
     ctx.fillStyle = 'rgba(0,0,0,0.22)';
     ctx.beginPath(); ctx.ellipse(X, Y, 0.36, 0.13, 0, 0, Math.PI * 2); ctx.fill();
     const sq = this.anim === 'cheer' ? 1 + Math.sin(this.t * 14) * 0.02 : 1;
+    // big on screen (creator close-up): draw the crisp vector art; otherwise the cached bitmap
+    const src = H / px > BMP_H * 0.9 ? e.img : e.bmp;
     const top = Y - H * FEET * sq - lift + (sit ? 0.34 : 0);
     if (sit) {
       // seated: draw the upper body only (the legs are under the desk/bench)
       ctx.save();
       ctx.beginPath(); ctx.rect(X - Wd, top - 1, Wd * 2, H * 0.62 + 1); ctx.clip();
-      ctx.drawImage(e.img, X - Wd / 2, top, Wd, H * sq);
+      ctx.drawImage(src, X - Wd / 2, top, Wd, H * sq);
       ctx.restore();
-    } else ctx.drawImage(e.img, X - Wd / 2, top, Wd, H * sq);
+    } else ctx.drawImage(src, X - Wd / 2, top, Wd, H * sq);
     ctx.globalAlpha = 1;
   }
 

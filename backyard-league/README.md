@@ -1,6 +1,6 @@
 # ⚽ Recess Rivals (working title)
 
-A 3D cartoon life sim and sports team management game. You're a 3rd grader starting a sports team: you recruit kids from around town, earn money for shirts and the league fee, keep your grades up, and take a backyard team all the way to the championship.
+A hand-drawn 2D cartoon life sim and sports team management game, seen from a 3/4 top-down view. You're a 3rd grader starting a sports team: you recruit kids from around town, earn money for shirts and the league fee, keep your grades up, and take a backyard team all the way to the championship.
 
 The full design is in [`GAME_DESIGN.md`](GAME_DESIGN.md). This folder holds a **playable build** of it.
 
@@ -32,7 +32,7 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 - **Every kid can be talked to.** Chatting raises friendship and reveals one fact about their routine. Gifts matter: they love items tied to what they like. You can also play minigames with them, invite them to tryouts, ask "what would it take?" (each kid has their own condition), do favors, hire them as staff, or tutor them.
 - **Kids are where their routine says they are.** Each grade is split into two class sections that move together from room to room. During class kids sit at their desks, between classes they crowd the hallway by their next door, at recess they're at their favorite playground spot, lunch is in the cafeteria, after school they go to the mall, library, museum, grocery store or their own front yard, and weekends have their own spots. Private-school and homeschooled kids can only be found outside school. The map shows which kids you know should be at each place right now.
 
-**Places** (pick a destination on the map, then explore it in 3D)
+**Places** (pick a destination on the map, then explore it)
 - **Your house:** seen from outside, it's a roofed house. Step inside and the roof lifts off and the walls drop, Sims-style. Inside are Mom & Dad (ask for money, do chores), your bed, your computer (team HQ, homework), the garage, a basement trophy shelf, and the backyard field.
 - **6 neighborhoods**, each with its own style: houses for every kid's address, a cul-de-sac, a driveway hoop, a creek, lemonade stand spots, paper routes and mowing jobs.
 - **School:** a main hallway lined with blue lockers, with a classroom for every subject at every grade. Each room has a chalkboard, a teacher's desk, a flag, subject posters and 24 desks facing the front. There's also a cafeteria, gym, library, band room, nurse, principal's office, detention, and a playground with swings, tetherball, four square, a kickball diamond and more.
@@ -59,10 +59,10 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 
 **Your team**
 - Pick soccer, baseball, basketball or flag football. Each has its own roster minimum and startup costs.
-- **Tryouts:** invited kids line up in your backyard. **Sprints is a real 3D race** and reveals Speed. Buy equipment to unlock the other 13 drills, one per stat. Grades run from **A++ to F--**, shown as a range until you buy Laser Timing Gates.
+- **Tryouts:** invited kids line up in your backyard. **Sprints is a real race** and reveals Speed. Buy equipment to unlock the other 13 drills, one per stat. Grades run from **A++ to F--**, shown as a range until you buy Laser Timing Gates.
 - Roster, auto lineup (you always start), practice days and focus skill, and eligibility (age band and school grades).
 - **Fields:** the backyard (free, tiny, parents take half), the school field (needs the principal's OK), or Old Town Park (needs a permit).
-- **10 upgrade categories, each with 5 tiers, all visible in 3D.** For example, goals go from crooked wooden frames with no nets to pro goals, lines from wobbly spray paint to a logo at midfield, and seating, scoreboard, announcer, concessions, benches, flags, uniforms and training each have their own tiers.
+- **10 upgrade categories, each with 5 tiers, all visible on the field.** For example, goals go from crooked wooden frames with no nets to pro goals, lines from wobbly spray paint to a logo at midfield, and seating, scoreboard, announcer, concessions, benches, flags, uniforms and training each have their own tiers.
 - **Team gear:** footwear (cleats, court shoes), balls and bats, gloves, and conditioning gear, each with 3 tiers named for your sport. Gear boosts the stats it fits (cleats add Speed and Agility, bats add Hand-Eye and Strength, and so on) for every kid on your roster.
 - **Uniforms:** choose shorts or pants. Baseball and football default to pants with a team-color stripe.
 - **Staff:** hire kids as announcer, ticket gate, assistant coach or scout. Grown-ups like Coach Dave at the mall and Mrs. Pham at the library cost more, and won't sign until your team is attractive enough.
@@ -71,7 +71,7 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 **The league**
 - **One league per grade** (the Grade 3 League for third graders), with up to **8 teams** counting yours. Season stats (goals, assists, saves...), league leaders, team OVR ratings, and an MVP plus stat awards at season's end. The 10-week season is a round robin with no byes. **They sign free agents before each season**, competing with you for the same kids. Some kids are poachable, and some are loyal to their team.
 - Preseason registration, then 8 Saturday games, then semifinals and a final. The game simulation is event-based for all four sports.
-- **Game day in 3D:** both teams take the field in uniform with fans watching. Play-by-play commentary gets better as you upgrade your announcer, and the scoreboard updates live. **Clutch moments put you in control** with a timing minigame that decides the play.
+- **Game day:** both teams take the field in uniform with fans watching. Play-by-play commentary gets better as you upgrade your announcer, and the scoreboard updates live. **Clutch moments put you in control** with a timing minigame that decides the play.
 - **Knowledge from past runs** (toggle on the new-game screen and in Settings): pick one of your saves to remember. The new run replaces that save, and you start knowing every kid you knew there (names, scouted stats, routines, likes, traits), though they don't know you. Social's 🧠 Scouted filter lists everyone you've scouted.
 - **Phone calls:** every kid you meet gives you their number. Call them from Contacts, Calls or their Social profile.
 - **Season sign-ups** after each Crest Cup: pick next season's sport (free) from the ones you haven't played this school year, then recruit a new team, or skip to next school year. Kid stat cards star the skills that matter in the current sport.
@@ -95,7 +95,7 @@ node tests/e2e.mjs     # browser playthroughs (also e2e-jobs.mjs, e2e-input.mjs 
 
 ## Engine note
 
-The design doc recommends Unity. This build uses **Three.js + Electron** instead, because it can be built and tested from this repository and it reuses the Steam pipeline French Fried already ships with. All game rules are plain JavaScript in `src/game/`, separate from rendering, so they could be ported if you move engines.
+The design doc recommends Unity. This build uses a **2D canvas renderer + Electron** instead, because it can be built and tested from this repository and it reuses the Steam pipeline French Fried already ships with. Maps are described as simple shapes that the renderer draws flat-shaded with ink outlines in the 3/4 view (cached in tiles); trees and bushes are painted 2D pieces, and every character is a sprite drawn from its character sheet (front and back views, walk cycle). All game rules are plain JavaScript in `src/game/`, separate from rendering, so they could be ported if you move engines.
 
 ## Layout
 
@@ -103,7 +103,7 @@ The design doc recommends Unity. This build uses **Three.js + Electron** instead
 data/kids.json           216 kids (generated by tools/generate_kids.py, fixed seed)
 src/data/                world data, dialogue, quiz banks
 src/game/                simulation: time, routines, stats, social, economy, school, team, league, sim, clock
-src/world3d/             toon renderer, character builder, props, fields, locations, engine
+src/world2d/             2D engine, shape projector, painted props, sprites, fields, locations
 src/ui/                  game controller, HUD, map, phone, talk, classroom, minigames, tryouts, matches, jobs
 src/dev/                 dev-only pages for screenshots (gallery, scenes)
 tests/logic.test.mjs     simulation unit tests (npm test)
