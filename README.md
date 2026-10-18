@@ -101,3 +101,6 @@ The code has no runtime dependencies. It is plain ES modules:
   horror (TypeScript + PixiJS, Electron for Steam). A librarian, a press that prints random letters, and
   a library that slowly starts describing the person reading it. The Pages build serves it at
   `/every-possible-book/`.
+- **[Unicorn](unicorn/GAME_DESIGN.md)** (working title, design stage): an incremental startup game where every
+  decision closes doors. Six product categories, permanent forks for product, pricing, marketing, culture and
+  funding, and a serial-founder prestige loop.
