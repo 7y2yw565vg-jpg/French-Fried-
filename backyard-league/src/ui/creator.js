@@ -12,7 +12,6 @@ import { loadFromStorage, deserialize, listSlots, deleteSlot, freeSlot, saveToSt
 import { dayInfo, formatTime } from '../game/time.js';
 import { statRelevance } from '../game/stats.js';
 import { sfx } from './audio.js';
-import { lookSpec, renderCharacter } from '../../art/charstyle/figure.js';
 
 const BUILDS = ['average', 'skinny', 'lanky', 'stocky', 'sturdy', 'round', 'wiry'];
 const HATS = ['none', 'baseball cap', 'backwards cap', 'beanie', 'bucket hat'];
@@ -246,17 +245,9 @@ export function showCreator(engine, onDone, slot = null) {
   group.add(b.mesh());
   engine.loadWorld({ group, colliders: [], interact: [], zones: {}, spawn: { x: 0, z: 0, rot: 0 } }, { x: 0, z: 0, rot: 0 });
   engine.setTimeOfDay(13 * 60, false);
-  // The bible-style character sheet of your kid, redrawn with every change.
-  const sheet = h('button', { type: 'button', class: 'bible-card', title: 'Your character sheet (tap to enlarge)' });
-  const drawSheet = () => {
-    sheet.innerHTML = renderCharacter(lookSpec(look, { grade: 3, perk: cfg.perk, heightIn: 50 })).replace(' width="400" height="720"', '').replace('viewBox="0 0 400 720"', 'viewBox="30 56 340 640"') + '<span>Character sheet</span>';
-  };
-  sheet.addEventListener('click', (e) => { e.stopPropagation(); sheet.classList.toggle('big'); });
-  sheet.addEventListener('pointerdown', (e) => e.stopPropagation());
   const refresh = () => {
     engine.setPlayer({ id: 'PLAYER', ...look, perk: cfg.perk, heightIn: 50, grade: 3 });
     engine.player.root.visible = true;
-    drawSheet();
   };
   refresh();
   engine.cinematic({ x: 0, z: 0 }, 3.3, { height: 1.2, spin: 0, angle: 0 }); // faces you; the player turns it
@@ -351,7 +342,7 @@ export function showCreator(engine, onDone, slot = null) {
       turnBtn('⟲', -Math.PI / 4, 'Turn left'),
       h('span', { class: 'preview-hint' }, 'Drag to turn'),
       turnBtn('⟳', Math.PI / 4, 'Turn right'),
-      btn('Front', () => { if (engine.cine) engine.cine.angle = 0; }, 'small white', { title: 'Face front' })), sheet);
+      btn('Front', () => { if (engine.cine) engine.cine.angle = 0; }, 'small white', { title: 'Face front' })));
   let dragX = null;
   preview.addEventListener('pointerdown', (e) => { if (e.target.closest('.btn')) return; dragX = e.clientX; preview.setPointerCapture(e.pointerId); preview.classList.add('dragging'); });
   preview.addEventListener('pointermove', (e) => { if (dragX == null) return; turn(-(e.clientX - dragX) * 0.012); dragX = e.clientX; });
