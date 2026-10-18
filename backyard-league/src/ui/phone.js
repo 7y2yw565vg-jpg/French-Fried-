@@ -1,4 +1,5 @@
 // The phone: team management, kid notebook, field & staff, league, school, money, settings.
+import { OUTFIT } from '../world3d/toon.js';
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR, PLAYER_TRAIN_CAP } from '../data/world.js';
@@ -11,12 +12,12 @@ import { jerseyPreview } from './jersey.js';
 import { appGlyph, iconBackground } from './appicons.js';
 import { letter, positionRating, heightScore, statRelevance } from '../game/stats.js';
 import { letterFor, playerClass, classmates, sharedClasses } from '../game/school.js';
-import { friendshipLabel, parseHook, callCheck, PHONE_FRIENDSHIP } from '../game/social.js';
+import { friendshipLabel, parseHook, callCheck, hasNumber } from '../game/social.js';
 import { routineSlots, describeSlot, sectionOf } from '../game/routines.js';
 import { jobUnlocked, jobReady } from '../game/economy.js';
 import { nextGameInfo } from '../game/clock.js';
 import { signupOpen } from '../game/seasons.js';
-import { knowledgeOn, setKnowledgeOn, knowledgeSummary, applyKnowledge, forgetKnowledge, recordKnowledge } from '../game/knowledge.js';
+import { knowledgeOn, setKnowledgeOn, knowledgeSummary, knowsName } from '../game/knowledge.js';
 import { openSignup } from './signup.js';
 import { HILLTOP_TEAM, hilltopRoster, rivalryRecord, crestCupDate, crestCupPending, crestCupTeam } from '../game/rivalry.js';
 import { dayInfo, formatTime, DOW } from '../game/time.js';
@@ -371,9 +372,9 @@ function workoutBox(game, redraw) {
 
 function contactsTab(game, root, redraw, close) {
   const s = game.state;
-  const list = KIDS.filter((k) => s.kids[k.id].phone).sort((a, b) => s.kids[b.id].f - s.kids[a.id].f);
+  const list = KIDS.filter((k) => hasNumber(s.kids[k.id])).sort((a, b) => s.kids[b.id].f - s.kids[a.id].f);
   if (!list.length) {
-    root.append(h('p', {}, `No contacts yet. Become Friends with a kid (${PHONE_FRIENDSHIP} friendship) and swap numbers when you talk to them.`));
+    root.append(h('p', {}, 'No contacts yet. Every kid you meet gives you their number: walk up to someone and say hi (E).'));
     return;
   }
   const table = h('table', { class: 'list' }, h('tr', {}, h('th', {}, ''), h('th', {}, 'Kid'), h('th', {}, 'Friendship'), h('th', {}, 'Team'), h('th', {}, '')));
@@ -398,7 +399,7 @@ function contactsTab(game, root, redraw, close) {
 
 // ---------------------------------------------------------------- social --
 /** Social: every kid you meet adds you. Profiles show where friends are checked in right now. */
-function socialApp(game, root, redraw) {
+function socialApp(game, root, redraw, close) {
   const s = game.state;
   game._socialView = game._socialView || 'friends';
   const views = [['friends', 'Friends'], ['feed', 'Feed']];
@@ -440,7 +441,7 @@ function socialApp(game, root, redraw) {
   for (const k of list) {
     const ks = s.kids[k.id];
     const c = kidCheckIn(s, k);
-    root.appendChild(h('div', { class: 'friend click', onclick: () => notebookEntry(game, k.id) }, portrait(k, 30),
+    root.appendChild(h('div', { class: 'friend click', onclick: () => notebookEntry(game, k.id, close) }, portrait(k, 30),
       h('div', { style: { flex: 1 } }, h('b', {}, shortName(k), ks.remembered ? h('span', { class: 'remembered', title: 'Remembered from a past run' }, ' 🧠') : null, !ks.met ? h('span', { class: 'muted' }, ' (not met)') : null), h('div', { class: 'muted' }, `Grade ${kidGrade(s, k.id)} · ${s.team.roster.includes(k.id) ? '★ Your team' : s.team.invites.includes(k.id) ? '✉ Invited' : ks.team || 'Free agent'}`),
         h('div', { class: 'checkin' }, c ? `📍 ${c.name}` : '📍 Location hidden')),
       h('div', { class: 'row' }, h('div', { class: 'bar', style: { width: '50px' } }, h('i', { style: { width: `${ks.f}%` } })))));
@@ -448,49 +449,73 @@ function socialApp(game, root, redraw) {
   if (!list.length) root.append(h('p', {}, 'Nobody here yet.'));
 }
 
-function notebookEntry(game, id) {
+function notebookEntry(game, id, closePhone = null) {
   const s = game.state;
   const k = KID_BY_ID.get(id);
   const ks = s.kids[id];
-  const routine = ks.known.length ? ks.known.map((slot) => describeSlot(k, slot, kidGrade(s, id))).filter(Boolean).map((txt) => h('div', {}, `📍 ${txt}`)) : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (good chats reveal it) or hang out to learn it.')];
+  const g = kidGrade(s, id);
+  const named = knowsName(ks);
+  const likes = ks.f >= 30 || ks.knowLikes;
+  const traitN = Math.max(ks.f >= 65 ? 2 : ks.f >= 45 ? 1 : 0, ks.knowTraits || 0);
   const hook = ks.hookAsked ? parseHook(k) : null;
-  const body = h('div', {},
-    h('div', { class: 'row' }, portrait(k, 80), h('div', {}, h('b', { style: { fontSize: '20px' } }, kidName(k)), h('div', { class: 'muted' }, `${k.personality}. Lives in ${k.residence.neighborhood} (${k.residence.address}). ${k.routine.school}${sectionOf(k, kidGrade(s, id)) != null && kidGrade(s, id) === playerGrade(s) ? (() => { const n = sharedClasses(s, id); return n ? `, in ${n} of your classes` : ', in none of your classes'; })() : ''}.`),
-      h('div', {}, `Friendship: ${friendshipLabel(ks.f)} (${ks.f})`))),
-    h('p', { class: 'checkin big' }, (() => { const c = kidCheckIn(s, k); return c ? `📍 Checked in at ${c.name}${c.zone && c.loc !== 'school' ? ` (${c.zone})` : ''}` : '📍 Location hidden (learn their routine for this time of day to see it)'; })()),
-    h('h3', { style: { margin: '10px 0 4px' } }, 'Routine'), ...routine,
-    ks.f >= 30 ? h('p', {}, `❤️ Likes: ${k.likes.join(', ')}`) : h('p', { class: 'muted' }, 'Get friendlier to learn what they like.'),
-    ks.f >= 45 ? h('p', {}, `🧩 Traits: ${k.traits.slice(0, ks.f >= 65 ? 2 : 1).join(', ')}`) : null,
-    hook ? h('p', {}, `🤔 What it takes: ${hook.label}${ks.hook ? ' ✅ DONE' : ''}`) : null,
-    ks.team && ks.team !== s.team.name ? h('p', {}, `🛡️ Plays for the ${ks.team}${k.recruitment.status === 'On Rival Team (Loyal)' ? ' (very loyal)' : ''}`) : null,
-    h('h3', { style: { margin: '10px 0 4px' } }, 'Stats seen at tryouts'),
-    ks.remembered ? h('p', { class: 'muted' }, '🧠 Some of this is remembered from a past run. Their stats are the same; they just don\'t know you yet.') : null,
-    statGrid(s, id),
-    s.team.staff.scout ? h('p', {}, `🔭 ${scoutLine(s, k)}`) : null);
-  modal({ title: 'Profile', body, wide: true });
+  const c = kidCheckIn(s, k);
+  const color = OUTFIT[k.looks.favorite_color] || '#8e6ce6';
+  const handle = `@${(k.nickname || k.first_name).toLowerCase().replace(/[^a-z0-9]/g, '')}${k.last_name.toLowerCase().slice(0, 3)}`;
+  const teamLine = s.team.roster.includes(id) ? `★ ${s.team.name}` : s.team.invites.includes(id) ? '✉ Invited to your team' : ks.team || 'Free agent';
+  const shared = sectionOf(k, g) != null && g === playerGrade(s) ? sharedClasses(s, id) : null;
+  let m = null;
+  const call = () => {
+    const r = callCheck(s, id);
+    if (!r.ok) { sfx('bad'); toast(r.text, 'bad'); return; }
+    sfx('click'); logCall(s, id);
+    if (m) m.close();
+    if (closePhone) closePhone();
+    openTalk(game, id, { phone: true, line: `Hello? Oh hi ${s.player.name}!` });
+  };
+  const section = (title, ...kids) => h('div', { class: 'pf-card' }, h('h4', {}, title), ...kids);
+  const routine = ks.known.length ? ks.known.map((slot) => describeSlot(k, slot, g)).filter(Boolean).map((txt) => h('div', { class: 'pf-line' }, `📍 ${txt}`))
+    : [h('div', { class: 'muted' }, 'You don\'t know their routine yet. Chat with them (good chats reveal it) or hang out to learn it.')];
+  const body = h('div', { class: 'profile' },
+    h('div', { class: 'pf-cover', style: { background: `linear-gradient(135deg, ${color}, #8e6ce6 70%, #ff7eb6)` } }),
+    h('div', { class: 'pf-head' },
+      h('div', { class: 'pf-avatar' }, portrait(k, 96)),
+      h('div', { class: 'pf-actions' },
+        hasNumber(ks) ? btn('📞 Call', call, 'small green') : h('span', { class: 'pill' }, 'Say hi in person to get their number'),
+        s.team.roster.includes(id) ? h('span', { class: 'pill good' }, '★ Teammate') : null)),
+    h('div', { class: 'pf-id' },
+      h('div', { class: 'pf-name' }, named ? kidName(k) : '???', ks.remembered ? h('span', { class: 'pf-badge', title: 'You remember them from a past run' }, '🧠') : null),
+      h('div', { class: 'pf-handle' }, named ? handle : '@????'),
+      h('div', { class: 'pf-bio' }, `${k.personality} · ${k.routine.school}${shared != null ? (shared ? ` · in ${shared} of your classes` : '') : ''}`),
+      h('div', { class: 'pf-meta' }, `🏠 ${k.residence.neighborhood}`, h('span', {}, `🛡️ ${teamLine}`))),
+    h('div', { class: 'pf-counts' },
+      h('div', {}, h('b', {}, ks.f), h('span', {}, friendshipLabel(ks.f))),
+      h('div', {}, h('b', {}, g), h('span', {}, 'Grade')),
+      h('div', {}, h('b', {}, Object.keys(ks.rev).length), h('span', {}, 'Stats known'))),
+    h('div', { class: `pf-checkin ${c ? '' : 'off'}` }, c ? `📍 Checked in at ${c.name}${c.zone && c.loc !== 'school' ? ` (${c.zone})` : ''}` : '📍 Location hidden (learn their routine for this time of day)'),
+    ks.remembered && !ks.met ? h('div', { class: 'pf-note' }, '🧠 You remember them from a past run, but they don\'t know you yet. Say hi!') : null,
+    section('Likes', likes ? h('div', { class: 'pf-tags' }, ...k.likes.map((x) => h('span', { class: 'pf-tag' }, x))) : h('div', { class: 'muted' }, 'Get friendlier to learn what they like.')),
+    traitN ? section('Traits', h('div', { class: 'pf-tags' }, ...k.traits.slice(0, traitN).map((x) => h('span', { class: 'pf-tag trait' }, x)))) : null,
+    hook ? section('What it takes to recruit them', h('div', {}, `🤔 ${hook.label}${ks.hook ? ' ✅ DONE' : ''}`)) : null,
+    section('Routine', ...routine),
+    section('Stats seen at tryouts', statGrid(s, id), s.team.staff.scout ? h('p', {}, `🔭 ${scoutLine(s, k)}`) : null));
+  m = modal({ title: '', body, wide: true });
+  m.el.classList.add('profile-modal');
 }
 
-/** Settings: remember kids and their stats across runs. */
+/** Settings: carry what you know about the kids into your next run. */
 function knowledgeBox(game, redraw) {
   const s = game.state;
-  recordKnowledge(s);
   const on = knowledgeOn();
-  const sum = knowledgeSummary();
+  const sum = knowledgeSummary(s);
   return h('div', { class: 'box' }, h('h3', {}, '🧠 Knowledge from past runs'),
     h('label', { class: 'switch-row' },
-      h('input', { type: 'checkbox', checked: on, onchange: (e) => {
-        setKnowledgeOn(e.target.checked);
-        if (e.target.checked) { const n = applyKnowledge(s); toast(n ? `Remembered ${n} kid${n === 1 ? '' : 's'} from past runs.` : 'Knowledge on. New games start with what you\'ve learned.', 'good'); }
-        redraw();
-      } }),
-      h('span', { class: 'switch' }), h('b', {}, 'Remember kids I\'ve scouted')),
+      h('input', { type: 'checkbox', checked: on, onchange: (e) => { setKnowledgeOn(e.target.checked); sfx('click'); redraw(); } }),
+      h('span', { class: 'switch' }), h('b', {}, 'Remember the kids from a past run')),
     h('p', { class: 'muted' }, on
-      ? 'On: new games start with every stat and routine you\'ve learned in any save. Kids won\'t remember you, so friendships still start over.'
-      : 'Off: new games start with a blank notebook. (Everything you learn is still remembered in case you turn this back on.)'),
-    h('p', {}, sum.kids ? `Remembered: ${sum.kids} kids · ${sum.stats} stats (${sum.exact} exact) · ${sum.routines} routine spots.` : 'Nothing remembered yet. Scout kids at tryouts and learn their routines.'),
-    sum.kids ? btn('Forget everything', () => {
-      modal({ title: 'Forget all past knowledge?', body: 'This wipes what\'s remembered across runs, and takes remembered facts out of this game. Anything you learned yourself in this game stays.', buttons: [{ label: 'Forget it all', cls: 'red', onClick: () => { forgetKnowledge(s); toast('Knowledge wiped.'); redraw(); } }, { label: 'Cancel', cls: 'white' }] });
-    }, 'small white') : null);
+      ? 'On: when you start a New Game, pick one of your saves to remember. The new run replaces that save, and you start out knowing every kid you knew there: names, stats, routines, likes and traits. Kids won\'t remember you, so friendships start over.'
+      : 'Off: new games start with a blank notebook.'),
+    h('p', {}, `This run knows ${sum.named} kids by name, ${sum.stats} stats (${sum.exact} exact) and ${sum.routines} routine spots.`),
+    s.legacy ? h('p', { class: 'muted' }, `🧠 Started with what ${s.legacy.from} knew about ${s.legacy.kids} kids.`) : null);
 }
 
 // ----------------------------------------------------------- field & staff --
@@ -776,7 +801,7 @@ function callsApp(game, root, redraw, close) {
   root.append(h('h3', {}, 'Favorites'),
     h('div', { class: 'row', style: { flexWrap: 'wrap', marginBottom: '8px' } }, ...family.map(([who, line]) => btn(`📞 ${who}`, () => { sfx('click'); modal({ title: `Calling ${who}...`, body: `"${line}"` }); }, 'small white'))),
     h('h3', {}, 'Recent calls'));
-  if (!recent.length) root.append(h('p', { class: 'muted' }, 'No calls yet. Swap numbers with friends, then call them from Contacts or here.'));
+  if (!recent.length) root.append(h('p', { class: 'muted' }, 'No calls yet. Call any kid you\'ve met from Contacts or their Social profile.'));
   for (const c of recent) {
     const k = KID_BY_ID.get(c.id);
     if (!k) continue;

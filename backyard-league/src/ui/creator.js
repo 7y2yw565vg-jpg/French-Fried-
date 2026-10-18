@@ -205,26 +205,40 @@ function slotPicker(title, text, verb, onPick, onBack) {
       h('div', { class: 'btn-row' }, btn('← Back', onBack, 'white')))));
 }
 
-/** New game: start with what you learned about kids in past runs? (A saved setting.) */
-function knowledgeRow() {
-  const sum = knowledgeSummary();
-  const note = h('div', { class: 'muted' });
-  const draw = (on) => {
-    note.textContent = !sum.kids ? 'Nothing learned yet. Kids you scout in any game are remembered for next time.'
-      : on ? `You'll start knowing ${sum.stats} stats on ${sum.kids} kids from past runs. (They won't remember you.)` : `Starting fresh. (${sum.kids} kids stay remembered for later.)`;
+/**
+ * New game: carry what you knew about the kids from one of your saved runs?
+ * The new run takes over (overwrites) that save. Sets cfg.legacySlot.
+ */
+function knowledgeRow(cfg) {
+  const saves = listSlots().filter((x) => x.state).map((x) => ({ ...x, sum: knowledgeSummary(x.state) }))
+    .sort((a, b) => (b.state.savedAt || 0) - (a.state.savedAt || 0));
+  const box = h('div', {});
+  const draw = () => {
+    clear(box);
+    const on = knowledgeOn();
+    if (!on || !saves.length) cfg.legacySlot = null;
+    else if (cfg.legacySlot == null || !saves.some((x) => x.slot === cfg.legacySlot)) cfg.legacySlot = (saves.find((x) => x.sum.kids) || saves[0]).slot;
+    box.append(h('label', { class: 'switch-row' },
+      h('input', { type: 'checkbox', checked: on, onchange: (e) => { setKnowledgeOn(e.target.checked); sfx('click'); draw(); } }),
+      h('span', { class: 'switch' }), h('b', {}, '🧠 Remember the kids from a past run')));
+    if (!on) { box.append(h('div', { class: 'muted' }, 'Starting fresh: you won\'t know anybody.')); return; }
+    if (!saves.length) { box.append(h('div', { class: 'muted' }, 'No saved runs yet. Next time, you can carry over everything you learned about the kids.')); return; }
+    box.append(h('div', { class: 'muted' }, 'Pick the run to remember. Your new game REPLACES that save. You\'ll know every kid you knew there (names, stats, routines, likes), but they won\'t remember you.'),
+      h('div', { class: 'legacy-list' }, ...saves.map(({ slot, state, sum }) => h('div', { class: `legacy-card ${cfg.legacySlot === slot ? 'sel' : ''}`, onclick: () => { cfg.legacySlot = slot; sfx('click'); draw(); } },
+        h('b', {}, `Slot ${slot + 1}: ${state.player?.name || 'Rookie'} · ${state.team.name}`),
+        h('div', { class: 'muted' }, `Grade ${playerGrade(state)}, day ${state.time.day}`),
+        h('div', {}, sum.kids ? `🧠 ${sum.named} names · ${sum.stats} stats (${sum.exact} exact) · ${sum.routines} routine spots` : 'Knew nobody yet'),
+        cfg.legacySlot === slot ? h('div', { class: 'legacy-warn' }, '⚠️ This save will be overwritten') : null))));
   };
-  draw(knowledgeOn());
-  return h('div', { class: 'field-row' }, h('label', {}, 'Past runs'),
-    h('div', {}, h('label', { class: 'switch-row' },
-      h('input', { type: 'checkbox', checked: knowledgeOn(), onchange: (e) => { setKnowledgeOn(e.target.checked); draw(e.target.checked); sfx('click'); } }),
-      h('span', { class: 'switch' }), h('b', {}, '🧠 Remember kids I\'ve scouted')), note));
+  draw();
+  return h('div', { class: 'field-row' }, h('label', {}, 'Past runs'), box);
 }
 
-export function showCreator(engine, onDone) {
+export function showCreator(engine, onDone, slot = null) {
   const look = { skin: 'tan', hairStyle: 'spiky', hairColor: 'brown', eyeColor: 'brown', build: 'average', accessories: [], shirt: 'red', top: 'tee', bottom: 'jeans', pants: 'denim', shoes: 'sneakers', shoeColor: 'white' };
   let hatPick = 'none'; let sigPick = 'none';
   const syncAcc = () => { look.accessories = [hatPick, sigPick].filter((v) => v !== 'none'); };
-  const cfg = { name: '', perk: 'none', statPoints: Object.fromEntries(STAT_CODES.map((c) => [c, 0])), hood: 'maple', sport: 'soccer', teamName: randomTeamName(), colors: ['#e63946', '#ffffff'] };
+  const cfg = { legacySlot: slot, name: '', perk: 'none', statPoints: Object.fromEntries(STAT_CODES.map((c) => [c, 0])), hood: 'maple', sport: 'soccer', teamName: randomTeamName(), colors: ['#e63946', '#ffffff'] };
 
   // preview world: a little grass platform
   const group = new THREE.Group();
@@ -373,15 +387,21 @@ export function showCreator(engine, onDone) {
         h('div', { class: 'field-row' }, h('label', {}, 'Team name'), h('div', { class: 'row' }, teamIn, btn('Random', () => { teamIn.value = randomTeamName(); }, 'small white'))),
         h('div', { class: 'field-row' }, h('label', {}, 'Main color'), colorRow(0)),
         h('div', { class: 'field-row' }, h('label', {}, 'Second color'), colorRow(1)),
-        knowledgeRow(),
+        knowledgeRow(cfg),
         h('div', { class: 'btn-row', style: { marginTop: '16px' } },
           btn("Let's go!", () => {
             cfg.name = nameIn.value.trim() || 'Rookie';
             cfg.teamName = teamIn.value.trim() || randomTeamName();
-            engine.follow();
-            engine.setPreviewMode(false);
-            engine.setViewCenter(null);
-            onDone({ ...cfg, statPoints: { ...cfg.statPoints }, look: { ...look } });
+            const go = () => {
+              engine.follow();
+              engine.setPreviewMode(false);
+              engine.setViewCenter(null);
+              onDone({ ...cfg, statPoints: { ...cfg.statPoints }, look: { ...look } });
+            };
+            const old = knowledgeOn() && cfg.legacySlot != null ? listSlots()[cfg.legacySlot].state : null;
+            if (!old) { cfg.legacySlot = null; go(); return; }
+            modal({ title: `Replace slot ${cfg.legacySlot + 1}?`, body: `${old.player?.name || 'That'}'s game with the ${old.team.name} will be overwritten by your new run. Everything you knew about the kids comes with you.`,
+              buttons: [{ label: 'Replace it and start', cls: 'red', onClick: go }, { label: 'Cancel', cls: 'white' }] });
           }, 'big green')),
       ),
       preview,

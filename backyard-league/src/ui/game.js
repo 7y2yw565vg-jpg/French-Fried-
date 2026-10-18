@@ -1,5 +1,6 @@
 // The game controller: owns the save state, the current location, the clock,
 // kid presence/streaming, school periods, and routes interactions to UI modules.
+import { knowsName } from '../game/knowledge.js';
 import * as THREE from 'three';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { LOCATIONS, NEIGHBORHOODS, HOOD_BY_NAME, TEACHERS, ADULTS, SPORTS, roomNumber } from '../data/world.js';
@@ -249,7 +250,7 @@ export class Game {
   tagFor(kid) {
     const s = this.state;
     const ks = s.kids[kid.id];
-    let t = ks.met ? kid.first_name : '?';
+    let t = knowsName(ks) ? kid.first_name : '?';
     if (s.team.roster.includes(kid.id)) t = `★ ${t}`;
     else if (s.team.invites.includes(kid.id)) t = `✉ ${t}`;
     if (s.tasks.some((x) => x.kidId === kid.id) || (ks.favor && ks.favor.done)) t += ' !';
@@ -278,7 +279,7 @@ export class Game {
       const grade = playerGrade(this.state) + (spec.kid.grade_at_start - 3);
       const npc = e.addNPC({
         id: spec.id, look: lookFromKid(spec.kid, grade, heightOf(this.state, spec.id)), uniform: spec.uniform,
-        tag: t, tagColor: color, x: spec.x, z: spec.z, rot: spec.rot, mode: spec.mode, area: spec.area, interact: `Talk to ${this.state.kids[spec.id].met ? spec.kid.first_name : 'this kid'}`,
+        tag: t, tagColor: color, x: spec.x, z: spec.z, rot: spec.rot, mode: spec.mode, area: spec.area, interact: `Talk to ${knowsName(this.state.kids[spec.id]) ? spec.kid.first_name : 'this kid'}`,
       });
       npc.specKey = `${spec.zone}|${spec.activity}`;
       if (spec.run) npc.animSpeed = 1.4;

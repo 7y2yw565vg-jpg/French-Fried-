@@ -11,7 +11,7 @@ import { CORE_SUBJECTS, SUBJECT_TEACHERS } from '../src/data/world.js';
 import { simulateMatch } from '../src/game/sim.js';
 import { askParents, askChance, buy, recycleCans, lemonadeBuyChance, weatherFor, doChore, PITCH_ROUNDS } from '../src/game/economy.js';
 import { makeQuiz, seatChart, classmates, weeklyGradeCheck, passNote } from '../src/game/school.js';
-import { chat, inviteCheck, invite, parseHook, inviteHangout, doHangout, exchangeNumbers, canExchangeNumbers, callCheck, routineKey, PHONE_FRIENDSHIP } from '../src/game/social.js';
+import { chat, inviteCheck, invite, parseHook, inviteHangout, doHangout, callCheck, routineKey, hasNumber } from '../src/game/social.js';
 import { bestLineup, registrationChecklist, register, signKid, runDrill, attraction, buySetup, homeGameRevenue, setPrice, isRegistered } from '../src/game/team.js';
 import { ensureSeason, matchSide, standings, finalizeSchedule } from '../src/game/league.js';
 import { sleep, advance } from '../src/game/clock.js';
@@ -166,10 +166,10 @@ test('social: hangouts beat chats but can fail; numbers unlock at Friends', () =
   const before = s.kids[kid.id].f;
   const h = doHangout(s, kid.id);
   assert.ok(h.gained >= 10 && s.kids[kid.id].f > before + 9);
-  s.kids[kid.id].f = PHONE_FRIENDSHIP - 1;
-  assert.equal(canExchangeNumbers(s, kid.id), false);
-  s.kids[kid.id].f = PHONE_FRIENDSHIP;
-  assert.ok(exchangeNumbers(s, kid.id));
+  assert.ok(hasNumber(s.kids[kid.id]), 'meeting a kid gets you their number');
+  const stranger = KIDS.find((k) => !s.kids[k.id].met).id;
+  s.time.minute = 16 * 60;
+  assert.equal(callCheck(s, stranger).ok, false, 'no number for kids you have not met');
   s.time.day = 1; s.time.minute = 10 * 60;
   assert.equal(callCheck(s, kid.id).ok, false); // school hours
   s.time.minute = 16 * 60;
@@ -690,28 +690,25 @@ test('stat relevance: each sport highlights the skills its positions use', async
   }
 });
 
-test('knowledge: scouted stats and routines carry into new games when the toggle is on', async () => {
+test('knowledge: a new run inherits everything a past save knew about the kids', async () => {
   const K = await import('../src/game/knowledge.js');
-  const mem = new Map();
-  const storage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
-  assert.equal(K.knowledgeOn(storage), true, 'on by default');
-  const a = newGame(opts('soccer'));
-  const id = KIDS[0].id; const id2 = KIDS[1].id;
-  a.kids[id].rev = { SPD: 'exact', STR: 'range' };
-  a.kids[id2].known = ['lunch'];
-  K.recordKnowledge(a, storage);
-  assert.deepEqual(K.knowledgeSummary(storage), { kids: 2, stats: 2, exact: 1, routines: 1 });
-  const b = newGame(opts('basketball'));
-  b.kids[id].rev = { STR: 'exact' }; // already learned in this run
-  assert.equal(K.applyKnowledge(b, storage), 2);
-  assert.deepEqual(b.kids[id].rev, { SPD: 'exact', STR: 'exact' }, 'exact beats range');
-  assert.ok(b.kids[id2].known.includes('lunch'));
-  assert.equal(b.kids[id].met, false, 'kids still have to meet you');
-  // Forgetting takes the remembered facts back out but keeps this run's own learning.
-  K.forgetKnowledge(b, storage);
-  assert.deepEqual(b.kids[id].rev, { STR: 'exact' });
-  assert.equal(b.kids[id2].known.length, 0);
-  assert.equal(K.knowledgeSummary(storage).kids, 0);
-  K.setKnowledgeOn(false, storage);
-  assert.equal(K.knowledgeOn(storage), false);
+  const old = newGame(opts('soccer'));
+  const [a, b, c] = KIDS.slice(0, 3).map((k) => k.id);
+  old.kids[a].met = true; old.kids[a].f = 70; old.kids[a].rev = { SPD: 'exact', STR: 'range' }; old.kids[a].known = ['lunch']; old.kids[a].hookAsked = true;
+  old.kids[b].rev = { AGI: 'range' }; // scouted at tryouts, never met
+  assert.deepEqual(K.knowledgeSummary(old), { kids: 2, named: 1, stats: 3, exact: 1, routines: 1 });
+  const fresh = newGame(opts('basketball'));
+  fresh.kids[a].rev = { STR: 'exact' };
+  assert.equal(K.applyKnowledge(fresh, deserialize(serialize(old))), 2);
+  const ka = fresh.kids[a];
+  assert.deepEqual(ka.rev, { SPD: 'exact', STR: 'exact' }, 'exact beats range');
+  assert.ok(K.knowsName(ka) && !ka.met, 'you know their name; they have not met you');
+  assert.ok(ka.known.includes('lunch') && ka.knowLikes && ka.knowTraits === 2 && ka.hookAsked);
+  assert.equal(ka.f, KIDS[0].recruitment.starting_friendship, 'friendship starts over');
+  assert.ok(!K.knowsName(fresh.kids[b]) && fresh.kids[b].rev.AGI === 'range');
+  assert.equal(fresh.kids[c].remembered, undefined);
+  // Knowledge chains: a third run remembers what the second inherited.
+  const third = newGame(opts('soccer'));
+  K.applyKnowledge(third, fresh);
+  assert.ok(K.knowsName(third.kids[a]) && third.kids[a].knowTraits === 2);
 });

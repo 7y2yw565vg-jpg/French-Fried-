@@ -1,5 +1,6 @@
 // Sitting in class: pay attention, pass notes, whisper, switch seats, hall pass,
 // sneak out, dares from troublemakers, and quizzes.
+import { knowsName } from '../game/knowledge.js';
 import { $, h, clear, btn, modal, toast } from './dom.js';
 import { KID_BY_ID, shortName } from '../data/kids.js';
 import { TEACHERS, roomNumber } from '../data/world.js';
@@ -123,7 +124,7 @@ function seatPicker(game, title, onPick, filter = () => true) {
     if (id === 'PLAYER') { grid.appendChild(h('div', { class: 'seat me' }, 'YOU')); return; }
     const k = KID_BY_ID.get(id);
     const ok = filter(i, id);
-    grid.appendChild(h('div', { class: `seat ${ok ? '' : 'empty'}`, onclick: () => { if (!ok) return; m.close(); onPick(id, i); } }, s.kids[id].met ? k.first_name : '???', h('br'), `♥${s.kids[id].f}`));
+    grid.appendChild(h('div', { class: `seat ${ok ? '' : 'empty'}`, onclick: () => { if (!ok) return; m.close(); onPick(id, i); } }, knowsName(s.kids[id]) ? k.first_name : '???', h('br'), `♥${s.kids[id].f}`));
   });
   m = modal({ title, body: h('div', {}, h('p', { class: 'muted' }, 'Front of the room (the board) is at the top.'), grid), buttons: [{ label: 'Never mind', cls: 'white' }] });
 }
@@ -133,7 +134,7 @@ function noteFlow(game) {
   if (s.school.notesToday >= 3) { toast('Your teacher is eyeing you. Too many notes today!', 'bad'); return; }
   seatPicker(game, 'Pass a note to...', (id) => {
     const k = KID_BY_ID.get(id);
-    modal({ title: `Note to ${s.kids[id].met ? k.first_name : 'the new kid'}`, body: 'What does it say?', buttons: [
+    modal({ title: `Note to ${knowsName(s.kids[id]) ? k.first_name : 'the new kid'}`, body: 'What does it say?', buttons: [
       { label: '"Wanna join my team?"', cls: 'green', onClick: () => sendNote(game, id, 'join') },
       { label: '"Hang out after school?"', cls: 'blue', onClick: () => sendNote(game, id, 'hang') },
       { label: '"You\'re cool :)"', cls: 'white', onClick: () => sendNote(game, id, 'nice') },

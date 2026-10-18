@@ -1,5 +1,4 @@
 // Save state: creation, lookups, persistence.
-import { recordKnowledge } from './knowledge.js';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { SPORTS, UPGRADE_IDS, STAT_CODES, GEAR, GEAR_IDS, STAT_MAX, PLAYER_BASE_STAT } from '../data/world.js';
 import { kidGradeNow, kidStats, kidHeight } from './stats.js';
@@ -189,7 +188,6 @@ export function saveToStorage(state, storage = globalThis.localStorage) {
     state.slot = slot;
     state.savedAt = Date.now();
     storage.setItem(slotKey(slot), serialize(state));
-    recordKnowledge(state, storage); // remembered across runs
     return true;
   } catch { return false; }
 }

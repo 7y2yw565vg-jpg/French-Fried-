@@ -562,3 +562,37 @@ html, body { touch-action: manipulation; overscroll-behavior: none; }
 .switch-row input:checked + .switch { background: #57cc99; }
 .switch-row input:checked + .switch::after { transform: translateX(20px); }
 .switch-row input:focus-visible + .switch { outline: 3px solid #3a86ff; outline-offset: 2px; }
+.legacy-list { display: grid; gap: 8px; margin-top: 8px; }
+.legacy-card { border: 3px solid var(--ink); border-radius: 14px; padding: 8px 12px; background: #fff; cursor: pointer; }
+.legacy-card.sel { background: #fff3b0; box-shadow: 0 3px 0 var(--ink); }
+.legacy-warn { color: #c9184a; font-weight: 900; margin-top: 2px; }
+/* Social profile page */
+.modal-card.profile-modal { padding: 0; overflow: hidden; max-width: 560px; }
+.modal-card.profile-modal > h2:empty { display: none; }
+.modal-card.profile-modal .body { max-height: calc(100vh - 140px); overflow: auto; }
+.modal-card.profile-modal .btn-row { padding: 0 16px 14px; }
+.profile { background: #f6f3ee; padding-bottom: 6px; }
+.pf-cover { height: 110px; }
+.pf-head { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px; margin-top: -48px; }
+.pf-avatar canvas { width: 96px !important; height: 96px !important; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.2); display: block; background: #fff; }
+.pf-actions { display: flex; gap: 6px; align-items: center; padding-bottom: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.pf-id { padding: 8px 16px 4px; }
+.pf-name { font-family: var(--font-display, 'Lilita One'), sans-serif; font-size: 26px; line-height: 1.1; display: flex; align-items: center; gap: 6px; }
+.pf-badge { font-size: 18px; }
+.pf-handle { color: #7a6f86; font-weight: 800; font-size: 14px; }
+.pf-bio { margin-top: 6px; font-size: 15px; }
+.pf-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; color: #5d5468; font-size: 13px; font-weight: 800; }
+.pf-counts { display: grid; grid-template-columns: repeat(3, 1fr); margin: 10px 16px; background: #fff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.pf-counts > div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; }
+.pf-counts > div + div { border-left: 1px solid #eee5d8; }
+.pf-counts b { font-size: 22px; font-family: var(--font-display, 'Lilita One'), sans-serif; }
+.pf-counts span { font-size: 12px; color: #7a6f86; font-weight: 800; }
+.pf-checkin { margin: 0 16px 8px; padding: 8px 12px; border-radius: 12px; background: #ece6ff; color: #5b3fc4; font-weight: 900; font-size: 14px; }
+.pf-checkin.off { background: #efebe4; color: #8a8076; }
+.pf-note { margin: 0 16px 8px; padding: 8px 12px; border-radius: 12px; background: #fff3b0; font-weight: 800; font-size: 13px; }
+.pf-card { margin: 8px 16px; padding: 10px 12px; background: #fff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.pf-card h4 { margin: 0 0 6px; font-size: 15px; }
+.pf-line { padding: 2px 0; }
+.pf-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pf-tag { background: #ffe1ef; color: #b0306a; border-radius: 99px; padding: 3px 10px; font-weight: 800; font-size: 13px; }
+.pf-tag.trait { background: #dff3ff; color: #1d5f99; }

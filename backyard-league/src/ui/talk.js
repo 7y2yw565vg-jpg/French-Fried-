@@ -1,9 +1,10 @@
 // Conversations with kids (and the grown-ups).
+import { knowsName } from '../game/knowledge.js';
 import { $, h, clear, btn, toast, modal, money } from './dom.js';
 import { KID_BY_ID, kidName } from '../data/kids.js';
 import { ITEMS, STAFF_ROLES, ADULTS, SPORTS } from '../data/world.js';
 import { SKIN, HAIR, OUTFIT } from '../world3d/toon.js';
-import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, inviteHangout, doHangout, canExchangeNumbers, exchangeNumbers, PHONE_FRIENDSHIP } from '../game/social.js';
+import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, inviteHangout, doHangout, hasNumber } from '../game/social.js';
 import { formatTime } from '../game/time.js';
 import { kidGrade, addLog } from '../game/state.js';
 import { attraction, kidSchoolAverage, isRegistered } from '../game/team.js';
@@ -82,7 +83,7 @@ export function openTalk(game, id, opts = {}) {
   const firstMeet = !ks.met;
   let line = '';
   if (opts.line) line = opts.line;
-  else if (firstMeet) { ks.met = true; addFriendship(s, id, 2); line = say(s, kid, 'greet'); toast(`💬 ${kid.first_name} added you on Social!`, 'good'); } // introductions; chatting is still open
+  else if (firstMeet) { ks.met = true; addFriendship(s, id, 2); line = say(s, kid, 'greet'); toast(`💬 ${kid.first_name} added you on Social and gave you their number!`, 'good'); } // introductions; chatting is still open
   else line = say(s, kid, 'greet');
   render(game, id, line, opts);
 }
@@ -99,11 +100,10 @@ function statusPills(game, kid) {
   else if (ks.team) pills.push(h('span', { class: 'pill warn' }, `Plays for ${ks.team}`));
   else if (kid.recruitment.status === 'Not Into Sports (Yet)') pills.push(h('span', { class: 'pill' }, 'Not into sports'));
   else pills.push(h('span', { class: 'pill good' }, 'Free agent'));
-  if (ks.phone) pills.push(h('span', { class: 'pill good' }, '📱 In your contacts'));
-  else if (ks.f >= PHONE_FRIENDSHIP - 15) pills.push(h('span', { class: 'pill' }, `📱 Swap numbers at ${PHONE_FRIENDSHIP} friendship`));
-  if (ks.f >= 30) pills.push(h('span', { class: 'pill' }, `Likes: ${kid.likes.join(', ')}`));
-  if (ks.f >= 45) pills.push(h('span', { class: 'pill' }, kid.traits[0]));
-  if (ks.f >= 65) pills.push(h('span', { class: 'pill' }, kid.traits[1]));
+  if (hasNumber(ks)) pills.push(h('span', { class: 'pill good' }, '📱 In your contacts'));
+  if (ks.f >= 30 || ks.knowLikes) pills.push(h('span', { class: 'pill' }, `Likes: ${kid.likes.join(', ')}`));
+  if (ks.f >= 45 || ks.knowTraits >= 1) pills.push(h('span', { class: 'pill' }, kid.traits[0]));
+  if (ks.f >= 65 || ks.knowTraits >= 2) pills.push(h('span', { class: 'pill' }, kid.traits[1]));
   if (ks.f >= 25) pills.push(h('span', { class: 'pill' }, `Into ${kid.sport_preferences.join(' & ')}`));
   return pills;
 }
@@ -144,12 +144,6 @@ function render(game, id, line, opts = {}) {
     toast(`+${h1.gained} friendship with ${kid.first_name}`, 'good');
     redo(`${r.text}\n${h1.text}${h1.revealedText ? `\n📒 You learned: ${h1.revealedText}` : ''}`);
   });
-  if (!opts.phone && canExchangeNumbers(s, id)) add('📱 Swap numbers', () => {
-    exchangeNumbers(s, id);
-    sfx('good');
-    toast(`📱 ${kid.first_name} is in your contacts!`, 'good');
-    redo(`Here's my number! Call me anytime. Well, not during school.\n(Find ${kid.first_name} in your phone: 📞 Contacts.)`);
-  }, 'small green');
   if (!opts.whisper && !opts.phone) {
     const gifts = Object.entries(s.inv.items).filter(([iid, n]) => n > 0 && ITEMS[iid] && ITEMS[iid].kind === 'gift');
     add('🎁 Give gift', () => {
@@ -231,7 +225,7 @@ function render(game, id, line, opts = {}) {
     const f = ks.f;
     panel.appendChild(h('div', { class: 'card dialog' },
       h('div', { class: 'who' }, portrait(kid), h('div', {},
-        h('div', { class: 'name' }, ks.met ? kidName(kid) : '???'),
+        h('div', { class: 'name' }, knowsName(ks) ? kidName(kid) : '???'),
         h('div', { class: 'meta' }, `${opts.phone ? '📞 ' : ''}${friendshipLabel(f)} (${f})`),
         h('div', { class: 'bar', style: { width: '100px', margin: '4px auto' } }, h('i', { style: { width: `${f}%` } })))),
       h('div', {}, sayEl, h('div', { style: { marginBottom: '8px' } }, ...statusPills(game, kid)), buttons)));

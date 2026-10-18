@@ -436,7 +436,7 @@ Every grade has its own league (the **Grade 3 League** for third graders, and so
 
 - Kids move up with you or leave for other teams. **Offseason re-signing** is a friendship & attraction check.
 - **Season sign-ups:** once a season's Crest Cup is played, sign-ups open for the next season. Pick one of the sports you haven't played yet this school year (Fall offers all four, including keeping your current team). Entry is free. A new sport means a new team: you start alone and recruit again, while your old teammates become free agents. Or skip ahead to next school year. If a season starts before you pick, you can still sign up until week 11.
-- **Knowledge from past runs:** scouted stats (range or exact) and learned routines are saved outside the save slots. With the toggle on (default), each new game starts with them; friendships and introductions still start over. "Forget everything" wipes the memory and removes remembered-only facts from the current game.
+- **Knowledge from past runs:** with the toggle on, a new game takes over a save slot you pick, and inherits everything that run knew about the kids: names, scouted stats (range or exact), routines, likes and traits seen, and recruit hooks. Friendships and introductions start over. Knowledge chains from run to run.
 - **Stat highlighting:** kid stat cards star the skills that matter most in the current season's sport, bold the ones that matter some, and fade the rest.
 
 ### High School Sanctioning (after 8th grade)

@@ -18,7 +18,7 @@ const GLYPHS = {
   training: `<path fill="${W}" d="M2.5 10h2v4h-2zM5 7.5h3v9H5zM16 7.5h3v9h-3zM19.5 10h2v4h-2z"/><rect x="8" y="10.8" width="8" height="2.4" rx="1" fill="${W}"/>`,
   league: `<path fill="${W}" d="M7 3.5h10v5a5 5 0 0 1-10 0z"/><path fill="none" stroke="${W}" stroke-width="1.8" d="M7 5.5H4.2c0 3 1.2 4.6 3.3 5M17 5.5h2.8c0 3-1.2 4.6-3.3 5"/><path fill="${W}" d="M10.8 13h2.4v3.5h-2.4zM8 16.5h8l1 3.5H7z"/><path fill="#ffd23f" d="M12 5.2l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" opacity=".9"/>`,
   field: `<path fill="${W}" d="M14.7 3.3a5 5 0 0 0-5.5 6.6l-6 6a2 2 0 0 0 2.9 2.9l6-6a5 5 0 0 0 6.6-5.5l-3 3-2.6-.4-.4-2.6z"/><circle cx="5.2" cy="17.8" r="1" fill="#6c7a89"/>`,
-  social: `<path fill="${W}" d="M12 3.5c5.2 0 9 3.3 9 7.4s-3.8 7.4-9 7.4c-1 0-2-.1-2.9-.4L5 19.8l1.1-3.6C4.2 14.9 3 13 3 10.9 3 6.8 6.8 3.5 12 3.5z"/>`,
+  social: `<path fill="${W}" d="M12 20.3l-1.3-1.2C6 14.9 3 12.2 3 8.8 3 6.1 5.1 4 7.8 4c1.5 0 3 .7 4.2 1.9C13.2 4.7 14.7 4 16.2 4 18.9 4 21 6.1 21 8.8c0 3.4-3 6.1-7.7 10.3z"/><path fill="#ff5c8a" opacity=".35" d="M7.6 7.2a2 2 0 0 1 2.3.3l-.9 1a.8.8 0 0 0-1 0z"/>`,
   contacts: `<circle cx="12" cy="12" r="9" fill="${W}"/><circle cx="12" cy="9.6" r="3.3" fill="#7d8597"/><path fill="#7d8597" d="M5.8 18.2c1-3 3.4-4.5 6.2-4.5s5.2 1.5 6.2 4.5A9 9 0 0 1 12 21a9 9 0 0 1-6.2-2.8z"/>`,
   calls: `<path fill="${W}" d="M7.2 3.2c.6-.3 1.3 0 1.6.6l1.7 3.4c.3.6.1 1.2-.4 1.6l-1.5 1.1c.9 2 2.5 3.6 4.5 4.5l1.1-1.5c.4-.5 1-.7 1.6-.4l3.4 1.7c.6.3.9 1 .6 1.6l-.8 2c-.4 1-1.5 1.6-2.6 1.4C9.7 18.1 5.9 14.3 4.8 7.6c-.2-1.1.4-2.2 1.4-2.6z"/>`,
   maps: `<path fill="${W}" d="M3 6l5.5-2 7 2.5L21 4.5v13.5l-5.5 2-7-2.5L3 19.5z" opacity=".95"/><path fill="none" stroke="#3a86ff" stroke-width="1" opacity=".5" d="M8.5 4v13.5M15.5 6.5V20"/><path fill="#ef476f" d="M12 6.5a3.3 3.3 0 0 1 3.3 3.3c0 2.4-3.3 5.9-3.3 5.9s-3.3-3.5-3.3-5.9A3.3 3.3 0 0 1 12 6.5z"/><circle cx="12" cy="9.8" r="1.2" fill="${W}"/>`,
@@ -31,7 +31,7 @@ const GLYPHS = {
 
 const BG = {
   team: ['#ff6b6b', '#c9184a'], training: ['#ffb347', '#f3722c'], league: ['#ffe066', '#f4a100'], field: ['#a7b4c6', '#5c677d'],
-  social: ['#a594ff', '#5f3dc4'], contacts: ['#c9ced6', '#8d96a5'], calls: ['#6ee07a', '#1fa83a'], maps: ['#74b9ff', '#2f6fde'],
+  social: ['#ffb36b', '#ff5c8a', '#c13dc7'], contacts: ['#c9ced6', '#8d96a5'], calls: ['#6ee07a', '#1fa83a'], maps: ['#74b9ff', '#2f6fde'],
   school: ['#ff9aa2', '#e5636b'], bank: ['#52b788', '#1b4332'], backpack: ['#d9915a', '#8c4a17'], diary: ['#e9d8a6', '#b08d57'],
   settings: ['#adb5bd', '#5f676f'],
 };
@@ -42,6 +42,6 @@ export function appGlyph(id) {
 }
 
 export function iconBackground(id) {
-  const [a, b] = BG[id] || ['#999', '#555'];
-  return `linear-gradient(160deg, ${a} 0%, ${b} 100%)`;
+  const stops = BG[id] || ['#999', '#555'];
+  return `linear-gradient(160deg, ${stops.join(', ')})`;
 }

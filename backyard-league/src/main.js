@@ -1,5 +1,6 @@
 // Boot: 3D engine, title screen, creator, then the game.
 import { knowledgeOn, applyKnowledge } from './game/knowledge.js';
+import { loadSlot } from './game/state.js';
 import { Engine } from './world3d/engine.js';
 import { $, clear, modal, closeAllModals } from './ui/dom.js';
 import { showTitle, showCreator, stopTitleBackdrop, showcaseArena } from './ui/creator.js';
@@ -50,12 +51,14 @@ function title() {
   clear($('#hud'));
   $('#prompt').classList.remove('show');
   showTitle(engine, (slot) => showCreator(engine, (cfg) => {
-    const state = newGame({ ...cfg, slot, seed: Math.floor(Math.random() * 2 ** 31) });
-    if (knowledgeOn()) state.rememberedKids = applyKnowledge(state); // what you learned in past runs
+    // Knowledge from a past run: the new game takes over that run's save slot.
+    const legacy = knowledgeOn() && cfg.legacySlot != null ? loadSlot(cfg.legacySlot) : null;
+    const state = newGame({ ...cfg, slot: legacy ? cfg.legacySlot : slot, seed: Math.floor(Math.random() * 2 ** 31) });
+    if (legacy) state.rememberedKids = applyKnowledge(state, legacy);
     ensureSeason(state);
     saveToStorage(state);
     start(state);
-  }), (state) => start(state), current);
+  }, slot), (state) => start(state), current);
 }
 
 function start(state) {

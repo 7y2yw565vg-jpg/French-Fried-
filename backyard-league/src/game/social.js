@@ -189,25 +189,14 @@ export function missHangout(state, id) {
 }
 
 // ------------------------------------------------------ phone numbers ---
-export const PHONE_FRIENDSHIP = 45; // "Friends"
-
-export function canExchangeNumbers(state, id) {
-  const ks = state.kids[id];
-  return !ks.phone && ks.f >= PHONE_FRIENDSHIP;
-}
-
-export function exchangeNumbers(state, id) {
-  if (!canExchangeNumbers(state, id)) return false;
-  state.kids[id].phone = true;
-  addLog(state, `Swapped numbers with ${shortName(KID_BY_ID.get(id))}.`);
-  return true;
-}
+/** Every kid you meet gives you their number (and adds you on Social). */
+export const hasNumber = (ks) => !!(ks && (ks.phone || ks.met));
 
 /** Can you reach a kid on the phone right now? */
 export function callCheck(state, id) {
   const m = state.time.minute;
   const info = dayInfo(state.time.day);
-  if (!state.kids[id].phone) return { ok: false, text: 'You don\'t have their number.' };
+  if (!hasNumber(state.kids[id])) return { ok: false, text: 'You don\'t have their number. Say hi in person first!' };
   if (m >= 21 * 60 || m < 7 * 60) return { ok: false, text: 'It\'s too late to call. Their parents would answer. Grumpily.' };
   if (info.isSchoolDay && m >= 8 * 60 && m < 14 * 60) return { ok: false, text: 'No phones during school! Call after 2:00.' };
   return { ok: true };
