@@ -1,13 +1,13 @@
 // Side jobs: lemonade stand, paper route, lawn mowing.
-import * as THREE from 'three';
+import * as THREE from '../world2d/three2d.js';
 import { $, h, clear, btn, modal, toast, money } from './dom.js';
 import { KIDS } from '../data/kids.js';
 import { weatherFor, lemonadeTaste, lemonadeBuyChance, lemonadeTraffic, sellCup, earn, PAPER_PAY, WINDOW_COST, finishMowing } from '../game/economy.js';
 import { itemCount, addLog } from '../game/state.js';
 import { dayInfo, formatTime } from '../game/time.js';
-import { Builder, signMesh } from '../world3d/toon.js';
-import { lemonadeStand } from '../world3d/props.js';
-import { adultLook, lookFromKid } from '../world3d/kidModel.js';
+import { Builder, signMesh } from '../world2d/build.js';
+import { lemonadeStand } from '../world2d/props.js';
+import { adultLook, lookFromKid } from '../world2d/looks.js';
 import { sfx } from './audio.js';
 
 // ------------------------------------------------------------ lemonade --
@@ -235,22 +235,20 @@ export function startMowing(game, rentedDads) {
   game.mode = 'mow';
   const cell = 0.55;
   const nx = Math.floor(lawn.w / cell); const nz = Math.floor(lawn.d / cell);
-  const geo = new THREE.ConeGeometry(0.16, 0.5, 4);
-  geo.translate(0, 0.25, 0);
-  const mat = new THREE.MeshToonMaterial({ color: '#ffffff' });
-  const grass = new THREE.InstancedMesh(geo, mat, nx * nz);
-  const m4 = new THREE.Matrix4();
-  const col = new THREE.Color();
   const cells = [];
-  let i = 0;
   for (let a = 0; a < nx; a++) for (let b = 0; b < nz; b++) {
     const x = lawn.x - lawn.w / 2 + (a + 0.5) * cell; const z = lawn.z - lawn.d / 2 + (b + 0.5) * cell;
-    cells.push({ x, z, cut: false });
-    m4.makeTranslation(x + (Math.random() - 0.5) * 0.15, 0, z + (Math.random() - 0.5) * 0.15);
-    grass.setMatrixAt(i, m4);
-    grass.setColorAt(i, col.set(Math.random() < 0.5 ? '#3f8f2a' : '#4fa33a'));
-    i++;
+    cells.push({ x, z, cut: false, jx: (Math.random() - 0.5) * 0.15, tone: Math.random() < 0.5 ? '#3f8f2a' : '#4fa33a' });
   }
+  // Tall grass tufts; mowed cells become light/dark stripes.
+  const grass = new THREE.Custom2D({ minX: lawn.x - lawn.w / 2, maxX: lawn.x + lawn.w / 2, minY: 0, maxY: 0.1, minZ: lawn.z - lawn.d / 2, maxZ: lawn.z + lawn.d / 2 }, (ctx, px) => {
+    for (const c of cells) {
+      const X = c.x + c.jx; const Y = c.z * 0.8;
+      if (c.cut) { ctx.fillStyle = (Math.floor((c.x - lawn.x) / 1.1) % 2) ? '#8fd16a' : '#7cc35b'; ctx.fillRect(c.x - cell / 2, Y - cell * 0.4, cell + 0.01, cell * 0.8 + 0.01); continue; }
+      ctx.fillStyle = c.tone; ctx.strokeStyle = 'rgba(30,60,20,0.7)'; ctx.lineWidth = px;
+      ctx.beginPath(); ctx.moveTo(X - 0.16, Y); ctx.lineTo(X - 0.08, Y - 0.42); ctx.lineTo(X, Y - 0.12); ctx.lineTo(X + 0.08, Y - 0.46); ctx.lineTo(X + 0.16, Y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }, true);
   game.desc.group.add(grass);
   const mower = new Builder();
   mower.box(0.7, 0.35, 0.6, rentedDads ? '#e63946' : '#2fa35b', 0, 0.12, 0.8);
@@ -269,16 +267,13 @@ export function startMowing(game, rentedDads) {
     const p = e.playerState;
     const fx = p.x + Math.sin(p.rot) * 0.8; const fz = p.z + Math.cos(p.rot) * 0.8;
     let changed = false;
-    cells.forEach((c, k) => {
+    cells.forEach((c) => {
       if (c.cut) return;
       if (Math.hypot(c.x - fx, c.z - fz) < 0.6 || Math.hypot(c.x - p.x, c.z - p.z) < 0.45) {
         c.cut = true; cutN++; changed = true;
-        m4.makeScale(1, 0.15, 1); m4.setPosition(c.x, 0, c.z);
-        grass.setMatrixAt(k, m4);
-        grass.setColorAt(k, col.set((Math.floor((c.x - lawn.x) / 1.1) % 2) ? '#8fd16a' : '#7cc35b'));
       }
     });
-    if (changed) { grass.instanceMatrix.needsUpdate = true; grass.instanceColor.needsUpdate = true; draw(); if (Math.random() < 0.2) sfx('kick'); }
+    if (changed) { draw(); if (Math.random() < 0.2) sfx('kick'); }
     acc += dt;
     if (acc > 1.2) { acc = 0; game.advance(1); }
     if (cutN >= cells.length) end();

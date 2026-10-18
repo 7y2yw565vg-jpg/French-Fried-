@@ -1,12 +1,11 @@
 // Title screen and character/team creator (with a live 3D preview).
 import { knowledgeOn, setKnowledgeOn, knowledgeSummary } from '../game/knowledge.js';
-import * as THREE from 'three';
+import * as THREE from '../world2d/three2d.js';
 import { h, btn, clear, $, modal } from './dom.js';
-import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world3d/toon.js';
-import { buildArena } from '../world3d/arenas.js';
+import { SKIN, HAIR, EYES, OUTFIT, Builder } from '../world2d/build.js';
+import { buildArena } from '../world2d/arenas.js';
 import { buildLogo } from './logo.js';
-import { buildCharacter, lookFromKid, TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, SHOE_COLORS } from '../world3d/kidModel.js';
-import { HAIR_STYLES } from '../world3d/hair.js';
+import { TOPS, BOTTOMS, PANTS_COLORS, SHOE_TYPES, SHOE_COLORS, HAIR_STYLES } from '../world2d/looks.js';
 import { SPORTS, PERKS, NEIGHBORHOODS, STAT_CODES, STAT_NAMES, STAT_POINTS, STAT_MAX, PLAYER_BASE_STAT } from '../data/world.js';
 import { KIDS } from '../data/kids.js';
 import { loadFromStorage, deserialize, listSlots, deleteSlot, freeSlot, saveToStorage, playerGrade, yearOf } from '../game/state.js';
@@ -243,9 +242,8 @@ export function showCreator(engine, onDone, slot = null) {
   // preview world: a little grass platform
   const group = new THREE.Group();
   const b = new Builder();
-  b.cyl(3, 3, 0.2, '#7cc35b', 0, -0.2, 0);
-  b.cyl(3.1, 3.1, 0.08, '#5aa53f', 0, -0.26, 0);
-  group.add(b.mesh({ outline: 0.03 }));
+  b.box(40, 0.1, 40, '#7cc35b', 0, -0.1, 0, { mat: 'grass' });
+  group.add(b.mesh());
   engine.loadWorld({ group, colliders: [], interact: [], zones: {}, spawn: { x: 0, z: 0, rot: 0 } }, { x: 0, z: 0, rot: 0 });
   engine.setTimeOfDay(13 * 60, false);
   // The bible-style character sheet of your kid, redrawn with every change.
@@ -263,6 +261,7 @@ export function showCreator(engine, onDone, slot = null) {
   refresh();
   engine.cinematic({ x: 0, z: 0 }, 3.3, { height: 1.2, spin: 0, angle: 0 }); // faces you; the player turns it
   engine.cine.look.y = 0.72;
+  engine.cine.turnPlayer = true; // the turn buttons spin your kid (front / back)
   engine.setPreviewMode(true);
 
   const ov = $('#overlay');

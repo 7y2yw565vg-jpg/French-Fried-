@@ -1,7 +1,7 @@
 // Boot: 3D engine, title screen, creator, then the game.
 import { knowledgeOn, applyKnowledge } from './game/knowledge.js';
 import { loadSlot } from './game/state.js';
-import { Engine } from './world3d/engine.js';
+import { Engine } from './world2d/engine.js';
 import { $, clear, modal, closeAllModals } from './ui/dom.js';
 import { showTitle, showCreator, stopTitleBackdrop, showcaseArena } from './ui/creator.js';
 import { Game } from './ui/game.js';
@@ -9,7 +9,7 @@ import { newGame, saveToStorage } from './game/state.js';
 import { ensureSeason } from './game/league.js';
 import { setVolume, startMusic } from './ui/audio.js';
 import { setupInput } from './ui/input.js';
-import { buildVenue } from './world3d/scenes.js';
+import { buildVenue } from './world2d/scenes.js';
 
 let engine;
 try {

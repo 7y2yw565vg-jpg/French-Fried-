@@ -1,7 +1,7 @@
 // The game controller: owns the save state, the current location, the clock,
 // kid presence/streaming, school periods, and routes interactions to UI modules.
 import { knowsName } from '../game/knowledge.js';
-import * as THREE from 'three';
+import * as THREE from '../world2d/three2d.js';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { LOCATIONS, NEIGHBORHOODS, HOOD_BY_NAME, TEACHERS, ADULTS, SPORTS, roomNumber } from '../data/world.js';
 import { saveToStorage, playerGrade, yearOf, heightOf, addLog, hasItem } from '../game/state.js';
@@ -14,9 +14,9 @@ import { practiceToday } from '../game/team.js';
 import { doHangout, missHangout } from '../game/social.js';
 import { pickupsFor, collectPickup, jobReady, mowJobs } from '../game/economy.js';
 import { playerGameThisWeek, ensureSeason, kitBottoms } from '../game/league.js';
-import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue, buildHilltop } from '../world3d/scenes.js';
-import { lookFromKid, adultLook } from '../world3d/kidModel.js';
-import { Builder } from '../world3d/toon.js';
+import { buildHome, buildNeighborhood, buildSchool, buildMall, buildLibrary, buildMuseum, buildGrocery, buildVenue, buildHilltop } from '../world2d/scenes.js';
+import { lookFromKid, adultLook } from '../world2d/looks.js';
+import { Builder } from '../world2d/build.js';
 import { $, h, clear, toast, modal, modalOpen, closeTopModal, ask } from './dom.js';
 import { Hud } from './hud.js';
 import { openTalk, openAdult } from './talk.js';

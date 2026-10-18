@@ -1,7 +1,7 @@
 // Game day: travel to the field, both teams in uniform, play-by-play playback
 // with ball movement, scoreboard, crowd, and clutch moments for the player.
 import { maybeOpenSignup } from './signup.js';
-import * as THREE from 'three';
+import * as THREE from '../world2d/three2d.js';
 import { $, h, clear, btn, modal, toast, money } from './dom.js';
 import { KIDS, KID_BY_ID } from '../data/kids.js';
 import { FIELDS, SPORTS, POSITIONS, RIVAL_COLORS } from '../data/world.js';
@@ -9,7 +9,7 @@ import { simGame, recordResult, forfeitResult, playerForfeitReason, simOtherGame
 import { getKid, kidGrade, heightOf, playerGrade } from '../game/state.js';
 import { dayInfo } from '../game/time.js';
 import { upgradeCap, homeGameRevenue } from '../game/team.js';
-import { lookFromKid, adultLook, ball as ballMesh } from '../world3d/kidModel.js';
+import { lookFromKid, adultLook, ball as ballMesh } from '../world2d/looks.js';
 import { clutch } from './minigames.js';
 import { playerLook } from './game.js';
 import { sfx, startCrowd, stopCrowd, crowdCheer, duckMusic } from './audio.js';

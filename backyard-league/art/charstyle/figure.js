@@ -352,7 +352,12 @@ export function renderCharacter(sp) {
   if (hatted && !['long straight', 'long wavy', 'bob', 'locs', 'box braids', 'braids', 'pigtails', 'ponytail', 'headband + ponytail', 'french braid', 'curly afro'].includes(sp.hairStyle)) hair.back = '';
   // arms
   const ak = sp.band === 'adult' ? 1.22 : 1;
-  const A = (d) => [CX + d * (T + 7), 200 + 0.11 * L]; const C = (d) => [CX + d * (T + 20), 200 + 0.225 * L * ak]; const W = (d) => [CX + d * (T + 36), 200 + 0.335 * L * ak];
+  // Walk pose (2D sprites): step in -1..1 lifts one foot and swings the opposite arm forward.
+  const step = (sp.pose && sp.pose.step) || 0;
+  const back = sp.view === 'back';
+  const lift = (d) => Math.max(0, step * d) * 20;
+  const swing = (d) => -step * d * 12;
+  const A = (d) => [CX + d * (T + 7), 200 + 0.11 * L]; const C = (d) => [CX + d * (T + 20), 200 + 0.225 * L * ak + swing(d) * 0.5]; const W = (d) => [CX + d * (T + 36 - Math.abs(swing(d)) * 0.4), 200 + 0.335 * L * ak + swing(d)];
   const armD = (d) => `M${r1(A(d)[0])} ${r1(A(d)[1])} Q${r1(C(d)[0])} ${r1(C(d)[1])} ${r1(W(d)[0])} ${r1(W(d)[1])}`;
   const hand = (d) => [W(d)[0] + d * 2, W(d)[1] + 16];
 
@@ -383,7 +388,7 @@ export function renderCharacter(sp) {
   const longBottom = ['jeans', 'track', 'slacks', 'scrubs'].includes(sp.bottom);
   const legCol = sp.bottom === 'skirt' ? sp.leggings : sp.bottom === 'leggings' ? sp.bottomColor : skin;
   {
-    for (const d of [-1, 1]) s += limb(`M${r1(CX + d * legX)} ${r1(crotchY - 10)} L${r1(CX + d * legX)} ${r1(G - 32)}`, lw, legCol[0], legCol[1], 6);
+    for (const d of [-1, 1]) s += limb(`M${r1(CX + d * legX)} ${r1(crotchY - 10)} L${r1(CX + d * legX)} ${r1(G - 32 - lift(d))}`, lw, legCol[0], legCol[1], 6);
     // knee details
     const kx = CX - legX; const ky = kneeY + 6;
     if (a('knee pads')) for (const d of [-1, 1]) s += `<rect x="${r1(CX + d * legX - lw / 2 - 4)}" y="${r1(ky - 12)}" width="${lw + 8}" height="24" rx="9" fill="${CLOTH.charcoal[0]}" stroke="${INK}" stroke-width="3"/>` + line(`M${r1(CX + d * legX - lw / 2)} ${r1(ky)} L${r1(CX + d * legX + lw / 2)} ${r1(ky)}`, sp.accent[0], 3);
@@ -393,10 +398,10 @@ export function renderCharacter(sp) {
     const tall = a('lucky socks');
     const sockTop = tall ? G - 78 : G - 52;
     if (!longBottom && sp.shoe !== 'rain') for (const d of [-1, 1]) {
-      s += limb(`M${r1(CX + d * legX)} ${r1(sockTop)} L${r1(CX + d * legX)} ${r1(G - 28)}`, lw, CLOTH.white[0], CLOTH.white[1], 6, 'butt');
+      s += limb(`M${r1(CX + d * legX)} ${r1(sockTop - lift(d))} L${r1(CX + d * legX)} ${r1(G - 28 - lift(d))}`, lw, CLOTH.white[0], CLOTH.white[1], 6, 'butt');
       if (tall) s += line(`M${r1(CX + d * legX - lw / 2)} ${r1(sockTop + 8)} l${lw} 0 M${r1(CX + d * legX - lw / 2)} ${r1(sockTop + 16)} l${lw} 0`, sp.accent[0], 4) + circle(CX + d * legX, sockTop + 30, 3.2, CLOTH.green[0]);
     }
-    for (const [i, d] of [[0, -1], [1, 1]]) s += shoeSvg(sp.shoe, CX + d * (legX + 1), G, sp.shoeUpper, sp.sole, i);
+    for (const [i, d] of [[0, -1], [1, 1]]) s += shoeSvg(sp.shoe, CX + d * (legX + 1), G - lift(d), sp.shoeUpper, sp.sole, i);
   }
 
   // ---------- bottoms
@@ -450,7 +455,7 @@ export function renderCharacter(sp) {
   let topSvg = '';
   const tShade = { shadeX: CX + T * 0.62, y0: 196, y1: hemTop };
   const emblCol = sp.second === CLOTH.white || sp.main === CLOTH.white ? (sp.main === CLOTH.white ? CLOTH.red[0] : CLOTH.white[0]) : sp.second[0];
-  const embl = (y) => (sp.bigEmblem ? `<g transform="translate(${CX} ${r1(y + 6)}) scale(2.1) translate(${-CX} ${r1(-y - 6)})">${emblemSvg(sp.emblem, CX, y + 6, emblCol)}</g>` : emblemSvg(sp.emblem, CX - T * 0.35, y, emblCol));
+  const embl = (y) => (back ? '' : sp.bigEmblem ? `<g transform="translate(${CX} ${r1(y + 6)}) scale(2.1) translate(${-CX} ${r1(-y - 6)})">${emblemSvg(sp.emblem, CX, y + 6, emblCol)}</g>` : emblemSvg(sp.emblem, CX - T * 0.35, y, emblCol));
   const rolled = a('rolled-up sleeves');
   switch (sp.top) {
     case 'raglan':
@@ -563,8 +568,8 @@ export function renderCharacter(sp) {
   // collar
   if (!['vest', 'polo', 'jersey', 'tank', 'dino', 'tie', 'suit', 'labcoat', 'scrubs', 'track', 'windbreaker', 'cardigan'].includes(sp.top)) s += line('M180 195 Q200 210 220 195', INK, 9) + line('M180 195 Q200 210 220 195', sp.top === 'raglan' ? sp.second[0] : sp.top === 'hoodie' ? sp.main[1] : sp.main[0], 4);
   // scarf / bandana
-  if (a('scarf')) s += shape(`M${CX - 30} 192 Q${CX} 212 ${CX + 30} 192 L${CX + 30} 206 Q${CX} 226 ${CX - 30} 206 Z`, sp.accent[0]) + shape(`M${CX - 22} 210 L${CX - 30} 262 L${CX - 12} 264 L${CX - 8} 214 Z`, sp.accent[0]) + line(`M${CX - 29} 240 L${CX - 12} 242 M${CX - 30} 252 L${CX - 12} 254 M${CX - 18} 197 L${CX - 18} 212 M${CX + 10} 199 L${CX + 10} 214`, sp.accent[1], 3);
-  if (a('bandana')) s += shape(`M${CX - 24} 194 Q${CX} 188 ${CX + 24} 194 L${CX + 12} 222 Q${CX} 232 ${CX - 12} 222 Z`, sp.accent[0]) + fillOnly(`M${CX + 14} 196 L${CX + 24} 194 L${CX + 12} 222 Q${CX + 6} 228 ${CX} 229 Q${CX + 10} 214 ${CX + 14} 196 Z`, sp.accent[1]) + [[-8, 204], [4, 210], [-4, 219], [10, 200]].map(([x, y]) => circle(CX + x, y, 2.2, CLOTH.white[0])).join('');
+  if (a('scarf') && !back) s += shape(`M${CX - 30} 192 Q${CX} 212 ${CX + 30} 192 L${CX + 30} 206 Q${CX} 226 ${CX - 30} 206 Z`, sp.accent[0]) + shape(`M${CX - 22} 210 L${CX - 30} 262 L${CX - 12} 264 L${CX - 8} 214 Z`, sp.accent[0]) + line(`M${CX - 29} 240 L${CX - 12} 242 M${CX - 30} 252 L${CX - 12} 254 M${CX - 18} 197 L${CX - 18} 212 M${CX + 10} 199 L${CX + 10} 214`, sp.accent[1], 3);
+  if (a('bandana') && !back) s += shape(`M${CX - 24} 194 Q${CX} 188 ${CX + 24} 194 L${CX + 12} 222 Q${CX} 232 ${CX - 12} 222 Z`, sp.accent[0]) + fillOnly(`M${CX + 14} 196 L${CX + 24} 194 L${CX + 12} 222 Q${CX + 6} 228 ${CX} 229 Q${CX + 10} 214 ${CX + 14} 196 Z`, sp.accent[1]) + [[-8, 204], [4, 210], [-4, 219], [10, 200]].map(([x, y]) => circle(CX + x, y, 2.2, CLOTH.white[0])).join('');
   if (a('giant backpack')) for (const d of [-1, 1]) s += limb(`M${r1(CX + d * (T - 8))} 202 L${r1(CX + d * (T - 2))} ${r1(armpit + 20)}`, 9, sp.accent[1], null);
   if (a('fanny pack')) s += line(`M${r1(CX - T - 6)} ${r1(waistY + 4)} L${r1(CX + T + 6)} ${r1(waistY + 4)}`, INK, 8) + line(`M${r1(CX - T - 6)} ${r1(waistY + 4)} L${r1(CX + T + 6)} ${r1(waistY + 4)}`, sp.accent[1], 4) + `<rect x="${CX - 26}" y="${r1(waistY - 8)}" width="52" height="26" rx="10" fill="${sp.accent[0]}" stroke="${INK}" stroke-width="3"/>` + line(`M${CX - 20} ${r1(waistY - 1)} L${CX + 20} ${r1(waistY - 1)}`, INK, 2);
 
@@ -598,7 +603,13 @@ export function renderCharacter(sp) {
       : 'M234 96 C244 108 246 120 246 126 C246 159 228 181 200 181 C224 171 238 152 238 126 C238 114 237 104 234 96 Z';
   if (sp.top === 'dino') s += shape('M144 140 C136 70 168 52 200 52 C232 52 264 70 256 140 C252 168 236 190 200 192 C164 190 148 168 144 140 Z', CLOTH.lime[0]) + fillOnly('M236 60 C258 76 262 110 256 140 C252 168 238 186 220 190 C240 172 248 140 244 104 Z', CLOTH.lime[1]);
   s += `<path d="${headD}" fill="${skin[0]}" stroke="${INK}" stroke-width="3.5"/>` + fillOnly(headShade, skin[1]);
-  s += faceSvg(sp, geo);
+  if (back) {
+    // Seen from behind: the back of the head is hair (unless bald), long hair hangs down the back.
+    if (!['bald', 'buzz cut'].includes(sp.hairStyle) && sp.top !== 'dino') {
+      s += `<path d="${headD}" fill="${sp.hair[0]}" stroke="${INK}" stroke-width="3.5"/>` + fillOnly(headShade, sp.hair[1]);
+      s += hair.back;
+    } else if (sp.hairStyle === 'buzz cut') s += `<path d="${headD}" fill="${sp.hair[0]}" opacity="0.55"/>`;
+  } else s += faceSvg(sp, geo);
   if (sp.top === 'dino') {
     s += shape('M154 110 C150 72 176 58 200 58 C224 58 250 72 246 110 C238 96 222 90 200 90 C178 90 162 96 154 110 Z', CLOTH.lime[0]);
     s += [[176, 56], [200, 46], [224, 56]].map(([x, y]) => shape(`M${x - 10} ${y + 8} L${x} ${y - 12} L${x + 10} ${y + 8} Z`, CLOTH.orange[0], 2.5)).join('');
@@ -606,8 +617,7 @@ export function renderCharacter(sp) {
   } else {
     s += hair.front + dyeLayer(sp.dye && sp.dye.kind, sp.dye && sp.dye.color, hair.tips);
   }
-  s += browsSvg(sp, ey);
-  s += headAccessories(sp, ey);
+  if (!back) { s += browsSvg(sp, ey); s += headAccessories(sp, ey); }
 
   const shift = 680 - ground;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 720" width="400" height="720" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(0 ${r1(shift)})">${s}</g></svg>`;

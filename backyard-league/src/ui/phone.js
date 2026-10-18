@@ -1,5 +1,5 @@
 // The phone: team management, kid notebook, field & staff, league, school, money, settings.
-import { OUTFIT } from '../world3d/toon.js';
+import { OUTFIT } from '../world2d/build.js';
 import { $, h, clear, btn, modal, toast, money, gradeChip } from './dom.js';
 import { KIDS, KID_BY_ID, kidName, shortName } from '../data/kids.js';
 import { PRIZES, SPORTS, POSITIONS, STAT_NAMES, STAT_CODES, UPGRADES, FIELDS, STAFF_ROLES, ADULTS, DRILLS, ITEMS, JOBS, CORE_SUBJECTS, roomNumber, GEAR, PLAYER_TRAIN_CAP } from '../data/world.js';

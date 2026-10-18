@@ -3,7 +3,7 @@ import { knowsName } from '../game/knowledge.js';
 import { $, h, clear, btn, toast, modal, money } from './dom.js';
 import { KID_BY_ID, kidName } from '../data/kids.js';
 import { ITEMS, STAFF_ROLES, ADULTS, SPORTS } from '../data/world.js';
-import { SKIN, HAIR, OUTFIT } from '../world3d/toon.js';
+import { SKIN, HAIR, OUTFIT } from '../world2d/build.js';
 import { routineKey, addFriendship, chat, chatTopics, giveGift, inviteCheck, invite, askWhatItTakes, parseHook, payHook, promiseStart, favorFor, acceptFavor, completeFavor, friendshipLabel, say, inviteHangout, doHangout, hasNumber } from '../game/social.js';
 import { formatTime } from '../game/time.js';
 import { kidGrade, addLog } from '../game/state.js';

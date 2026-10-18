@@ -6,7 +6,7 @@ import { STAT_NAMES } from '../data/world.js';
 import { availableDrills, runDrill, sprintTime, signKid, MAX_ROSTER } from '../game/team.js';
 import { addFriendship } from '../game/social.js';
 import { kidGrade, heightOf, playerGrade } from '../game/state.js';
-import { lookFromKid } from '../world3d/kidModel.js';
+import { lookFromKid } from '../world2d/looks.js';
 import { sfx } from './audio.js';
 
 export function startTryout(game) {

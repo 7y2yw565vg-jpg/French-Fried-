@@ -2,7 +2,7 @@
 // who passed, who shot, who saved it, where the runners went. The sim decides what
 // happens; this only shows it. (Everything goes through the director, so a future
 // "play it yourself" mode can hand the player's character to the controls instead.)
-import * as THREE from 'three';
+import * as THREE from '../world2d/three2d.js';
 
 const RIM_Y = 2.35;
 
