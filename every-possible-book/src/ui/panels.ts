@@ -259,7 +259,7 @@ function sealPanel(game: Game): Panel {
           sec.layer === 'shelf'
             ? `Sealed shelves multiply meaning by ${fmtMult(Math.sqrt(1 + s.floorShelves))}.`
             : sec.layer === 'floor'
-              ? `Sealed floors multiply meaning by ${fmtMult(Math.sqrt(1 + s.wingFloors) * (1 + 0.05 * s.floorsLifetime))}.`
+              ? `Sealed floors multiply meaning by ${fmtMult((1 + s.wingFloors) * (1 + 0.05 * s.floorsLifetime))}.`
               : `Wings multiply meaning by ${fmtMult(1 + s.wingsLifetime)} and floors by ${fmtMult(1 + 0.25 * s.wingsLifetime)}.`,
         );
         for (const u of sec.ups) {

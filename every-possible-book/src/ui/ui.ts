@@ -14,6 +14,7 @@ import { printPage } from '../core/text';
 import { LIBRARY_WORDS } from '../core/words';
 import { audio } from '../audio/audio';
 import { settings } from './settings';
+import { machinesBuilt as E_machines } from '../core/engine';
 import { C } from '../render/palette';
 
 export class UI {
@@ -56,11 +57,13 @@ export class UI {
     r.prophecy = h('div', { class: 'desk-book hidden' });
     r.overheard = h('ul', { class: 'overheard' });
     r.door = h('div', { class: 'small muted door-note' });
+    r.hint = h('div', { class: 'hint hidden' });
     this.desk = h(
       'aside',
       { class: 'desk' },
       h('div', { class: 'desk-title' }, 'The Desk'),
       r.readBtn,
+      r.hint,
       r.lucid,
       r.unread,
       r.prophecy,
@@ -158,6 +161,9 @@ export class UI {
       if (s.prophecy.active)
         r.prophecy.innerHTML = `<div class="desk-sub">The desk book</div><p>${s.prophecy.current ? `The librarian will buy <b>${escapeHtml((s.prophecy.currentName || '').replace(/^The /, 'the '))}</b> next.` : 'The page is blank. It is waiting to see what you look at.'}</p><div class="small muted">Fulfilled ${s.prophecy.fulfilled} · defied ${s.prophecy.defied}</div>`;
     }
+    const hint = this.hint();
+    toggle(r.hint, 'hidden', !hint);
+    if (hint) setText(r.hint, hint);
     setText(r.door, s.door > 0 ? `You have tried the door ${s.door === 1 ? 'once' : `${s.door} times`}.` : '');
 
     for (const p of this.panels) {
@@ -175,6 +181,21 @@ export class UI {
     const depth = Math.min(1, (s.shelfPrestiges > 0 ? 0.15 : 0) + s.floorPrestiges * 0.03 + s.wingPrestiges * 0.05 + (s.stacks ? 0.3 + s.stacks.level * 0.05 : 0));
     audio.setAtmosphere(depth, s.forbidden.dread / 100);
     this.scene.reducedMotion = settings.reducedMotion;
+  }
+
+  /** One line of advice for whoever is new here. Goes quiet once the library is running. */
+  private hint(): string {
+    const s = this.game.s;
+    const st = this.game.stats;
+    if (s.shelfPrestiges > 2 || s.floorPrestiges > 0) return '';
+    if (s.booksRead < 5) return 'The press has printed something. Click the shelves, or press Space, to read it.';
+    if (s.buildings.librarian === 0 && s.meaning >= 10) return 'Meaning buys machines. A librarian reads for you; another press prints faster.';
+    if (s.books >= st.capacity - 0.5 && st.printRate > 0 && s.buildings.bay < 3) return 'The shelves are full and the press has stopped. Build shelf bays, or read faster.';
+    if (st.readRate < st.printRate * 0.5 && s.buildings.librarian < 5) return 'Books are piling up faster than anyone can read them. Hire librarians.';
+    if (s.texts.unread.length > 0 && s.texts.found.length < 4) return 'A page that makes sense: open it below, or from the Archive.';
+    if (s.shelfPrestiges === 0 && s.runMeaning >= 1e4) return 'You could seal this shelf now (the Seal tab). You will forget it, and come back stronger.';
+    if (s.shelfPrestiges === 1 && E_machines(s) === 0) return 'Shelves buy translation machines, in the Seal tab. Assign them in Translation.';
+    return '';
   }
 
   /** The proof strip: a line of whatever the press is printing right now. */
@@ -207,7 +228,7 @@ export class UI {
       });
     }
     this.toasts.prepend(t);
-    while (this.toasts.children.length > 5) this.toasts.lastElementChild!.remove();
+    while (this.toasts.children.length > 3) this.toasts.lastElementChild!.remove();
     requestAnimationFrame(() => t.classList.add('in'));
     setTimeout(() => {
       t.classList.remove('in');
@@ -245,7 +266,7 @@ export class UI {
         break;
       case 'achievement': {
         const a = ACHIEVEMENTS.find((x) => x.id === e.id);
-        if (a) this.toast(`Achievement · <b>${escapeHtml(a.name)}</b><br><span class="muted">${escapeHtml(a.desc)}</span>`, { cls: 'ach' });
+        if (a) this.toast(`Achievement · <b>${escapeHtml(a.name)}</b>`, { cls: 'ach', ttl: 4500 });
         break;
       }
       case 'dread':

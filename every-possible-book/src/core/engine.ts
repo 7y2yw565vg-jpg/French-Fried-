@@ -115,7 +115,7 @@ export function computeStats(s: GameState): Stats {
   // Each layer's currency boosts meaning, but sub-linearly, so a layer's loop settles
   // rather than running away; the next layer is what breaks the plateau.
   global *= Math.sqrt(1 + s.floorShelves);
-  global *= Math.sqrt(1 + s.wingFloors) * (1 + 0.05 * s.floorsLifetime);
+  global *= (1 + s.wingFloors) * (1 + 0.05 * s.floorsLifetime);
   global *= 1 + s.wingsLifetime;
   for (const lang of LANGUAGES) global *= 1 + lang.weight * s.translation.fluency[lang.id];
   const openCount = SECTIONS.filter((x) => s.forbidden.open[x.id]).length;
@@ -134,7 +134,7 @@ export function computeStats(s: GameState): Stats {
   const fluencyRate = 0.0025 * mods.fluency;
   const forbiddenRate = mods.forbidden * (1 + 0.05 * b.nightreader);
   const dreadRate = Math.max(0.15, 1 - Math.min(0.85, mods.dreadResist));
-  const lucidInterval = 200 / mods.lucid;
+  const lucidInterval = 240 / mods.lucid;
   const puzzleTime = 60 + mods.puzzleTime;
   const offline = Math.min(1, 0.25 + mods.offline);
   const oilRegen = (1 + 0.25 * (s.stacks?.lanterns || 0)) * mods.oil;
@@ -346,9 +346,9 @@ export function gainMeaning(s: GameState, m: number): void {
 
 export const SHELF_EXP = 0.22;
 /** Floors and wings are logarithmic in the layer below, which keeps the tower from running away. */
-export const FLOOR_REQ = 1000;
+export const FLOOR_REQ = 1500;
 export const FLOOR_EXP = 2;
-export const WING_REQ = 50;
+export const WING_REQ = 35;
 export const WING_EXP = 2;
 
 export function shelfGain(s: GameState, mods = collectMods(s)): number {

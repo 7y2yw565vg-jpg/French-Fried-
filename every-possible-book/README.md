@@ -37,13 +37,13 @@ wheel zooms the library and dragging pans it.
 
 | Act | Layer | New system | Roughly |
 | --- | --- | --- | --- |
-| I. The Room | **Shelves**: seal the shelf to forget the run and keep shelves | Translation machines (6 alphabets, including your own handwriting reversed) | 0–2.5 h |
-| II. The Tower | **Floors**: seal every shelf on a floor and climb | The catalog: clerks write cards, drawers lend bonuses, searches pick the next page | 2.5–6.5 h |
-| III. The Wings | **Wings**: open a wing over nothing | Forbidden sections: read under dread, earn seven keys; the desk book starts predicting your purchases | 6.5–10 h |
+| I. The Room | **Shelves**: seal the shelf to forget the run and keep shelves | Translation machines (6 alphabets, including your own handwriting reversed) | 0–3 h |
+| II. The Tower | **Floors**: seal every shelf on a floor and climb | The catalog: clerks write cards, drawers lend bonuses, searches pick the next page | 3–7 h |
+| III. The Wings | **Wings**: open a wing over nothing | Forbidden sections: read under dread, earn seven keys; the desk book starts predicting your purchases | 7–10 h |
 | IV. The Stacks | — | Hex-gallery exploration seven levels down, lit by a lamp that keeps running dry | 10–11 h+ |
 
 The bot in `tests/bot.ts` plays near-optimally (it clicks three times a second, seals at the right
-moments, and solves 85% of every word hunt) and finishes in about 10.5 hours. A person reading the
+moments, and solves 85% of every word hunt) and finishes in just under 11 hours. A person reading the
 texts and exploring by feel will take longer. `tests/pacing.test.ts` fails the build if the curve moves
 outside its window.
 

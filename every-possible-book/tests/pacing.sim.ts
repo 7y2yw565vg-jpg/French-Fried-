@@ -4,6 +4,7 @@ import { newState } from '../src/core/state';
 import { computeStats } from '../src/core/engine';
 import { fmt, fmtTime } from '../src/core/format';
 import { Bot } from './bot';
+import { ALL_TEXTS } from '../src/content';
 
 const maxHours = Number(process.argv[2] || 20);
 const clicks = Number(process.argv[3] || 3);
@@ -26,3 +27,5 @@ while (s.playTime < maxHours * 3600 && !bot.done) {
 for (const l of bot.log) if (process.env.ALL || (!l.what.startsWith('shelf') && !l.what.startsWith('auto shelf'))) console.log(`${fmtTime(l.t).padStart(9)}  ${l.what}`);
 console.log(`\nFinished: ${bot.done} at ${fmtTime(s.playTime)}; texts found ${s.texts.found.length}; achievements ${Object.keys(s.achievements).length}`);
 console.log(`floor seals ${s.floorPrestiges}, shelf seals ${s.shelfPrestiges}, puzzles ${s.puzzlesSolved}`);
+const missing = ALL_TEXTS.filter((t) => !s.texts.found.includes(t.id)).map((t) => t.id);
+console.log(`never found (${missing.length}): ${missing.join(' ')}`);

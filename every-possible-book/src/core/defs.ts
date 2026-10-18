@@ -275,10 +275,10 @@ export const UPGRADES: UpgradeDef[] = [
   {
     id: 'mirror_glass',
     name: 'Reading Mirror',
-    desc: 'Lucid pages appear twice as often.',
+    desc: 'Lucid pages appear 50% more often.',
     flavor: 'Some words only make sense backwards.',
     cost: 5000,
-    mods: { lucid: 2 },
+    mods: { lucid: 1.5 },
     req: (s) => s.puzzlesSolved >= 1,
   },
   {
@@ -429,11 +429,11 @@ export const PRESTIGE_UPGRADES: PrestigeUpgradeDef[] = [
     id: 's_lucid',
     layer: 'shelf',
     name: 'Lucid Eye',
-    desc: (l) => `Lucid pages appear ${fmtMult(1 + 0.25 * l)} as often and give ${l * 5}s longer.`,
+    desc: (l) => `Lucid pages appear ${fmtMult(1 + 0.1 * l)} as often and give ${l * 5}s longer.`,
     flavor: 'Meaning has a shine to it, if you squint.',
     max: 8,
     cost: geo(2, 2),
-    mods: (l) => ({ lucid: 1 + 0.25 * l, puzzleTime: l * 5 }),
+    mods: (l) => ({ lucid: 1 + 0.1 * l, puzzleTime: l * 5 }),
   },
   {
     id: 's_patience',
@@ -605,11 +605,11 @@ export const PRESTIGE_UPGRADES: PrestigeUpgradeDef[] = [
     id: 'w_lantern',
     layer: 'wing',
     name: 'Shuttered Lanterns',
-    desc: (l) => `Forbidden sections are read ${fmtMult(1 + 0.2 * l)} as fast.`,
+    desc: (l) => `Forbidden sections are read ${fmtMult(1 + 0.15 * l)} as fast.`,
     flavor: 'Light, but only a sliver. Enough to read by. Not enough to be seen.',
     max: 10,
     cost: geo(2, 1.75),
-    mods: (l) => ({ forbidden: 1 + 0.2 * l }),
+    mods: (l) => ({ forbidden: 1 + 0.15 * l }),
   },
 ];
 
@@ -712,7 +712,7 @@ export const STACK_LEVELS = 7;
 export const STACK_RADIUS = 7;
 export const OIL_MAX = 5;
 /** Seconds to regenerate one measure of lamp oil, before bonuses. */
-export const OIL_REGEN = 80;
+export const OIL_REGEN = 95;
 
 export const STACK_LEVEL_NAMES = [
   'The First Gallery',

@@ -100,7 +100,7 @@ export class LibraryArt extends Container {
   }
 
   /** Redraws whatever changed. Cheap to call every frame. */
-  sync(s: GameState, fill: number, lucid: boolean, dread: number): void {
+  sync(s: GameState, fill: number, lucid: boolean): void {
     const L = this.computeLayout(s);
     const key = `${L.bays}|${L.floors}|${L.wings}|${s.shelfPrestiges}|${s.cycle}|${s.ending ?? ''}`;
     if (key !== this.key) {
@@ -120,7 +120,8 @@ export class LibraryArt extends Container {
     }
     this.lucid.visible = lucid;
     this.lucidGlow.visible = lucid;
-    this.windowLight.alpha = Math.min(0.25, dread * 0) + (s.flags.windowCrack ? 0.12 : 0);
+    // Scratch at the painted window long enough and a little afternoon gets in.
+    this.windowLight.alpha = s.flags.windowCrack ? 0.12 : 0;
   }
 
   private drawRoom(L: LibraryLayout, s: GameState): void {

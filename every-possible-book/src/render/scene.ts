@@ -6,7 +6,7 @@ import { libraryBias } from '../core/engine';
 import { C, FONT_SERIF } from './palette';
 import { LetterRain, installRainFonts } from './rain';
 import { LibraryArt, type LibraryHandlers } from './library';
-import { StacksView, hexToPixel } from './stacksView';
+import { StacksView } from './stacksView';
 import { verticalGradient, vignetteTexture } from './textures';
 
 export interface Viewport {
@@ -175,7 +175,7 @@ export class Scene {
       bounds = this.stacks.bounds(s);
     } else {
       const fill = st.capacity > 0 ? Math.min(1, s.books / st.capacity) : 0;
-      this.library.sync(s, fill, s.lucid.available, s.forbidden.dread / 100);
+      this.library.sync(s, fill, s.lucid.available);
       const printing = s.books < st.capacity - 0.5 ? st.printRate : 0;
       this.library.animate(dt, printing, this.reducedMotion);
       const b = this.library.bounds;
@@ -223,14 +223,6 @@ export class Scene {
     }
   }
 
-  /** Centres the stacks camera on the lamp again. */
-  focusStacks(): void {
-    const st = this.game.s.stacks;
-    if (!st) return;
-    const p = hexToPixel(st.pos.q, st.pos.r);
-    this.userPan = { x: 0, y: 0 };
-    void p;
-  }
 }
 
 export function lerpColor(a: number, b: number, t: number): number {
