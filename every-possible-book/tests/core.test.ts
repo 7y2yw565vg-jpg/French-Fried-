@@ -161,3 +161,16 @@ test('numbers read well', () => {
   assert.equal(spell(42), 'forty-two');
   assert.equal(spell(1), 'one');
 });
+
+test('a hidden window catches up on the time it missed', async () => {
+  const { Game } = await import('../src/game');
+  const g = new Game();
+  g.s.name = 'Ada';
+  const seen: string[] = [];
+  g.on((e) => seen.push(e.type));
+  g.update(0.05);
+  g.update(600);
+  assert.ok(g.s.playTime > 590, `play time ${g.s.playTime}`);
+  assert.ok(seen.includes('away'));
+  assert.ok(!seen.includes('sentence'));
+});

@@ -20,7 +20,8 @@ export type UiEvent =
   | { type: 'door' }
   | { type: 'ending'; ending: EndingId }
   | { type: 'reset' }
-  | { type: 'loaded'; offline: E.OfflineReport | null };
+  | { type: 'loaded'; offline: E.OfflineReport | null }
+  | { type: 'away'; seconds: number };
 
 type Listener = (e: UiEvent) => void;
 
@@ -51,6 +52,8 @@ export class Game {
     const saved = await loadGame();
     let offline: E.OfflineReport | null = null;
     if (saved) {
+      // A library saved mid-ending wakes at the Center, free to choose again.
+      saved.ending = null;
       this.s = saved;
       const away = (Date.now() - saved.lastSaved) / 1000;
       if (away > 60 && !saved.ending) {
@@ -78,8 +81,22 @@ export class Game {
 
   update(dt: number): void {
     if (this.paused || this.isNew) return;
-    this.acc += Math.min(dt, 1);
     const events: GameEvent[] = [];
+    if (dt > 2) {
+      // The window was hidden or asleep: catch up in coarse steps, keeping only the events
+      // that matter (a page found, a key, an achievement), not every sentence overheard.
+      let left = Math.min(dt, 4 * 3600);
+      const caught: GameEvent[] = [];
+      while (left > 0) {
+        const step = Math.min(left, 1);
+        E.tick(this.s, step, caught);
+        left -= step;
+      }
+      for (const e of caught) if (e.type !== 'sentence' && e.type !== 'lucid' && e.type !== 'lucidGone' && e.type !== 'shelvesFull') events.push(e);
+      if (dt > 60) this.emit({ type: 'away', seconds: dt });
+      dt = 0;
+    }
+    this.acc += Math.min(dt, 1);
     while (this.acc >= STEP) {
       this.acc -= STEP;
       E.tick(this.s, STEP, events);

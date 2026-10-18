@@ -85,7 +85,14 @@ export class Scene {
     );
     this.resize();
     window.addEventListener('resize', () => this.resize());
-    this.app.ticker.add((t) => this.frame(t.deltaMS / 1000));
+    // Pixi caps its delta at 100 ms, so measure real time ourselves: an idle game has to know
+    // how long the window was hidden.
+    let last = performance.now();
+    this.app.ticker.add(() => {
+      const now = performance.now();
+      this.frame((now - last) / 1000);
+      last = now;
+    });
   }
 
   resetView(): void {
@@ -142,11 +149,11 @@ export class Scene {
     this.burn = 0.001;
   }
 
-  private frame(dt: number): void {
-    dt = Math.min(dt, 0.1);
+  private frame(realDt: number): void {
+    const dt = Math.min(realDt, 0.1);
     const g = this.game;
     const s = g.s;
-    this.game.update(dt);
+    this.game.update(realDt);
     const st = g.stats;
 
     // Rain mood follows the library.

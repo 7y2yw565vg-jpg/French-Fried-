@@ -7,7 +7,7 @@ import { makePanels, type Panel } from './panels';
 import { initModals, openReader, openPuzzle, openModal, closeModal, modalOpen, confirmBox, openEnding, openOffline, FINAL_SENTENCE, FINAL_WORDS } from './modals';
 import { TEXT_BY_ID } from '../content';
 import { fillTemplate } from '../core/story';
-import { fmt, fmtInt, fmtRate } from '../core/format';
+import { fmt, fmtInt, fmtRate, fmtTime } from '../core/format';
 import { ACHIEVEMENTS } from '../core/achievements';
 import { SECTION_BY_ID, STACK_LEVEL_NAMES, BUILDINGS } from '../core/defs';
 import { printPage } from '../core/text';
@@ -322,6 +322,9 @@ export class UI {
         break;
       case 'loaded':
         if (e.offline && e.offline.seconds > 120) openOffline(e.offline.seconds, e.offline.meaning, e.offline.books);
+        break;
+      case 'away':
+        this.toast(`You looked away for ${fmtTime(e.seconds)}. The library did not.`, { ttl: 8000 });
         break;
       case 'reset':
         this.overheard = [];
