@@ -1,0 +1,43 @@
+{
+  "name": "unicorn",
+  "productName": "Unicorn",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An incremental startup game where every decision closes a door.",
+  "author": "French Fried! Team",
+  "license": "UNLICENSED",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/build.mjs --dev && http-server dist -p 8096 -c-1",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
+    "sim": "node scripts/test.mjs --sim",
+    "electron": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8",
+    "esbuild": "0.24.2",
+    "http-server": "14.1.1",
+    "typescript": "5.9.3"
+  },
+  "optionalDependencies": {
+    "steamworks.js": "0.4.0"
+  },
+  "build": {
+    "appId": "com.unicorn.game",
+    "productName": "Unicorn",
+    "directories": { "output": "release" },
+    "files": ["electron/**", "dist/**", "package.json"],
+    "asarUnpack": ["node_modules/steamworks.js/**"],
+    "win": { "target": ["dir", "nsis"] },
+    "mac": { "target": ["dir", "dmg"], "category": "public.app-category.simulation-games" },
+    "linux": { "target": ["dir", "AppImage"], "category": "Game" }
+  }
+}

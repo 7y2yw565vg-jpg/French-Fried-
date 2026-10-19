@@ -1,5 +1,7 @@
 # UNICORN (working title) — Game Design Document (v0.1)
 
+> **A playable prototype exists (M1: SaaS, Garage → Series A).** See [README.md](README.md) for what's implemented and where it differs from this document.
+
 > *Working title. Alternates: "Burn Rate", "Pivot", "Series Z", "Serial Founder".*
 
 **Platform:** Steam (Windows, Mac, Linux; Steam Deck Verified target)
