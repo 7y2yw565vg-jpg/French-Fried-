@@ -7,7 +7,10 @@ and spend it on Leo's skills and lair. Somewhere in the city, the legendary **Ni
 
 There is no combat. If you're caught, you restart the level.
 
-**Status:** planning. Nothing is built yet. Questions still to answer are in §15.
+**Status:** planning. Nothing is built yet. Decisions made so far are logged in §15.
+
+**Platforms:** web (playable in a browser, for playtests) and Steam (Windows, macOS, Linux).
+**Length:** 15–20 hours for the story, NightClaw Challenge included.
 
 ---
 
@@ -31,8 +34,8 @@ There is no combat. If you're caught, you restart the level.
  Spend Catnip: skills, stats, lair ◄── Black Market (sell loot) ◄── XP / level-ups
 ```
 
-1. **Plan** at the lair. Choose a heist from the city map and a difficulty, and read the intel your lair
-   upgrades have revealed.
+1. **Plan** at the lair. Choose a heist from the city map and read the intel your lair upgrades have
+   revealed, including whether a rival is after the same centrepiece (§5.2).
 2. **Heist.** Get in, steal as much as you dare, and reach an exit.
 3. **Newspaper.** Leo leaves his calling card, and the next morning's paper spins in from the centre of the
    screen.
@@ -67,8 +70,8 @@ There is no combat. If you're caught, you restart the level.
   option to skip.
 - **Overwatch-style stealth:** guard sight is checked *during* their move as well as at the end, so a
   guard who walks past an open doorway sees through it.
-- **Undo:** one undo per turn for a move that hasn't revealed anything new (an XCOM-like safety net). Off
-  on the hardest difficulty.
+- **Undo:** one undo per turn for a move that hasn't revealed anything new (an XCOM-like safety net).
+  Available on Casual and Professional only.
 
 ## 4. Stealth and detection
 
@@ -116,9 +119,13 @@ differently.
 
 - Caught means **restart the level**. There's a short comic "busted" sting first (the bulldog grins, Leo
   sighs).
-- **Checkpoints:** none by default. Optionally, an "Easy" difficulty adds one checkpoint at each stolen
-  objective (§15).
-- Anything stolen on a failed attempt is lost. What carries over is your *knowledge* of the level.
+- **Checkpoints:** on the two easier difficulties (Casual and Professional) every level has **one
+  checkpoint**. It's a fixed, authored spot about halfway through, usually just before the room with the
+  centrepiece, marked on the map by a chalk paw print. Reaching it saves Leo's position, the loot he's
+  carrying and the state of the level. Being caught after that restarts from the checkpoint instead of
+  the entrance. Mastermind and Legendary have no checkpoints.
+- Without a checkpoint, anything stolen on a failed attempt is lost. What carries over is your *knowledge*
+  of the level.
 
 ## 5. Security measures
 
@@ -142,19 +149,46 @@ differently.
 - Vents are the main **alternate routes**. Every objective should have at least one route through the
   vents and one on the floor.
 
-### 5.2 Rival thieves (occasional)
+### 5.2 Rival thieves (only when they want the same prize)
 
-Rivals show up in some heists as a third party. They don't fight Leo; they **compete** with him:
+Rivals are **not** on every level. A rival turns up only when they are **planning to steal the same
+centrepiece as Leo** that night. They don't fight Leo; it's a race for the prize.
 
-| Rival | Style |
+**When a rival appears**
+
+- When a heist becomes available, the game rolls once to decide whether a rival is after its
+  centrepiece. The chance starts at 0% for the first three heists after the tutorial, then about 20%,
+  rising to about 35% in the later districts. One rival at most per heist, never the same one twice in a
+  row.
+- The result is fixed until that heist is played, so reloading doesn't reroll it.
+- **Warnings at the lair:** the Rumour Board (part of the Planning Table) shows a rival's calling card
+  pinned to the heist, *"Word is Luna Luck has her eye on the Star of Siam."* Planning Table tier 2 also
+  shows which entrance the rival will use and when they arrive (for example, turn 6).
+- Rivals never appear in the tutorial, the challenge museum or NightClaw's Lair.
+
+**How the race works**
+
+- The rival enters on a set turn and follows their own route toward the centrepiece, taking turns after
+  the guards. The rival's path and their progress toward the prize are shown on screen.
+- Rivals are subject to the guards too: a bulldog who spots a rival raises the alert, which can work for
+  or against Leo.
+- **If Leo takes the centrepiece first**, the rival flees with a parting line, and the newspaper reports
+  that Leo beat them to it.
+- **If the rival takes it first**, it's gone for that attempt. Leo can still steal the rest and leave. The
+  newspaper credits the rival with the centrepiece. The level is marked *"centrepiece lost to a rival"*,
+  the rival won't come back for it, and Leo can replay the level to steal it himself.
+- Losing to a rival **never blocks the NightClaw Challenge**: the challenge only asks that Leo has stolen
+  each centrepiece at some point.
+
+| Rival | How they race |
 | --- | --- |
-| **Mischief Mittens** | Chaotic. Sets off alarms on purpose so the guards rush to one area, which can help *or* ruin you. |
-| **Luna Luck** | Lucky and fast. Heads straight for the most valuable item; if she gets there first, it's gone. |
-| **Sammy Swipes** | Pickpocket. Steals keycards and tools you've left lying around, and nicks loot from your stash point. |
-| **Professor Paws** | Planner. Disables some security ahead of you (helpful) but locks doors behind himself. |
+| **Mischief Mittens** | Chaotic. Sets off an alarm somewhere on purpose to pull guards away from her own route, which can help *or* ruin Leo. |
+| **Luna Luck** | Fast and lucky. Takes the most direct route and dodges guards a little too easily. The hardest to beat to the prize. |
+| **Sammy Swipes** | Pickpocket. Slower, but steals any keycard or tool Leo leaves lying on the way, sometimes the one Leo needed. |
+| **Professor Paws** | Planner. Disables security along his route (handy if Leo follows him), but locks doors behind himself. |
 
-Each rival has a brief comic exchange when first met, a rivalry track (how often you've beaten them), and
-newspaper coverage when they "win" a target.
+Each rival has a short comic exchange the first time Leo meets them, a rivalry record (races won and
+lost), and achievements for beating each one.
 
 ## 6. Loot, the black market and Catnip
 
@@ -172,6 +206,10 @@ newspaper coverage when they "win" a target.
     item).
   - You can **hold** items for a better market, or sell straight away.
 - **Catnip** is the only currency. It's spent on attributes, skills and the lair.
+- **Replays:** any finished level can be replayed. Its loot is back on display, but sells for **50% of
+  its value** after the first clear (the fences say it's "hot"). The centrepiece does count toward the
+  NightClaw Challenge on a replay. This lets players earn Catnip by replaying without making the economy
+  trivial.
 
 ## 7. Progression
 
@@ -204,7 +242,7 @@ Three trees, roughly 8 skills each, with prerequisites inside each tree:
   *EMP Collar* (lvl 18: disables every device in a radius for 1 turn).
 - **Acrobat:** *Pounce* (jump 2 tiles), *Ceiling Climb* (crawl along rafters as a second route),
   *Tightrope* (cross gaps), *Cat Nap* (lvl 15: wait out a guard's whole route while hidden), *Nine Lives*
-  (lvl 25: survive being caught once per heist on non-flawless difficulties).
+  (lvl 25: survive being caught once per heist; not on Legendary).
 
 ## 8. The lair
 
@@ -215,7 +253,7 @@ Three trees, roughly 8 skills each, with prerequisites inside each tree:
 
 | Room | Effect |
 | --- | --- |
-| **Planning Table** (Intel) | Before a heist, see more: tier 1 shows the floor plan and exits; tier 2 camera positions and cones; tier 3 guard routes and trap locations. |
+| **Planning Table** (Intel) | Before a heist, see more: tier 1 shows the floor plan, exits and the Rumour Board (which rival, if any, is after the centrepiece); tier 2 camera positions and cones, plus the rival's entrance and arrival turn; tier 3 guard routes and trap locations. |
 | **Workshop** | Gadget charges per heist (bottle caps, smoke pellets). |
 | **Fence's Office** | Better black-market prices; a second buyer. |
 | **Gym / Scratching Tower** | Cheaper attribute upgrades. |
@@ -257,7 +295,9 @@ Then the story runs in order:
    has been searching a long time for his equal. He sets **the NightClaw Challenge**:
    - Finish **every level** (25 at launch).
    - Steal each level's **centrepiece**.
-   - On higher difficulties, every centrepiece has to be stolen **flawlessly** (never detected and no alarms).
+   - On Mastermind and Legendary, every centrepiece has to be stolen in a **flawless** heist: never
+     detected, no alarms and no checkpoint used. A centrepiece stolen in a messy heist still counts for
+     the level, but that level has to be replayed flawlessly to tick it off the challenge.
 2. When the challenge is done, **Letter 4** arrives at the lair: an invitation to NightClaw's secret lair for a final
    test, to steal his *prized possession*. The letter doesn't say what it is.
 3. **NightClaw's Lair** appears on the city map as a new location. It's the hardest level in the game,
@@ -303,13 +343,20 @@ Each step can be repeated, and a "Tutorial hints" setting stays on for the first
 - Every level is **at night** and **grand**: high ceilings, chandeliers, display halls, gardens, roofs.
 - Each level has **6–12 pieces of loot**, a **centrepiece**, **2+ entry points**, **2+ exits**, a **vent
   network** and at least one **optional room** with a secret (a safe, a hidden gallery).
-- **Difficulty tiers** are set per heist: *Casual / Professional / Mastermind / Legendary*.
-  - Higher tiers add guards in carefully chosen positions, more cameras (including covering vent exits),
-    more traps, shorter sight-free windows, and less undo. Placement is **authored per tier**, not
-    random, so every tier still reads fairly.
-  - Rewards rise: loot value ×1 / ×1.4 / ×1.9 / ×2.5, XP likewise.
-  - The NightClaw Challenge needs *Mastermind* or above for "flawless" if the player picked a high
-    difficulty at the start (see §15).
+- **Difficulty is chosen once, when starting a new game**, and applies to every level in that save:
+  *Casual / Professional / Mastermind / Legendary*. It can't be changed later, so it is shown clearly on
+  the new-game screen. Each save keeps its own difficulty.
+
+| | Casual | Professional | Mastermind | Legendary |
+| --- | --- | --- | --- | --- |
+| Security | Base layout | + guards and cameras | + more guards, cameras covering vent exits, traps | Everything, tighter timings |
+| Checkpoint per level | Yes | Yes | No | No |
+| Undo per turn | Yes | Yes | No | No |
+| NightClaw Challenge | Steal every centrepiece | Steal every centrepiece | Steal every centrepiece flawlessly | Steal every centrepiece flawlessly |
+| Loot value and XP | ×1 | ×1.4 | ×1.9 | ×2.5 |
+
+  The extra guards, cameras and traps on harder difficulties are **placed by hand per level**, not at
+  random, so every difficulty still reads fairly.
 
 | District | Levels (working names) |
 | --- | --- |
@@ -332,14 +379,50 @@ avoided, and an escape that changes once an alarm trips.
   - Nighttime palette: indigo shadows, moonlight cyan, warm gold lamplight, ruby and emerald gem glints.
   - Displays get small shine animations; stolen items leave an obvious empty plinth.
 - **UI:** an Art Deco heist-poster look, with a "case file" for planning.
+
+### 12.1 Generated sprites: what to produce
+
+Sprites will be generated. To make them fit together in game, every sprite should follow these rules:
+
+- **Projection:** 2:1 isometric (the standard pixel-art "isometric" angle). Floor tiles are diamonds
+  **128 × 64 px**; a full-height wall piece is 128 × 192 px. Characters stand about 96 px tall, on a
+  canvas of **128 × 128 px** with the feet at the bottom centre.
+- **Format:** PNG with a transparent background, no drop shadows baked in (the game draws its own), lit
+  from the top left with a neutral night tone. The game adds the moonlight and lamplight on top.
+- **Four views:** because the camera rotates, characters need **4 facing directions** (north-east,
+  south-east, south-west, north-west). Walls and large props need **2 versions** (left-facing and
+  right-facing); symmetrical props need 1.
+- **Consistent style:** use one shared style prompt for everything (for example *"2D cartoon, clean
+  ink outlines, flat cel shading, film-noir night palette, Sly Cooper meets 1960s Disney"*) plus a
+  reference sheet of Leo, so the cats stay on model.
+
+| Group | Sprites | Animations (frames, at 12 fps) |
+| --- | --- | --- |
+| **Leo Tuxedo** | 4 directions | idle 6, walk 8, sneak 8, dash 6, crawl (vent) 8, pick lock 6, grab loot 6, hide 4, leave calling card 10, caught 8, victory pose 10 |
+| **Bulldog guards** (5 types) | 4 directions each | idle 6, walk 8, look around 8, suspicious "?" 4, alert "!" 4, run 6, sleep (Sleepy) 6, sniff (Sniffer) 6, catch 8 |
+| **Rivals** (4) | 4 directions each | idle 6, walk 8, sneak 8, grab 6, flee 6, taunt 8 |
+| **NightClaw** | 4 directions | idle 6, stalk 8, turn 4, reveal pose 10, retire 10 |
+| **Narrator** | portrait | 3 expressions for the tutorial and the opening |
+| **Tiles** | per district | 6–8 floor types (marble, parquet, carpet, tile, stone, metal grate), wall sets with doors, windows, archways and vent grates |
+| **Props** | ~150 | display cases (open, closed, empty), plinths, paintings in frames, chandeliers, statues, desks, crates, plants |
+| **Loot** | ~120 | an icon (64 × 64) plus an in-world sprite for every item, and a newspaper photo of each empty display |
+| **Security devices** | 4 directions where they turn | cameras, laser emitters, pressure plates, alarm panels, fuse boxes, vault doors |
+| **Screens** | painted | the city map (day and night), the lair at each of its upgrade stages, the newspaper template, NightClaw's letters, ending art |
+
+All files are named `group_name_direction_animation_frame.png` (for example `leo_se_walk_03.png`) and
+stored in `purrrfect-crime/art/`. A build script packs them into sprite sheets.
 - **Audio:** sneaky jazz (upright bass, brushed drums) that adds layers as suspicion rises, and switches to
   a big-band chase stinger when an alarm trips. Footstep sounds change with the floor type; bulldog snores
   and grumbles; the newspaper's spinning-press whoosh.
 
 ## 13. Tech plan
 
-- **Stack (proposed):** TypeScript + PixiJS 8, packaged with Electron for Steam, matching the repo's other
-  games. Desktop first; mouse + keyboard, with controller support later.
+- **Stack:** TypeScript + PixiJS 8, matching the repo's other games. **Two builds from one codebase:**
+  - **Web:** a static build served on the repo's GitHub Pages site at `/purrrfect-crime/`, saving to the
+    browser. This is the playtesting build. Generated sprites are packed into compressed atlases so it
+    loads quickly.
+  - **Steam:** the same build wrapped in Electron, with Steam achievements and cloud saves.
+  - Mouse and keyboard first, with touch for tablets in the web build and controller support later.
 - **Isometric renderer** with four rotation states. Tiles, walls and props are sorted per rotation, walls
   are cut away by occluding Leo, and floors and the vent layer draw as layers.
 - **Pure game-logic core** (no rendering): grid, AP, pathfinding (A* on tiles with move costs), sight
@@ -368,17 +451,26 @@ avoided, and an escape that changes once an alarm trips.
 | **M5** | Endgame | NightClaw Challenge tracking, Letter 4, NightClaw's Lair, ending, credits, post-game. |
 | **M6** | Ship | Steam (achievements, cloud saves), settings, accessibility, balance pass with the solver bot, polish. |
 
-## 15. Open questions
+The web build goes live from M0 onward, so every milestone can be playtested from a link.
 
-1. **Art pipeline:** hand-drawn sprites (needs an artist or generated art) or code-drawn vector art like
-   the repo's other games? This decides how "animated" the cats can look.
-2. **Difficulty and the NightClaw Challenge:** is difficulty chosen once at the start (like XCOM), or per
-   heist? The "flawless on harder difficulties" rule needs one of these.
-3. **Checkpoints:** strict restart-on-caught at every tier, or one checkpoint per objective on the easiest
-   tier?
-4. **Rival outcomes:** if Luna Luck takes the centrepiece first, can the level still count toward the
-   NightClaw Challenge on a replay? (Proposal: yes, rivals never block the challenge permanently.)
-5. **Replay economy:** can levels be replayed for loot indefinitely (with loot respawning)? Proposal: yes,
-   at reduced value after the first clear, so Catnip can be grinded without trivialising the game.
-6. **Platforms:** desktop/Steam only, or also a web build for quick playtesting like the other games here?
-7. **Length target:** roughly 15–20 hours for the story, NightClaw Challenge included?
+**Length budget (15–20 hours):**
+
+| Part | Hours |
+| --- | --- |
+| Tutorial, opening, lair | 0.5 |
+| First pass through the 25 levels (about 25–30 minutes each, including restarts) | 11–12 |
+| Replays for loot, centrepieces lost to rivals, skill grinding | 2–4 |
+| NightClaw Challenge clean-up (flawless replays on harder difficulties) | 1–2 |
+| Challenge museum and NightClaw's Lair | 1–1.5 |
+
+## 15. Decisions log
+
+| # | Question | Decision |
+| --- | --- | --- |
+| 1 | Art pipeline | **Generated sprites**, following the spec in §12.1. |
+| 2 | Difficulty | **Chosen once for the whole game** when starting a new save (§11). |
+| 3 | Checkpoints | **One checkpoint per level on the easier difficulties** (Casual and Professional); none on Mastermind or Legendary (§4.4). |
+| 4 | Rivals | **Only appear when they're after the same centrepiece** as Leo, warned about at the lair. Losing a race never blocks the NightClaw Challenge (§5.2). |
+| 5 | Replays | **Yes**, loot is back on display at 50% value after the first clear (§6). |
+| 6 | Platforms | **Both** a web build and a Steam build (§13). |
+| 7 | Length | **15–20 hours** (§14). |
