@@ -97,10 +97,9 @@ The code has no runtime dependencies. It is plain ES modules:
 
 ## Also in this repository
 
-- **[Every Possible Book](every-possible-book/)**: an incremental game with word puzzles and literary
-  horror (TypeScript + PixiJS, Electron for Steam). A librarian, a press that prints random letters, and
-  a library that slowly starts describing the person reading it. The Pages build serves it at
-  `/every-possible-book/`.
+- **[Purrrfect Crime](purrrfect-crime/)** (planning): a turn-based isometric stealth heist game. Leo Tuxedo, a
+  newcomer cat burglar, robs museums at night under the nose of bulldog guards and the legendary NightClaw.
+  See the [design doc](purrrfect-crime/GAME_DESIGN.md).
 - **[Unicorn](unicorn/)** (working title, prototype): an incremental startup game where every decision closes
   doors. The M1 prototype plays one SaaS company from the garage to Series A; the
   [design doc](unicorn/GAME_DESIGN.md) covers six product categories, permanent forks for product, pricing,
